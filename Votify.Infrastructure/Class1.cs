@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Votify.Infrastructure
+﻿namespace Votify.Infrastructure
 {
     public class Class1
     {
+
     }
 }
