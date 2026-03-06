@@ -16,4 +16,13 @@ public class AppDbContext : DbContext
 
     // Aquí se registran las tablas de la base de datos
     public DbSet<Usuario> Usuarios { get; set; }
+    public DbSet<Voto> Votos { get; set; }
+    public DbSet<Votacion> Votaciones { get; set; }
+    public DbSet<Rol> Roles { get; set; }
+    public DbSet<Resultado> Resultados { get; set; }
+    public DbSet<Proycto> Proyecctos { get; set; }
+    public DbSet<Evento> Eventos { get; set; }
+    public DbSet<Categoria> Categorias { get; set; }
+    public DbSet<DimensionesDeValor> DimensionesDeValor { get; set; }
+
 }
