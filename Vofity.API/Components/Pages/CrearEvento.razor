@@ -1,0 +1,59 @@
+﻿@page "/crearEvento"
+<h3>Eventos</h3>
+
+<PageTitle>CrearEvento</PageTitle>
+<div>
+    <input type="text" placeholder="Buscar eventos..." style="width:400px; height:35px" />
+    <select style="height:35px">
+        <option>Hackaton</option>
+        <option>Futbolín</option>
+    </select>
+</div>
+
+<div>
+    <table style="border-collapse:separate; border-spacing:25px">
+        <thread>
+            <tr>
+                <th>Evento</th>
+                <th>Categoría</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Editar</th>
+                <th>Borrar</th>
+            </tr>
+        </thread>
+        <tbody>
+            <tr>
+                <td>Pequeños Informáticos</td>
+                <td>Hackaton</td>
+                <td>13/12/2006</td>
+                <td>14/12/2006</td>
+                <td><button>Editar</button></td>
+                <td><button>Borrar</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div style="border:1px solid black; padding:15px">
+    <h3 style="font-size:large">Crear o editar evento</h3>
+    <hr style="height:3px; background-color:black; border:none">
+    <div>
+        <label>Título:</label>
+        <input type="text" placeholder="Título del evento..." style="width:400px; height:35px" />
+    </div>
+
+    <div>
+        <label>Categoría:</label>
+        <select style="height:35px">
+            <option>Hackaton</option>
+            <option>Futbolín</option>
+        </select>
+        <label>Fecha de inicio</label>
+        <input type="date" @bind="fechaAct"/>
+    </div>
+</div>
+
+@code {
+    DateTime fechaAct = DateTime.Today;
+}
