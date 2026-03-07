@@ -1,17 +1,25 @@
 ﻿@page "/crearEvento"
 <h3>Eventos</h3>
 
+<style>
+    body {
+        min-width: 1120px;
+        min-height: 600px;
+    }
+</style>
+
 <PageTitle>CrearEvento</PageTitle>
-<div>
-    <input type="text" placeholder="Buscar eventos..." style="width:400px; height:35px" />
+<div style="display:flex; justify-content:space-between; gap:15px">
+    <input type="text" placeholder="Buscar eventos..." style="flex:1; height:35px" />
     <select style="height:35px">
         <option>Hackaton</option>
         <option>Futbolín</option>
     </select>
+    <button>Buscar</button>
 </div>
 
-<div>
-    <table style="border-collapse:separate; border-spacing:25px">
+<div style="display:flex; justify-content:space-between; gap:15px">
+    <table style="border-collapse:separate; border-spacing:15px; flex:1">
         <thread>
             <tr>
                 <th>Evento</th>
@@ -19,7 +27,6 @@
                 <th>Fecha Inicio</th>
                 <th>Fecha Fin</th>
                 <th>Editar</th>
-                <th>Borrar</th>
             </tr>
         </thread>
         <tbody>
@@ -29,7 +36,13 @@
                 <td>13/12/2006</td>
                 <td>14/12/2006</td>
                 <td><button>Editar</button></td>
-                <td><button>Borrar</button></td>
+            </tr>
+            <tr>
+                <td>Torneo de futbolín</td>
+                <td>Futbolín</td>
+                <td>13/02/2006</td>
+                <td>14/02/2006</td>
+                <td><button>Editar</button></td>
             </tr>
         </tbody>
     </table>
@@ -38,22 +51,48 @@
 <div style="border:1px solid black; padding:15px">
     <h3 style="font-size:large">Crear o editar evento</h3>
     <hr style="height:3px; background-color:black; border:none">
-    <div>
+    <div style="display:flex; justify-content:space-between; gap:15px">
         <label>Título:</label>
-        <input type="text" placeholder="Título del evento..." style="width:400px; height:35px" />
+        <input type="text" placeholder="Título del evento..." style="flex:1; height:35px" />
     </div>
-
-    <div>
-        <label>Categoría:</label>
-        <select style="height:35px">
-            <option>Hackaton</option>
-            <option>Futbolín</option>
-        </select>
-        <label>Fecha de inicio</label>
-        <input type="date" @bind="fechaAct"/>
+    <br>
+    <div style ="display:flex; justify-content:space-between; gap:15px">
+        <div>
+            <label>Categoría:</label>
+            <select style="height:35px">
+                <option>Hackaton</option>
+                <option>Futbolín</option>
+            </select>
+        </div>
+        <div>
+            <label>Fecha de inicio:</label>
+            <input type="date" @bind="fechaAct" />
+        </div>
+    </div>
+    <br>
+    <div style="display:flex; justify-content:space-between; gap:15px">
+        <div>
+            <label style="vertical-align: top">Descripción:</label>
+            <textarea placeholder="Descripción..." style="width:400px; height:70px" />
+        </div>
+        <div>
+            <label style="vertical-align: top">Fecha de cierre:</label>
+            <input type="date" style="vertical-align: top" @bind="fechaMañana" />
+        </div>
+    </div>
+    <br>
+    <div style="display:flex; justify-content:space-between; gap:15px">
+        <div>
+            <button>Eliminar</button>
+        </div>
+        <div>
+            <button>Archivar</button>
+            <button>Crear Evento</button>
+        </div>
     </div>
 </div>
 
 @code {
     DateTime fechaAct = DateTime.Today;
+    DateTime fechaMañana = DateTime.Today.AddDays(1);
 }
