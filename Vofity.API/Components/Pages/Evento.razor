@@ -1,4 +1,4 @@
-﻿@page "/crearEvento"
+﻿@page "/Evento"
 <h3>Eventos</h3>
 
 <style>
@@ -8,14 +8,14 @@
     }
 </style>
 
-<PageTitle>CrearEvento</PageTitle>
+<PageTitle>Evento</PageTitle>
 <div style="display:flex; justify-content:space-between; gap:15px">
     <input type="text" placeholder="Buscar eventos..." style="flex:1; height:35px" />
     <select style="height:35px">
         <option>Hackaton</option>
         <option>Futbolín</option>
     </select>
-    <button>Buscar</button>
+    <button @onclick='() => BuscarEventos()'>Buscar</button>
 </div>
 
 <div style="display:flex; justify-content:space-between; gap:15px">
@@ -35,14 +35,14 @@
                 <td>Hackaton</td>
                 <td>13/12/2006</td>
                 <td>14/12/2006</td>
-                <td><button>Editar</button></td>
+                <td><button @onclick='() => EditarEvento()'>Editar</button></td>
             </tr>
             <tr>
                 <td>Torneo de futbolín</td>
                 <td>Futbolín</td>
                 <td>13/02/2006</td>
                 <td>14/02/2006</td>
-                <td><button>Editar</button></td>
+                <td><button @onclick='() => EditarEvento()'>Editar</button></td>
             </tr>
         </tbody>
     </table>
@@ -83,11 +83,11 @@
     <br>
     <div style="display:flex; justify-content:space-between; gap:15px">
         <div>
-            <button>Eliminar</button>
+            <button @onclick='() => EliminarEvento()'>Eliminar</button>
         </div>
         <div>
-            <button>Archivar</button>
-            <button>Crear Evento</button>
+            <button @onclick='() => ArchivarEvento()'>Archivar</button>
+            <button @onclick='() => CrearEvento()'>Crear Evento</button>
         </div>
     </div>
 </div>
@@ -95,4 +95,29 @@
 @code {
     DateTime fechaAct = DateTime.Today;
     DateTime fechaMañana = DateTime.Today.AddDays(1);
+
+    void BuscarEventos()
+    {
+        //Completar
+    }
+
+    void EditarEvento()
+    {
+        //Completar
+    }
+
+    void EliminarEvento()
+    {
+        //Completar
+    }
+
+    void ArchivarEvento()
+    {
+        //Completar
+    }
+
+    void CrearEvento()
+    {
+        //Completar
+    }
 }
