@@ -1,10 +1,12 @@
 ﻿@page "/Login"
+@rendermode InteractiveServer
 @using Votify.Core.Interfaces
-@inject ILoginWindow LoginWindow
+@inject ILogin LoginWindow
+@inject ILogger<Login> Logger
 
 <h3>Iniciar Sesión</h3>
 
-<EditForm Model="@modelo" OnValidSubmit="LoginUsuario">
+<EditForm Model="@modelo" OnValidSubmit="LoginUsuario" FormName="loginForm">
     <div>
         <label>Usuario</label>
         <InputText @bind-Value="modelo.Usuario" /> 
@@ -30,19 +32,20 @@
 
     private async Task LoginUsuario()
     {
-        /*var resultado = await LoginWindow.ValidarUsuario(modelo.Usuario, modelo.Password);
-         * 
-        if (resultado.Exitoso)
+
+        var resultado = await LoginWindow.ValidarUsuarioAsync(modelo.Usuario, modelo.Password);
+         
+        if (resultado)
         {
             mensaje = "¡Login correcto!";
             loginExitoso = true;
             }
         else
         {
-            mensaje = resultado.MensajeError;
+            mensaje = "Usuario o contraseña incorrectos";
             loginExitoso = false;
             }
-        */
+        
     }
     public class LoginModel
     {
