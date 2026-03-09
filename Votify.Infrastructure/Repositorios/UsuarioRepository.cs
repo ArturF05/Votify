@@ -24,5 +24,17 @@ namespace Votify.Infrastructure.Repositorios
             return await _context.Usuario
                 .FirstOrDefaultAsync(u => u.Nombre == usuario && u.Password == password);
         }
+
+        public async Task<Usuario?> ObtenerPorNombreAsync(string nombre)
+        {
+            return await _context.Usuario
+                .FirstOrDefaultAsync(u => u.Nombre == nombre);
+        }
+
+        public async Task CrearUsuarioAsync(Usuario usuario)
+        {
+            await _context.Usuario.AddAsync(usuario);
+            await _context.SaveChangesAsync();
+        }
     }
 }
