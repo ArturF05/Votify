@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Votify.Core": {
+      "commandName": "Project"
+    },
+    "Perfil 1": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\34670\\Documents\\Proyecto-DDS-PSW\\ProyectoVotify\\Program.cs"
+    }
+  }
+}
