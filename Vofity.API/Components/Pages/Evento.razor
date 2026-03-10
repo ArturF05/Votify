@@ -1,26 +1,21 @@
 ﻿@page "/Evento"
 <h3>Eventos</h3>
 
-<style>
-    body {
-        min-width: 1120px;
-        min-height: 600px;
-    }
-</style>
-
 <PageTitle>Evento</PageTitle>
-<div style="display:flex; justify-content:space-between; gap:15px">
-    <input type="text" placeholder="Buscar eventos..." style="flex:1; height:35px" />
-    <select style="height:35px">
+<h1 class="titulo">Hola</h1>
+<div>
+    <input type="text" placeholder="Buscar eventos..." />
+    <select>
         <option>Hackaton</option>
         <option>Futbolín</option>
     </select>
     <button @onclick='() => BuscarEventos()'>Buscar</button>
 </div>
 
-<div style="display:flex; justify-content:space-between; gap:15px">
-    <table style="border-collapse:separate; border-spacing:15px; flex:1">
-        <thread>
+<!-- ESTO CAMBIA. QUE SEA VARIABLE PARA LOS EVENTOS QUE HAYA -->
+<div>
+    <table>
+        <thead>
             <tr>
                 <th>Evento</th>
                 <th>Categoría</th>
@@ -28,38 +23,39 @@
                 <th>Fecha Fin</th>
                 <th>Editar</th>
             </tr>
-        </thread>
+        </thead>
         <tbody>
             <tr>
                 <td>Pequeños Informáticos</td>
                 <td>Hackaton</td>
                 <td>13/12/2006</td>
                 <td>14/12/2006</td>
-                <td><button @onclick='() => EditarEvento()'>Editar</button></td>
+                <td><button class="editarBtn" @onclick='() => EditarEvento()'>Editar</button></td>
             </tr>
             <tr>
                 <td>Torneo de futbolín</td>
                 <td>Futbolín</td>
                 <td>13/02/2006</td>
                 <td>14/02/2006</td>
-                <td><button @onclick='() => EditarEvento()'>Editar</button></td>
+                <td><button class="editarBtn" @onclick='() => EditarEvento()'>Editar</button></td>
             </tr>
         </tbody>
     </table>
 </div>
 
-<div style="border:1px solid black; padding:15px">
-    <h3 style="font-size:large">Crear o editar evento</h3>
-    <hr style="height:3px; background-color:black; border:none">
-    <div style="display:flex; justify-content:space-between; gap:15px">
+<!-- AL EDITAR SE AUTOCOMPLETA -->
+<div class="card">
+    <h3>Crear o editar evento</h3>
+    <hr>
+    <div class="form-row">
         <label>Título:</label>
-        <input type="text" placeholder="Título del evento..." style="flex:1; height:35px" />
+        <input type="text" placeholder="Título del evento..." />
     </div>
     <br>
-    <div style ="display:flex; justify-content:space-between; gap:15px">
+    <div class="form-row">
         <div>
             <label>Categoría:</label>
-            <select style="height:35px">
+            <select>
                 <option>Hackaton</option>
                 <option>Futbolín</option>
             </select>
@@ -70,18 +66,18 @@
         </div>
     </div>
     <br>
-    <div style="display:flex; justify-content:space-between; gap:15px">
+    <div>
         <div>
-            <label style="vertical-align: top">Descripción:</label>
-            <textarea placeholder="Descripción..." style="width:400px; height:70px" />
+            <label>Descripción:</label>
+            <textarea placeholder="Descripción..." />
         </div>
         <div>
-            <label style="vertical-align: top">Fecha de cierre:</label>
-            <input type="date" style="vertical-align: top" @bind="fechaMañana" />
+            <label>Fecha de cierre:</label>
+            <input type="date" @bind="fechaMañana" />
         </div>
     </div>
     <br>
-    <div style="display:flex; justify-content:space-between; gap:15px">
+    <div>
         <div>
             <button @onclick='() => EliminarEvento()'>Eliminar</button>
         </div>
