@@ -8,5 +8,6 @@ namespace Votify.Core.Interfaces
 {
     internal interface IProyectoService
     {
+
     }
 }
