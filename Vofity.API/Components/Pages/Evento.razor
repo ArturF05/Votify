@@ -1,9 +1,8 @@
 ﻿@page "/Evento"
-<h3>Eventos</h3>
+<h2 class="titulo">Eventos</h2>
 
 <PageTitle>Evento</PageTitle>
-<h1 class="titulo">Hola</h1>
-<div>
+<div class="barra-busqueda">
     <input type="text" placeholder="Buscar eventos..." />
     <select>
         <option>Hackaton</option>
@@ -14,7 +13,7 @@
 
 <!-- ESTO CAMBIA. QUE SEA VARIABLE PARA LOS EVENTOS QUE HAYA -->
 <div>
-    <table>
+    <table class="tabla-eventos">
         <thead>
             <tr>
                 <th>Evento</th>
@@ -30,60 +29,57 @@
                 <td>Hackaton</td>
                 <td>13/12/2006</td>
                 <td>14/12/2006</td>
-                <td><button class="editarBtn" @onclick='() => EditarEvento()'>Editar</button></td>
+                <td><button class="boton-editar" @onclick='() => EditarEvento()'>Editar</button></td>
             </tr>
             <tr>
                 <td>Torneo de futbolín</td>
                 <td>Futbolín</td>
                 <td>13/02/2006</td>
                 <td>14/02/2006</td>
-                <td><button class="editarBtn" @onclick='() => EditarEvento()'>Editar</button></td>
+                <td><button class="boton-editar" @onclick='() => EditarEvento()'>Editar</button></td>
             </tr>
         </tbody>
     </table>
 </div>
 
 <!-- AL EDITAR SE AUTOCOMPLETA -->
-<div class="card">
+<div class="form-evento">
     <h3>Crear o editar evento</h3>
-    <hr>
-    <div class="form-row">
+    <hr class="linea">
+    <div class="campo">
         <label>Título:</label>
         <input type="text" placeholder="Título del evento..." />
     </div>
-    <br>
-    <div class="form-row">
-        <div>
+
+    <div class="form-grid">
+        <div class="campo">
             <label>Categoría:</label>
             <select>
                 <option>Hackaton</option>
                 <option>Futbolín</option>
             </select>
         </div>
-        <div>
+        <div class="campo campo-derecha">
             <label>Fecha de inicio:</label>
             <input type="date" @bind="fechaAct" />
         </div>
-    </div>
-    <br>
-    <div>
-        <div>
+        <div class="campo">
             <label>Descripción:</label>
-            <textarea placeholder="Descripción..." />
+            <textarea placeholder="Descripción..."></textarea>
         </div>
-        <div>
+        <div class="campo campo-derecha">
             <label>Fecha de cierre:</label>
             <input type="date" @bind="fechaMañana" />
         </div>
     </div>
-    <br>
-    <div>
+
+    <div class="botones">
         <div>
-            <button @onclick='() => EliminarEvento()'>Eliminar</button>
+            <button class="boton-secundario" @onclick='() => EliminarEvento()'>Eliminar</button>
         </div>
         <div>
-            <button @onclick='() => ArchivarEvento()'>Archivar</button>
-            <button @onclick='() => CrearEvento()'>Crear Evento</button>
+            <button class="boton-secundario" @onclick='() => ArchivarEvento()'>Archivar</button>
+            <button class="boton-principal" @onclick='() => CrearEvento()'>Crear Evento</button>
         </div>
     </div>
 </div>
