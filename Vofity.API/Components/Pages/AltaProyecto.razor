@@ -1,0 +1,67 @@
+﻿@page "/AltaProyecto"
+@using System.ComponentModel.DataAnnotations
+@using Votify.Core.Interfaces
+@using Votify.Core.DTOs
+@inject IProyectoService ProyectoService
+
+<h3>Dar de alta proyecto</h3>
+
+<EditForm Model="@modelo" OnValidSubmit="CrearProyecto">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Nombre</label>
+        <InputText @bind-Value="modelo.Nombre" />
+    </div>
+
+    <div>
+        <label>Descripción</label>
+        <InputTextArea @bind-Value="modelo.Descripcion" />
+    </div>
+
+    <div>
+        <label>Fecha de inicio</label>
+        <InputDate @bind-Value="modelo.FechaInicio" />
+    </div>
+
+    <div>
+        <label>Fecha de fin</label>
+        <InputDate @bind-Value="modelo.FechaFin" />
+    </div>
+
+    <button type="submit">Crear proyecto</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(mensaje))
+{
+    <p style="color: @(altaExitosa ? "green" : "red")">@mensaje</p>
+}
+
+@code {
+    private CrearProyectoDto modelo = new();
+    private string mensaje = "";
+    private bool altaExitosa = false;
+
+    private async Task CrearProyecto()
+    {
+        var resultado = await ProyectoService.CrearProyecto(
+            modelo.Nombre,
+            modelo.Descripcion,
+            modelo.FechaInicio,
+            modelo.FechaFin
+        );
+
+        if (resultado)
+        {
+            mensaje = "Proyecto creado correctamente.";
+            altaExitosa = true;
+            modelo = new CrearProyectoDto();
+        }
+        else
+        {
+            mensaje = "No se pudo crear el proyecto.";
+            altaExitosa = false;
+        }
+    }
+}
