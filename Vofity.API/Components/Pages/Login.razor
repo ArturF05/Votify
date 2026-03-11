@@ -4,6 +4,8 @@
 @using Votify.Core.Interfaces
 @inject ILogin LoginWindow
 @inject NavigationManager Navigation
+@using System.ComponentModel.DataAnnotations;
+
 
 <div class="login-container">
     <div class="login-card">
@@ -18,22 +20,12 @@
         <EditForm Model="@modelo" OnValidSubmit="LoginUsuario" FormName="loginForm" class="login-form">
             <DataAnnotationsValidator />
             <ValidationSummary />
+
+
             @if (!string.IsNullOrEmpty(mensaje))
             {
                 <div class="alert @(loginExitoso ? "alert-success" : "alert-error")">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        @if (loginExitoso)
-                        {
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                            <polyline points="22 4 12 14.01 9 11.01" />
-                        }
-                        else
-                        {
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="12" y1="8" x2="12" y2="12" />
-                            <line x1="12" y1="16" x2="12.01" y2="16" />
-                        }
-                    </svg>
+                    <img src="/Images/Alerta-Icono.png" alt="Alerta" class="Alerta-img" />
                     <span>@mensaje</span>
                 </div>
             }
@@ -51,6 +43,7 @@
             <button type="submit" class="btn-primary" disabled="@isLoading">
                 @if (isLoading)
                 {
+                    
                     <span class="spinner"></span>
                     <span>Verificando...</span>
                 }
@@ -75,6 +68,8 @@
 
     private async Task LoginUsuario()
     {
+        if (isLoading) return;
+
         isLoading = true;
         mensaje = "";
 
@@ -98,8 +93,9 @@
 
     public class LoginModel
     {
-       
+        [Required(ErrorMessage = "El usuario es obligatorio")]
         public string Usuario { get; set; } = "";
+        [Required(ErrorMessage = "La contraseña es obligatoria")]
         public string Password { get; set; } = "";
     }
 }
