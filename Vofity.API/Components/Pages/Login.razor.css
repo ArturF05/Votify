@@ -208,3 +208,10 @@
         border: 1px solid #d1d5db;
         border-radius: 0.5rem;
     }
+
+.Alerta-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
