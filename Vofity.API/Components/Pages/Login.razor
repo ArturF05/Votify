@@ -1,51 +1,104 @@
-﻿@page "/Login"
+﻿@page "/"
+@page "/Login"
+@rendermode InteractiveServer
 @using Votify.Core.Interfaces
-@inject ILoginWindow LoginWindow
+@inject ILogin LoginWindow
+@inject NavigationManager Navigation
 
-<h3>Iniciar Sesión</h3>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo-container">
+                <img src="/Images/Logo.png" alt="Votify Logo" class="logo-img" />
+            </div>
+            
+            <p class="login-subtitle">Tu voz, tu voto, tu decisión</p>
+        </div>
 
-<EditForm Model="@modelo" OnValidSubmit="LoginUsuario">
-    <div>
-        <label>Usuario</label>
-        <InputText @bind-Value="modelo.Usuario" /> 
+        <EditForm Model="@modelo" OnValidSubmit="LoginUsuario" FormName="loginForm" class="login-form">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            @if (!string.IsNullOrEmpty(mensaje))
+            {
+                <div class="alert @(loginExitoso ? "alert-success" : "alert-error")">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        @if (loginExitoso)
+                        {
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        }
+                        else
+                        {
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        }
+                    </svg>
+                    <span>@mensaje</span>
+                </div>
+            }
+
+            <div class="form-group">
+                <label for="usuario">Usuario</label>
+                <InputText id="usuario" @bind-Value="modelo.Usuario" placeholder="Ingresa tu usuario" class="form-input" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <InputText id="password" type="password" @bind-Value="modelo.Password" placeholder="Ingresa tu contraseña" class="form-input" />
+            </div>
+
+            <button type="submit" class="btn-primary" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span class="spinner"></span>
+                    <span>Verificando...</span>
+                }
+                else
+                {
+                    <span>Entrar</span>
+                }
+            </button>
+
+            <p class="register-link">
+                ¿No tienes cuenta? <a href="/Register">Regístrate aquí</a>
+            </p>
+        </EditForm>
     </div>
-
-    <div>
-        <label>Contraseña</label>
-        <InputText type="password" @bind-Value="modelo.Password" /> 
-    </div>
-
-    <button type="submit">Entrar</button>
-</EditForm>
-
-@if (!string.IsNullOrEmpty(mensaje))
-{
-    <p style="color: @(loginExitoso ? "green" : "red")">@mensaje</p>
-}
+</div>
 
 @code {
     private LoginModel modelo = new();
     private string mensaje = "";
     private bool loginExitoso = false;
+    private bool isLoading = false;
 
     private async Task LoginUsuario()
     {
-        /*var resultado = await LoginWindow.ValidarUsuario(modelo.Usuario, modelo.Password);
-         * 
-        if (resultado.Exitoso)
+        isLoading = true;
+        mensaje = "";
+
+        var resultado = await LoginWindow.ValidarUsuarioAsync(modelo.Usuario, modelo.Password);
+
+        if (resultado)
         {
             mensaje = "¡Login correcto!";
             loginExitoso = true;
-            }
+            await Task.Delay(1500);
+            Navigation.NavigateTo("/Main");
+        }
         else
         {
-            mensaje = resultado.MensajeError;
+            mensaje = "Usuario o contraseña incorrectos";
             loginExitoso = false;
-            }
-        */
+        }
+
+        isLoading = false;
     }
+
     public class LoginModel
     {
+       
         public string Usuario { get; set; } = "";
         public string Password { get; set; } = "";
     }

@@ -1,0 +1,116 @@
+﻿@page "/Register"
+@rendermode InteractiveServer
+@using Votify.Core.Interfaces
+@inject IRegister RegisterWindow
+@inject NavigationManager Navigation
+
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-header">
+            <div class="logo-container">
+                <img src="/Images/Logo.png" alt="Votify Logo" class="logo-img" />
+            </div>
+        </div>
+
+        <EditForm Model="@modelo" OnValidSubmit="RegisterUsuario" FormName="registerForm" class="register-form">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            @if (!string.IsNullOrEmpty(mensaje))
+            {
+                <div class="alert @(registroExitoso ? "alert-success" : "alert-error")">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        @if (registroExitoso)
+                        {
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        }
+                        else
+                        {
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        }
+                    </svg>
+                    <span>@mensaje</span>
+                </div>
+            }
+
+            <div class="form-group">
+                <label for="usuario">Nombre de Usuario</label>
+                <InputText id="usuario" @bind-Value="modelo.Usuario" placeholder="Elige un nombre de usuario" class="form-input" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <InputText id="password" type="password" @bind-Value="modelo.Password" placeholder="Crea una contraseña" class="form-input" />
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirmar Contraseña</label>
+                <InputText id="confirmPassword" type="password" @bind-Value="modelo.ConfirmPassword" placeholder="Repite tu contraseña" class="form-input" />
+            </div>
+
+            <button type="submit" class="btn-primary" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span class="spinner"></span>
+                    <span>Registrando...</span>
+                }
+                else
+                {
+                    <span>Crear Cuenta</span>
+                }
+            </button>
+
+            <p class="login-link">
+                ¿Ya tienes cuenta? <a href="/Login">Inicia sesión</a>
+            </p>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private RegisterModel modelo = new();
+    private string mensaje = "";
+    private bool registroExitoso = false;
+    private bool isLoading = false;
+
+    private async Task RegisterUsuario()
+    {
+        isLoading = true;
+        mensaje = "";
+
+        if (modelo.Password != modelo.ConfirmPassword)
+        {
+            mensaje = "Las contraseñas no coinciden";
+            registroExitoso = false;
+            isLoading = false;
+            return;
+        }
+
+        var resultado = await RegisterWindow.RegistrarUsuarioAsync(modelo.Usuario, modelo.Password);
+
+        if (resultado)
+        {
+            mensaje = "¡Registro exitoso! Ya puedes iniciar sesión";
+            registroExitoso = true;
+            await Task.Delay(1500);
+            Navigation.NavigateTo("/Login");
+        }
+        else
+        {
+            mensaje = "Error al registrar el usuario";
+            registroExitoso = false;
+        }
+
+        isLoading = false;
+
+    }
+
+    public class RegisterModel
+    {
+        public string Usuario { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string ConfirmPassword { get; set; } = "";
+    }
+}
