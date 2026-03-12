@@ -13,9 +13,7 @@ namespace Votify.Core.Interfaces
     {
         Task<bool> CrearProyecto(
             string nombre,
-            string descripcion,
-            DateTime? fechaInicio,
-            DateTime? fechaFin
+            string descripcion
         );
     }
 }

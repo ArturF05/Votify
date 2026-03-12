@@ -10,9 +10,7 @@ namespace Votify.Core.Interfaces
     public interface IProyectoRepository{
         Task<bool> CrearProyectoAsync(
         string nombre,
-        string descripcion,
-        DateTime? fechaInicio,
-        DateTime? fechaFin
+        string descripcion
             );
         }
 }

@@ -8,7 +8,7 @@ using Votify.Core.Interfaces;
 
 namespace Votify.Core.Services
 {
-    internal class ProyectoService : IProyectoService
+    public class ProyectoService : IProyectoService
     {
         private readonly IProyectoRepository _proyectoRepository;
 
@@ -20,20 +20,13 @@ namespace Votify.Core.Services
 
         public async Task<bool> CrearProyecto(
              string nombre,
-             string descripcion,
-             DateTime? fechaInicio,
-             DateTime? fechaFin)
+             string descripcion)
         {
-            if (fechaFin < fechaInicio)
-            {
-                throw new Exception("La fecha fin no puede ser menor que la fecha inicio");
-            }
+
 
             return await _proyectoRepository.CrearProyectoAsync(
                 nombre,
-                descripcion,
-                fechaInicio,
-                fechaFin
+                descripcion
             );
 
         }
