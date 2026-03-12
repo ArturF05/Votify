@@ -1,0 +1,64 @@
+﻿@page "/CrearEvento"
+<h3>CrearEvento</h3>
+
+<!-- AL EDITAR SE AUTOCOMPLETA -->
+<div class="form-evento">
+    <h3>Crear o editar evento</h3>
+    <hr class="linea">
+    <div class="campo">
+        <label>Título:</label>
+        <input type="text" placeholder="Título del evento..." />
+    </div>
+
+    <div class="form-grid">
+        <div class="campo">
+            <label>Categoría:</label>
+            <select>
+                <option>Hackaton</option>
+                <option>Futbolín</option>
+            </select>
+        </div>
+        <div class="campo campo-derecha">
+            <label>Fecha de inicio:</label>
+            <input type="date" @bind="fechaAct" />
+        </div>
+        <div class="campo">
+            <label>Descripción:</label>
+            <textarea placeholder="Descripción..."></textarea>
+        </div>
+        <div class="campo campo-derecha">
+            <label>Fecha de cierre:</label>
+            <input type="date" @bind="fechaMañana" />
+        </div>
+    </div>
+
+    <div class="botones">
+        <div>
+            <button class="boton-secundario" @onclick='() => EliminarEvento()'>Eliminar</button>
+        </div>
+        <div>
+            <button class="boton-secundario" @onclick='() => ArchivarEvento()'>Archivar</button>
+            <button class="boton-principal" @onclick='() => GuardarEvento()'>Crear Evento</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    DateTime fechaAct = DateTime.Today;
+    DateTime fechaMañana = DateTime.Today.AddDays(1);
+
+    void EliminarEvento()
+    {
+        //Completar
+    }
+
+    void ArchivarEvento()
+    {
+        //Completar
+    }
+
+    void GuardarEvento()
+    {
+        //Completar
+    }
+}

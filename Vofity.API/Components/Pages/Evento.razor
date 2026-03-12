@@ -1,4 +1,6 @@
 ﻿@page "/Evento"
+@inject NavigationManager nav;
+
 <h2 class="titulo">Eventos</h2>
 
 <PageTitle>Evento</PageTitle>
@@ -41,53 +43,9 @@
         </tbody>
     </table>
 </div>
-
-<!-- AL EDITAR SE AUTOCOMPLETA -->
-<div class="form-evento">
-    <h3>Crear o editar evento</h3>
-    <hr class="linea">
-    <div class="campo">
-        <label>Título:</label>
-        <input type="text" placeholder="Título del evento..." />
-    </div>
-
-    <div class="form-grid">
-        <div class="campo">
-            <label>Categoría:</label>
-            <select>
-                <option>Hackaton</option>
-                <option>Futbolín</option>
-            </select>
-        </div>
-        <div class="campo campo-derecha">
-            <label>Fecha de inicio:</label>
-            <input type="date" @bind="fechaAct" />
-        </div>
-        <div class="campo">
-            <label>Descripción:</label>
-            <textarea placeholder="Descripción..."></textarea>
-        </div>
-        <div class="campo campo-derecha">
-            <label>Fecha de cierre:</label>
-            <input type="date" @bind="fechaMañana" />
-        </div>
-    </div>
-
-    <div class="botones">
-        <div>
-            <button class="boton-secundario" @onclick='() => EliminarEvento()'>Eliminar</button>
-        </div>
-        <div>
-            <button class="boton-secundario" @onclick='() => ArchivarEvento()'>Archivar</button>
-            <button class="boton-principal" @onclick='() => CrearEvento()'>Crear Evento</button>
-        </div>
-    </div>
-</div>
+<button @onclick="NuevoEvento">Crear Evento</button>
 
 @code {
-    DateTime fechaAct = DateTime.Today;
-    DateTime fechaMañana = DateTime.Today.AddDays(1);
-
     void BuscarEventos()
     {
         //Completar
@@ -98,18 +56,8 @@
         //Completar
     }
 
-    void EliminarEvento()
+    void NuevoEvento()
     {
-        //Completar
-    }
-
-    void ArchivarEvento()
-    {
-        //Completar
-    }
-
-    void CrearEvento()
-    {
-        //Completar
+        nav.NavigateTo("/CrearEvento");
     }
 }
