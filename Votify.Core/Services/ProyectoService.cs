@@ -18,17 +18,22 @@ namespace Votify.Core.Services
             _proyectoRepository = proyectoRepository;
         }
 
-        public async Task<bool> CrearProyecto(
-             string nombre,
-             string descripcion)
+        public async Task <bool> CrearProyecto(string nombre, string descripcion)
         {
+            nombre = nombre.Trim();
+            descripcion = descripcion.Trim();
 
-
-            return await _proyectoRepository.CrearProyectoAsync(
-                nombre,
-                descripcion
-            );
-
+            if (string.IsNullOrWhiteSpace(nombre))
+            {
+                throw new Exception(" Debe tener un nombre");
+            }
+            var proyecto = new Proyecto
+            {
+                Id = Guid.NewGuid(),
+                Titulo = nombre,
+                Descripcion = descripcion
+            };
+            return await _proyectoRepository.CrearProyectoAsync(proyecto);
         }
     }
 }

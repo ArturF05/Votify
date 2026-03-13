@@ -12,4 +12,5 @@ public class Proyecto
     public String Titulo { get; set; }
     public Guid Id_evento { get; set; }
     public Evento Evento { get; set; }
+    public String Descripcion { get; set; }
 }
