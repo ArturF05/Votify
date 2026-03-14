@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Votify.Infrastructure", "Vo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vofity.API", "Vofity.API\Vofity.API.csproj", "{04A5388D-D610-414A-BAEA-111D899A624F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Votify.Core.Tests", "Votify.Core.Tests\Votify.Core.Tests.csproj", "{FECD35CF-E957-158D-B28B-2B4EEA4BF002}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{04A5388D-D610-414A-BAEA-111D899A624F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04A5388D-D610-414A-BAEA-111D899A624F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04A5388D-D610-414A-BAEA-111D899A624F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FECD35CF-E957-158D-B28B-2B4EEA4BF002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FECD35CF-E957-158D-B28B-2B4EEA4BF002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FECD35CF-E957-158D-B28B-2B4EEA4BF002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FECD35CF-E957-158D-B28B-2B4EEA4BF002}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
