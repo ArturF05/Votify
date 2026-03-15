@@ -49,7 +49,7 @@
     <div class="botones">
         <div>
             <button type="button" class="boton-secundario" @onclick='() => Cancelar()'>Cancelar cambios</button>
-            <button type="button" class="boton-secundario" @onclick="EliminarEvento">Eliminar evento</button>
+            <button type="button" class="boton-secundario" @onclick="ConfirmarEliminar">Eliminar evento</button>
         </div>
         <div>
             <button type="button" class="boton-secundario" @onclick= "ArchivarEvento">Archivar</button>
@@ -84,7 +84,6 @@
         setEvento(evento);
     }
 
-
     void Cancelar()
     {
         nav.NavigateTo("/Evento");
@@ -95,6 +94,19 @@
         await eventoService.Archivo(evento, true);
         nav.NavigateTo("/Evento");
     }
+
+    [Inject]
+    IJSRuntime JSRuntime { get; set; }
+
+    async Task ConfirmarEliminar()
+    {
+        bool confirmado = await JSRuntime.InvokeAsync<bool>("confirm", "¿Seguro que quieres eliminar este evento?");
+        if(confirmado)
+        {
+            EliminarEvento();
+        }
+    }
+
     async void EliminarEvento()
     {
         await eventoService.EliminarEvento(evento);
