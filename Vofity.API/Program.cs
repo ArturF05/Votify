@@ -10,10 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-/*builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-builder.Services.AddScoped<ILogin, LoginService>();
-builder.Services.AddScoped<IRegister, RegisterService>();
-*/
 builder.Services.AddScoped<IEvento, EventoService>();
 builder.Services.AddScoped<IEventoRepository,  EventoRepository>();
 builder.Services.AddDbContext<AppDbContext>(options =>

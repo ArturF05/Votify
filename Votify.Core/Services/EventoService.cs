@@ -33,7 +33,6 @@ namespace Votify.Core.Services
                     Descripcion = descripcion,
                     FechaInicio = fecha_inicio,
                     FechaFin = fecha_cierre,
-                    Estado = "",
                     EventoUsuarioRols = aux,
                     Proyecto = aux2,
                     Votacion = aux3,
@@ -57,7 +56,6 @@ namespace Votify.Core.Services
                 evento.FechaInicio = fecha_inicio;
                 evento.FechaFin = fecha_cierre;
                 await eventoRepository.EditarEventoAsync(evento);
-                //evento.Estado = "ns"
             }
         }
 

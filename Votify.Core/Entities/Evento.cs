@@ -17,7 +17,6 @@ public class Evento
     public string Descripcion { get; set; }
     public DateOnly FechaInicio {  get; set; }
     public DateOnly FechaFin {  get; set; }
-    public string Estado { get; set; }
     [ForeignKey(nameof(Categoria))]
     public Guid Id_categoria { get; set; }
     [Required]
