@@ -14,34 +14,38 @@ namespace Votify.Core.Services
         private Proycto aux2 = new Proycto();
         private Votacion aux3 = new Votacion();
         private readonly IEventoRepository eventoRepository;
-        public async Task CrearEvento(string titulo, Categoria categoria, DateTime fecha_inicio, string descripcion, DateTime fecha_cierre)
+        public EventoService(IEventoRepository eventoRepository)
         {
-            if(titulo == null || categoria == null || fecha_inicio == null || fecha_cierre == null)
-            {
-
-            }
-            else
-            {
+            this.eventoRepository = eventoRepository;
+        }
+        public async Task<List<Evento>?> BuscarEvento(string nombre, Guid Id_Categoria)
+        {
+            return await eventoRepository.BuscarPorNombreAsync(nombre, Id_Categoria);
+        }
+        public async Task CrearEvento(string titulo, Categoria categoria, DateOnly fecha_inicio, string descripcion, DateOnly fecha_cierre)
+        {
                 var nuevoEvento = new Evento
                 {
-                    IdEvento = Guid.NewGuid(),
+                    Id = Guid.NewGuid(),
                     Nombre = titulo,
+                    Id_categoria = categoria.Id,
                     Categoria = categoria,
                     Descripcion = descripcion,
-                    Inicio = fecha_inicio,
-                    Fin = fecha_cierre,
+                    FechaInicio = fecha_inicio,
+                    FechaFin = fecha_cierre,
                     Estado = "",
-                    IdCategoria = categoria.Id,
-                    EventoUsuarioRol = aux,
+                    EventoUsuarioRols = aux,
                     Proyecto = aux2,
-                    Votacion = aux3
+                    Votacion = aux3,
+                    Archivado = false
                 }; 
                 await eventoRepository.CrearEventoAsync(nuevoEvento);
-            }
+         
         }
-        public async Task EditarEvento(string titulo, Categoria categoria, DateTime fecha_inicio, string descripcion, DateTime fecha_cierre, Evento evento)
+
+        public async Task EditarEvento(string titulo, Categoria categoria, DateOnly fecha_inicio, string descripcion, DateOnly fecha_cierre, Evento evento)
         {
-            if (titulo == null || categoria == null || fecha_inicio == null || fecha_cierre == null)
+            if (titulo == null || categoria == null || fecha_cierre.CompareTo(fecha_inicio) <= 0)
             {
 
             }
@@ -50,15 +54,20 @@ namespace Votify.Core.Services
                 evento.Nombre = titulo;
                 evento.Categoria = categoria;
                 evento.Descripcion = descripcion;
-                evento.Inicio = fecha_inicio;
-                evento.Fin = fecha_cierre;
+                evento.FechaInicio = fecha_inicio;
+                evento.FechaFin = fecha_cierre;
                 await eventoRepository.EditarEventoAsync(evento);
                 //evento.Estado = "ns"
             }
         }
-        public async Task ArchivarEvento(Evento evento)
+
+        public async Task EliminarEvento(Evento evento)
         {
-            await eventoRepository.ArchivarEventoAsync(evento);
+            await eventoRepository.EliminarEventoAsync(evento);
+        }
+        public async Task Archivo(Evento evento, bool archivar)
+        {
+            await eventoRepository.ArchivoEventoAsync(evento, archivar);
         }
     }
 }

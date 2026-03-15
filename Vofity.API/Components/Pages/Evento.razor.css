@@ -1,12 +1,12 @@
 ﻿.titulo {
     font-size: 28px;
-    margin-bottom: 20px;
 }
 
 .barra-busqueda {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
+    align-items:center;
 }
 
 .barra-busqueda input {
@@ -79,4 +79,28 @@
 
 .botonLink:hover {
     background-color: #e07e22;
+}
+.boton-archivados {
+    background-color: #F28C2F;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.boton-archivados:hover {
+        background-color: #e07e22;
+}
+.titulo-y-archivados {
+    display: flex;
+    margin-bottom: 20px;
+    width: 100%;
+    align-items:center;
+}
+.archivados-img {
+    width: 20px;
+    height: auto;
 }

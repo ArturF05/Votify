@@ -1,64 +1,118 @@
 ﻿@page "/CrearEvento"
-<h3>CrearEvento</h3>
+@rendermode InteractiveServer //Es necesario, si no se pone los botones no funcionan
+@using Microsoft.EntityFrameworkCore
+@using Votify.Core.Entities
+@using Votify.Core.Services
+@using Votify.Infrastructure.Data
+@using Votify.Infrastructure.Repositorios
+@inject NavigationManager nav
+@inject AppDbContext contexto
+
+<h3>Crear Evento</h3>
 
 <!-- AL EDITAR SE AUTOCOMPLETA -->
 <div class="form-evento">
-    <h3>Crear o editar evento</h3>
+    <h3>Nuevo evento</h3>
     <hr class="linea">
     <div class="campo">
-        <label>Título:</label>
-        <input type="text" placeholder="Título del evento..." />
+        <label>Nombre*:</label>
+        <input type="text" @bind="nombre" placeholder="Nombre del evento..." />
     </div>
 
     <div class="form-grid">
         <div class="campo">
-            <label>Categoría:</label>
-            <select>
-                <option>Hackaton</option>
-                <option>Futbolín</option>
+            <label>Categoría*:</label>
+            <select @bind="Id_categoria">
+                @foreach (var cat in categorias)
+                {
+                    <option value="@cat.Id">@cat.Nombre</option>
+                }
             </select>
         </div>
         <div class="campo campo-derecha">
-            <label>Fecha de inicio:</label>
-            <input type="date" @bind="fechaAct" />
+            <label>Fecha de inicio*:</label>
+            <input type="date" @bind="inicio" />
         </div>
-        <div class="campo">
+        <div class="campo"> 
             <label>Descripción:</label>
-            <textarea placeholder="Descripción..."></textarea>
+            <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
         </div>
         <div class="campo campo-derecha">
-            <label>Fecha de cierre:</label>
-            <input type="date" @bind="fechaMañana" />
+            <label>Fecha de cierre*:</label>
+            <input type="date" @bind="fin" />
         </div>
     </div>
-
+    <div class="errores">
+        <div><label style="color:red"> @mensaje</label></div>
+        <div><label style="color:red">@mensaje2</label></div>
+    </div>
     <div class="botones">
         <div>
-            <button class="boton-secundario" @onclick='() => EliminarEvento()'>Eliminar</button>
+            <button type="button" class="boton-secundario" @onclick='() => Cancelar()'>Cancelar</button>
         </div>
         <div>
-            <button class="boton-secundario" @onclick='() => ArchivarEvento()'>Archivar</button>
-            <button class="boton-principal" @onclick='() => GuardarEvento()'>Crear Evento</button>
+            <button type="button" class="boton-principal" @onclick="GuardarEvento">Crear Evento</button>
         </div>
     </div>
 </div>
 
 @code {
-    DateTime fechaAct = DateTime.Today;
-    DateTime fechaMañana = DateTime.Today.AddDays(1);
+    DateOnly inicio = DateOnly.FromDateTime(DateTime.Today);
+    DateOnly fin = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+    private string nombre = "";
+    private Guid Id_categoria = new Guid("0d4e9ac5-56ee-4a5c-817e-ee78bf8a8ed9");
+    private Categoria categoria;
+    private string descripcion = "";
+    private EventoRepository eventoRepository;
+    private EventoService eventoService;
+    private string mensaje = "";
+    private string mensaje2 = "";
+    List<Categoria> categorias = new();
+    List<Votify.Core.Entities.Evento> eventos = new();
 
-    void EliminarEvento()
+    protected override async Task OnInitializedAsync()
     {
-        //Completar
+        categorias = await contexto.Categoria.ToListAsync();
+        eventoRepository = new EventoRepository(contexto);
+        eventoService = new EventoService(eventoRepository);
     }
 
-    void ArchivarEvento()
+
+    void Cancelar()
     {
-        //Completar
+        nav.NavigateTo("/Evento");
     }
 
-    void GuardarEvento()
+    private async Task GuardarEvento()
     {
-        //Completar
+        categoria = await contexto.Categoria.FindAsync(Id_categoria);
+        eventos = await contexto.Evento.Include(e => e.Categoria).Where(e => e.Archivado == false).ToListAsync();
+        bool nombreUsado = false;
+        bool nombreVacio = string.IsNullOrWhiteSpace(nombre);
+        if (nombreVacio)
+        {
+            mensaje = "El nombre del evento es obligatorio";
+        } else{
+            foreach (var eve in eventos)
+            {
+                if (eve.Nombre.ToLower().Equals(nombre.ToLower())) 
+                {
+                    nombreUsado = true;
+                    break;
+                }
+            }
+            if (nombreUsado) mensaje = "El nombre del evento ya está en uso";
+        }
+        if (fin.CompareTo(inicio) <= 0)
+        {
+            mensaje2 = "La fecha del fin del evento debe ser posterior a la fecha de inicio";
+        }
+        else if (!nombreVacio && !nombreUsado)
+        {
+            mensaje = "";
+            mensaje2 = "";
+            await eventoService.CrearEvento(nombre, categoria, inicio, descripcion, fin);
+            nav.NavigateTo("/Evento");
+        }
     }
 }

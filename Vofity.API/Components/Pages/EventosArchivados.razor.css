@@ -1,0 +1,46 @@
+﻿.titulo {
+    font-size: 28px;
+}
+.tabla-eventos {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+    table-layout: fixed;
+}
+
+.tabla-eventos th {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid #DADADA;
+}
+
+.tabla-eventos td {
+    padding: 12px;
+    border-bottom: 1px solid #ECECEC;
+}
+
+.boton-desarchivar {
+    background-color: white;
+    border: 1px solid #F28C2F;
+    color: #F28C2F;
+    padding: 5px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.boton-desarchivar:hover {
+    background-color: #F28C2F;
+    color: white;
+}
+
+.boton-cancelar {
+    background-color: #F28C2F;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.boton-cancelar:hover {
+    background-color: #e07e22;
+}

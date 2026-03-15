@@ -1,0 +1,78 @@
+﻿@page "/EventosArchivados"
+@using Microsoft.EntityFrameworkCore
+@using Votify.Core.Entities
+@using Votify.Core.Services
+@using Votify.Infrastructure.Data
+@using Votify.Infrastructure.Repositorios
+@inject NavigationManager nav;
+@inject AppDbContext contexto
+@rendermode InteractiveServer
+<div class="titulo-y-archivados">
+    <h2 class="titulo">Eventos Archivados</h2>
+</div>
+
+<PageTitle>Evento</PageTitle>
+<div>
+    <table class="tabla-eventos">
+        <thead>
+            <tr>
+                <th>Evento</th>
+                <th>Categoría</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Desarchivar</th>
+                <th>Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var evento in eventos.Where(e => e.Archivado == true))
+            {
+            <tr>
+                <td>@evento.Nombre</td>
+                <td>@evento.Categoria.Nombre</td>
+                <td>@evento.FechaInicio</td>
+                <td>@evento.FechaFin</td>
+                <td><button class="boton-desarchivar" @onclick='() => desarchivar(evento)'>Desarchivar</button></td>
+                <td><button class="boton-desarchivar" @onclick='() => eliminar(evento)'>Eliminar</button></td>
+            </tr>
+            }
+            <label>@noHayArchivados</label>
+        </tbody>
+    </table>
+</div>
+<button type="button" class="boton-cancelar" @onclick='() => Volver()'>Volver</button>
+@code {
+    List<Votify.Core.Entities.Evento> eventos = new();
+    private EventoRepository eventoRepository;
+    private EventoService eventoService;
+    private string noHayArchivados = "";
+    protected override async Task OnInitializedAsync()
+    {
+        eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
+        eventoRepository = new EventoRepository(contexto);
+        eventoService = new EventoService(eventoRepository);
+        hayEventos();
+    }
+
+    private async void desarchivar(Votify.Core.Entities.Evento evento)
+    {
+        await eventoService.Archivo(evento, false);
+        hayEventos();
+        StateHasChanged();
+    }
+    void Volver()
+    {
+        nav.NavigateTo("/Evento");
+    }
+    void hayEventos()
+    {
+        if (eventos.Where(e => e.Archivado == true).Count() == 0) noHayArchivados = "No hay eventos archivados";
+    }
+    async void eliminar(Votify.Core.Entities.Evento evento)
+    {
+        await eventoService.EliminarEvento(evento);
+        eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
+        hayEventos();
+        StateHasChanged();
+    }
+}

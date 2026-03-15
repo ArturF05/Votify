@@ -1,0 +1,139 @@
+﻿@page "/EditarEvento/{id:guid}"
+@rendermode InteractiveServer //Es necesario, si no se pone los botones no funcionan
+@using Microsoft.EntityFrameworkCore
+@using Votify.Core.Entities
+@using Votify.Core.Services
+@using Votify.Infrastructure.Data
+@using Votify.Infrastructure.Repositorios
+@inject NavigationManager nav
+@inject AppDbContext contexto
+@inject IJSRuntime JS
+
+<h3>Editar Evento</h3>
+
+<!-- AL EDITAR SE AUTOCOMPLETA -->
+<div class="form-evento">
+    <h3>@nombreAntiguo</h3>
+    <hr class="linea">
+    <div class="campo">
+        <label>Nombre*:</label>
+        <input type="text" @bind="nombre" placeholder="Nombre del evento..." />
+    </div>
+
+    <div class="form-grid">
+        <div class="campo">
+            <label>Categoría*:</label>
+            <select @bind="Id_categoria">
+                @foreach (var cat in categorias)
+                {
+                    <option value="@cat.Id">@cat.Nombre</option>
+                }
+            </select>
+        </div>
+        <div class="campo campo-derecha">
+            <label>Fecha de inicio*:</label>
+            <input type="date" @bind="inicio" />
+        </div>
+        <div class="campo"> 
+            <label>Descripción:</label>
+            <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
+        </div>
+        <div class="campo campo-derecha">
+            <label>Fecha de cierre*:</label>
+            <input type="date" @bind="fin" />
+        </div>
+    </div>
+    <div class="errores">
+        <div><label style="color:red"> @mensaje</label></div>
+        <div><label style="color:red">@mensaje2</label></div>
+    </div>
+    <div class="botones">
+        <div>
+            <button type="button" class="boton-secundario" @onclick='() => Cancelar()'>Cancelar cambios</button>
+            <button type="button" class="boton-secundario" @onclick="EliminarEvento">Eliminar evento</button>
+        </div>
+        <div>
+            <button type="button" class="boton-secundario" @onclick= "ArchivarEvento">Archivar</button>
+            <button type="button" class="boton-principal" @onclick="GuardarEvento">Guardar cambios</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    DateOnly inicio = DateOnly.FromDateTime(DateTime.Today);
+    DateOnly fin = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+    private Votify.Core.Entities.Evento evento;
+    private string nombre = "";
+    private string nombreAntiguo = "";
+    private Guid Id_categoria = new Guid("0d4e9ac5-56ee-4a5c-817e-ee78bf8a8ed9");
+    private Categoria categoria;
+    private string descripcion = "";
+    private EventoRepository eventoRepository;
+    private EventoService eventoService;
+    private string mensaje = "";
+    private string mensaje2 = "";
+    List<Categoria> categorias = new();
+    [Parameter]
+    public Guid id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        categorias = await contexto.Categoria.ToListAsync();
+        eventoRepository = new EventoRepository(contexto);
+        eventoService = new EventoService(eventoRepository);
+        evento = await contexto.Evento.FindAsync(id);
+        setEvento(evento);
+    }
+
+
+    void Cancelar()
+    {
+        nav.NavigateTo("/Evento");
+    }
+
+    async void ArchivarEvento()
+    {
+        await eventoService.Archivo(evento, true);
+        nav.NavigateTo("/Evento");
+    }
+    async void EliminarEvento()
+    {
+        await eventoService.EliminarEvento(evento);
+        nav.NavigateTo("/Evento");
+    }
+    public void setEvento(Votify.Core.Entities.Evento evento)
+    {
+        nombre = evento.Nombre;
+        nombreAntiguo = evento.Nombre;
+        Id_categoria = evento.Categoria.Id;
+        descripcion = evento.Descripcion;
+        inicio = evento.FechaInicio;
+        fin = evento.FechaFin;
+    }
+
+    private async Task GuardarEvento()
+    {
+        if(Id_categoria == Guid.Empty)
+        {
+            mensaje = "Error, selecciona la categoría del evento";
+            return;
+        }
+        categoria = await contexto.Categoria.FindAsync(Id_categoria);
+        bool nombreVacio = string.IsNullOrWhiteSpace(nombre);
+        if (nombreVacio)
+        {
+            mensaje = "El nombre del evento es obligatorio";
+        }
+        if (fin.CompareTo(inicio) <= 0)
+        {
+            mensaje2 = "La fecha del fin del evento debe ser posterior a la fecha de inicio";
+        }
+        else if (!nombreVacio)
+        {
+            mensaje = "";
+            mensaje2 = "";
+            await eventoService.EditarEvento(nombre, categoria, inicio, descripcion, fin, evento);
+            nav.NavigateTo("/Evento");
+        }
+    }
+}
