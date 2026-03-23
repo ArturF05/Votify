@@ -1,123 +1,122 @@
 ﻿@page "/Evento"
-<h3>Eventos</h3>
-
-<style>
-    body {
-        min-width: 1120px;
-        min-height: 600px;
-    }
-</style>
+@using Microsoft.EntityFrameworkCore
+@using Votify.Core.Entities
+@using Votify.Core.Services
+@using Votify.Infrastructure.Data
+@using Votify.Infrastructure.Repositorios
+@inject NavigationManager nav;
+@inject AppDbContext contexto
+@rendermode InteractiveServer
+<div class="titulo-y-archivados">
+    <h2 class="titulo">Eventos</h2>
+    <button class="boton-archivados" @onclick="VerArchivados">Archivados <img src="/Archivados.png" alt="Símbolo Archivados" class="archivados-img" /> </button>
+</div>
 
 <PageTitle>Evento</PageTitle>
-<div style="display:flex; justify-content:space-between; gap:15px">
-    <input type="text" placeholder="Buscar eventos..." style="flex:1; height:35px" />
-    <select style="height:35px">
-        <option>Hackaton</option>
-        <option>Futbolín</option>
+<div class="barra-busqueda">
+    <input @bind="busqueda" @bind:event="oninput" type="text" placeholder="Buscar eventos..." @onkeypress="(e) => EsEnter(e)" />
+    <label style="vertical-align:text-bottom">Categoria: </label>
+    <select @bind="Id_Categoria">
+        <option value="@Guid.Empty">Todas</option>
+        @foreach (var cat in categorias)
+        {
+            <option value="@cat.Id">@cat.Nombre</option>
+        }
     </select>
     <button @onclick='() => BuscarEventos()'>Buscar</button>
 </div>
 
-<div style="display:flex; justify-content:space-between; gap:15px">
-    <table style="border-collapse:separate; border-spacing:15px; flex:1">
-        <thread>
+<div>
+    <table class="tabla-eventos">
+        <thead>
             <tr>
                 <th>Evento</th>
                 <th>Categoría</th>
                 <th>Fecha Inicio</th>
                 <th>Fecha Fin</th>
                 <th>Editar</th>
+                <th>Archivar</th>
             </tr>
-        </thread>
+        </thead>
         <tbody>
+            @foreach (var evento in eventos.Where(e => e.Archivado == false))
+            {
             <tr>
-                <td>Pequeños Informáticos</td>
-                <td>Hackaton</td>
-                <td>13/12/2006</td>
-                <td>14/12/2006</td>
-                <td><button @onclick='() => EditarEvento()'>Editar</button></td>
+                <td>@evento.Nombre</td>
+                <td>@evento.Categoria.Nombre</td>
+                <td>@evento.FechaInicio</td>
+                <td>@evento.FechaFin</td>
+                <td><button class="boton-editar" @onclick='() => EditarEvento(evento)'>Editar</button></td>
+                <td><button class="boton-editar" @onclick="() => Archivar(evento)">Archivar</button></td>
             </tr>
-            <tr>
-                <td>Torneo de futbolín</td>
-                <td>Futbolín</td>
-                <td>13/02/2006</td>
-                <td>14/02/2006</td>
-                <td><button @onclick='() => EditarEvento()'>Editar</button></td>
-            </tr>
+            }
         </tbody>
+        <label> @noHayResultados </label>
     </table>
 </div>
-
-<div style="border:1px solid black; padding:15px">
-    <h3 style="font-size:large">Crear o editar evento</h3>
-    <hr style="height:3px; background-color:black; border:none">
-    <div style="display:flex; justify-content:space-between; gap:15px">
-        <label>Título:</label>
-        <input type="text" placeholder="Título del evento..." style="flex:1; height:35px" />
-    </div>
-    <br>
-    <div style ="display:flex; justify-content:space-between; gap:15px">
-        <div>
-            <label>Categoría:</label>
-            <select style="height:35px">
-                <option>Hackaton</option>
-                <option>Futbolín</option>
-            </select>
-        </div>
-        <div>
-            <label>Fecha de inicio:</label>
-            <input type="date" @bind="fechaAct" />
-        </div>
-    </div>
-    <br>
-    <div style="display:flex; justify-content:space-between; gap:15px">
-        <div>
-            <label style="vertical-align: top">Descripción:</label>
-            <textarea placeholder="Descripción..." style="width:400px; height:70px" />
-        </div>
-        <div>
-            <label style="vertical-align: top">Fecha de cierre:</label>
-            <input type="date" style="vertical-align: top" @bind="fechaMañana" />
-        </div>
-    </div>
-    <br>
-    <div style="display:flex; justify-content:space-between; gap:15px">
-        <div>
-            <button @onclick='() => EliminarEvento()'>Eliminar</button>
-        </div>
-        <div>
-            <button @onclick='() => ArchivarEvento()'>Archivar</button>
-            <button @onclick='() => CrearEvento()'>Crear Evento</button>
-        </div>
-    </div>
-</div>
+<a href="/CrearEvento" class="botonLink">Crear Evento</a>
 
 @code {
-    DateTime fechaAct = DateTime.Today;
-    DateTime fechaMañana = DateTime.Today.AddDays(1);
+    List<Votify.Core.Entities.Evento> eventos = new();
+    List<Votify.Core.Entities.Evento> eventosEncontrados = new();
+    private EventoRepository eventoRepository;
+    private EventoService eventoService;
+    private string busqueda;
+    private Guid Id_Categoria = Guid.Empty;
+    List<Categoria> categorias = new();
+    private string noHayResultados = "";
 
-    void BuscarEventos()
+    protected override async Task OnInitializedAsync()
     {
-        //Completar
+        eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
+        categorias = await contexto.Categoria.ToListAsync();
+        iniciarServicio();
+        hayEventos();
+    }
+    private void iniciarServicio()
+    {
+        eventoRepository = new EventoRepository(contexto);
+        eventoService = new EventoService(eventoRepository);
+    }
+    private void EsEnter(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") BuscarEventos();
     }
 
-    void EditarEvento()
+    async void BuscarEventos()
     {
-        //Completar
+        if (string.IsNullOrEmpty(busqueda) && Id_Categoria == Guid.Empty)
+        {
+            eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
+            noHayResultados = "";
+            if (eventos.Count == 0) noHayResultados = "No se han encontrado resultados";
+        } else {
+            if (busqueda == null) busqueda = "";
+            eventosEncontrados = await eventoService.BuscarEvento(busqueda, Id_Categoria);
+            eventos = eventosEncontrados;
+            if (eventos == null || eventos.Count == 0) noHayResultados = "No se han encontrado resultados para la búsqueda realizada";
+            else noHayResultados = "";
+        }
+        StateHasChanged();
+        iniciarServicio();
     }
 
-    void EliminarEvento()
+    void EditarEvento(Votify.Core.Entities.Evento evento)
     {
-        //Completar
+        nav.NavigateTo($"/EditarEvento/{evento.Id}");
     }
-
-    void ArchivarEvento()
+    void VerArchivados()
     {
-        //Completar
+        nav.NavigateTo("/EventosArchivados");
     }
-
-    void CrearEvento()
+    private async void Archivar(Votify.Core.Entities.Evento evento)
     {
-        //Completar
+        await eventoService.Archivo(evento, true);
+        hayEventos();
+        StateHasChanged();
+    }
+    void hayEventos()
+    {
+        if (eventos.Where(e => e.Archivado == false).Count() == 0) noHayResultados = "No hay eventos";
     }
 }

@@ -1,0 +1,106 @@
+﻿.titulo {
+    font-size: 28px;
+}
+
+.barra-busqueda {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items:center;
+}
+
+.barra-busqueda input {
+    flex: 1;
+    height: 36px;
+    padding: 5px 10px;
+    border: 1px solid #DADADA;
+    border-radius: 6px;
+}
+
+.barra-busqueda select {
+    height: 36px;
+    border: 1px solid #DADADA;
+    border-radius: 6px;
+    padding: 5px;
+}
+
+.barra-busqueda button {
+    background-color: #F28C2F;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0 18px;
+    cursor: pointer;
+}
+
+.barra-busqueda button:hover {
+    background-color: #E85A2A;
+}
+
+.tabla-eventos {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+    table-layout: fixed;
+}
+
+.tabla-eventos th {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid #DADADA;
+}
+
+.tabla-eventos td {
+    padding: 12px;
+    border-bottom: 1px solid #ECECEC;
+}
+
+.boton-editar {
+    background-color: white;
+    border: 1px solid #F28C2F;
+    color: #F28C2F;
+    padding: 5px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.boton-editar:hover {
+    background-color: #F28C2F;
+    color: white;
+}
+
+.botonLink {
+    background-color: #F28C2F;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.botonLink:hover {
+    background-color: #e07e22;
+}
+.boton-archivados {
+    background-color: #F28C2F;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.boton-archivados:hover {
+        background-color: #e07e22;
+}
+.titulo-y-archivados {
+    display: flex;
+    margin-bottom: 20px;
+    width: 100%;
+    align-items:center;
+}
+.archivados-img {
+    width: 20px;
+    height: auto;
+}

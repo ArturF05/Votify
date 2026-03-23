@@ -1,0 +1,117 @@
+﻿@page "/CrearEvento"
+@rendermode InteractiveServer //Es necesario, si no se pone los botones no funcionan
+@using Microsoft.EntityFrameworkCore
+@using Votify.Core.Entities
+@using Votify.Core.Services
+@using Votify.Infrastructure.Data
+@using Votify.Infrastructure.Repositorios
+@inject NavigationManager nav
+@inject AppDbContext contexto
+
+<h3>Crear Evento</h3>
+
+<div class="form-evento">
+    <h3>Nuevo evento</h3>
+    <hr class="linea">
+    <div class="campo">
+        <label>Nombre*:</label>
+        <input type="text" @bind="nombre" placeholder="Nombre del evento..." />
+    </div>
+
+    <div class="form-grid">
+        <div class="campo">
+            <label>Categoría*:</label>
+            <select @bind="Id_categoria">
+                @foreach (var cat in categorias)
+                {
+                    <option value="@cat.Id">@cat.Nombre</option>
+                }
+            </select>
+        </div>
+        <div class="campo campo-derecha">
+            <label>Fecha de inicio*:</label>
+            <input type="date" @bind="inicio" />
+        </div>
+        <div class="campo"> 
+            <label>Descripción:</label>
+            <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
+        </div>
+        <div class="campo campo-derecha">
+            <label>Fecha de cierre*:</label>
+            <input type="date" @bind="fin" />
+        </div>
+    </div>
+    <div class="errores">
+        <div><label style="color:red"> @mensaje</label></div>
+        <div><label style="color:red">@mensaje2</label></div>
+    </div>
+    <div class="botones">
+        <div>
+            <button type="button" class="boton-secundario" @onclick='() => Cancelar()'>Cancelar</button>
+        </div>
+        <div>
+            <button type="button" class="boton-principal" @onclick="GuardarEvento">Crear Evento</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    DateOnly inicio = DateOnly.FromDateTime(DateTime.Today);
+    DateOnly fin = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+    private string nombre = "";
+    private Guid Id_categoria = new Guid("0d4e9ac5-56ee-4a5c-817e-ee78bf8a8ed9");
+    private Categoria categoria;
+    private string descripcion = "";
+    private EventoRepository eventoRepository;
+    private EventoService eventoService;
+    private string mensaje = "";
+    private string mensaje2 = "";
+    List<Categoria> categorias = new();
+    List<Votify.Core.Entities.Evento> eventos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        categorias = await contexto.Categoria.ToListAsync();
+        eventoRepository = new EventoRepository(contexto);
+        eventoService = new EventoService(eventoRepository);
+    }
+
+
+    void Cancelar()
+    {
+        nav.NavigateTo("/Evento");
+    }
+
+    private async Task GuardarEvento()
+    {
+        categoria = await contexto.Categoria.FindAsync(Id_categoria);
+        eventos = await contexto.Evento.Include(e => e.Categoria).Where(e => e.Archivado == false).ToListAsync();
+        bool nombreUsado = false;
+        bool nombreVacio = string.IsNullOrWhiteSpace(nombre);
+        if (nombreVacio)
+        {
+            mensaje = "El nombre del evento es obligatorio";
+        } else{
+            foreach (var eve in eventos)
+            {
+                if (eve.Nombre.ToLower().Equals(nombre.ToLower())) 
+                {
+                    nombreUsado = true;
+                    break;
+                }
+            }
+            if (nombreUsado) mensaje = "El nombre del evento ya está en uso";
+        }
+        if (fin.CompareTo(inicio) <= 0)
+        {
+            mensaje2 = "La fecha del fin del evento debe ser posterior a la fecha de inicio";
+        }
+        else if (!nombreVacio && !nombreUsado)
+        {
+            mensaje = "";
+            mensaje2 = "";
+            await eventoService.CrearEvento(nombre, categoria, inicio, descripcion, fin);
+            nav.NavigateTo("/Evento");
+        }
+    }
+}

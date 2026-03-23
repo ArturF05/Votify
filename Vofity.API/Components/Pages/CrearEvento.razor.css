@@ -1,0 +1,91 @@
+﻿.form-evento {
+    background-color: white;
+    border: 1px solid #DADADA;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.form-evento h3 {
+    margin-top: 0;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 25px 60px;
+}
+
+.campo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.campo textarea {
+    width: 100%;
+    height: 90px;
+    flex: 1;
+}
+
+.campo-derecha {
+    justify-content: flex-end;
+}
+
+.columna-derecha {
+    text-align: right;
+}
+
+.linea {
+    height: 3px;
+    background-color: #F28C2F;
+    border: none;
+    margin-bottom: 20px;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+    margin-left: 10px;
+    border: 1px solid #DADADA;
+    border-radius: 6px;
+    padding: 6px;
+}
+
+textarea {
+    width: 100%;
+    height: 90px;
+    resize: vertical;
+}
+
+.botones {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.boton-principal {
+    background-color: #F28C2F;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.boton-principal:hover {
+    background-color: #E85A2A;
+}
+
+.boton-secundario {
+    background-color: white;
+    border: 1px solid #DADADA;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.boton-secundario:hover {
+    background-color: #f5f5f5;
+    border-color: #F28C2F;
+}

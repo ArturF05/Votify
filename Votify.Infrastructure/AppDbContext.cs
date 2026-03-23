@@ -23,5 +23,17 @@ public class AppDbContext : DbContext
     public DbSet<Evento> Evento { get; set; }
     public DbSet<Categoria> Categoria { get; set; }
     public DbSet<DimensionesDeValor> DimensionesDeValor { get; set; }
+    protected override void OnModelCreating(ModelBuilder modelBuilder) //Si no se pone da problemas raros
+    {
+        
+        // Ignorar propiedades sin FK en la BD
+        modelBuilder.Entity<Evento>()
+            .Ignore(e => e.EventoUsuarioRols);
 
+        modelBuilder.Entity<Evento>()
+            .Ignore(e => e.Proyecto);
+
+        modelBuilder.Entity<Evento>()
+            .Ignore(e => e.Votacion);
+    }
 }
