@@ -17,12 +17,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ILogin, LoginService>();
 builder.Services.AddScoped<IRegister, RegisterService>();
+builder.Services.AddScoped<IProyectoService, ProyectoService>();
+builder.Services.AddScoped<IProyectoRepository, ProyectoRepository>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 

@@ -19,7 +19,7 @@ public class AppDbContext : DbContext
     public DbSet<Votacion> Votacione { get; set; }
     public DbSet<Rol> Role { get; set; }
     public DbSet<Resultado> Resultado { get; set; }
-    public DbSet<Proycto> Proyecto { get; set; }
+    public DbSet<Proyecto> Proyecto { get; set; }
     public DbSet<Evento> Evento { get; set; }
     public DbSet<Categoria> Categoria { get; set; }
     public DbSet<DimensionesDeValor> DimensionesDeValor { get; set; }

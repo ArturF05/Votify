@@ -1,0 +1,93 @@
+﻿@page "/AltaProyecto"
+@using Votify.Core.DTOs
+@using Votify.Core.Interfaces
+@inject IProyectoService ProyectoService
+
+<div class="crear-proyecto-container">
+    <div class="crear-proyecto-card">
+        <div class="icono-proyecto">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        </div>
+
+        <h2 class="crear-proyecto-titulo">Crear Proyecto</h2>
+        <p class="crear-proyecto-subtitulo">Completa los datos para iniciar tu nuevo proyecto</p>
+
+        <EditForm Model="modelo" OnValidSubmit="CrearProyecto">
+            <DataAnnotationsValidator />
+
+            <!-- Campo Titulo -->
+            <div class="campo-grupo">
+                <label for="titulo" class="campo-label">Titulo del Proyecto</label>
+                <div class="campo-wrapper">
+                    <InputText id="titulo"
+                               @bind-Value="modelo.Titulo"
+                               class="campo-input"
+                               placeholder="Ej: Mi nuevo proyecto" />
+                    <span class="campo-linea"></span>
+                </div>
+                <ValidationMessage For="@(() => modelo.Titulo)" />
+            </div>
+
+            <!-- Campo Descripcion -->
+            <div class="campo-grupo">
+                <label for="descripcion" class="campo-label">Descripcion</label>
+                <div class="campo-wrapper">
+                    <InputTextArea id="descripcion"
+                                   @bind-Value="modelo.Descripcion"
+                                   rows="4"
+                                   class="campo-textarea"
+                                   placeholder="Describe brevemente tu proyecto..." />
+                    <span class="campo-linea"></span>
+                </div>
+                <ValidationMessage For="@(() => modelo.Descripcion)" />
+            </div>
+
+            <button type="submit" class="btn-crear">
+                Crear Proyecto
+            </button>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(mensaje))
+        {
+            <div class="alerta @(creado ? "alerta-exito" : "alerta-error")">
+                <svg class="alerta-icono" fill="currentColor" viewBox="0 0 20 20">
+                    @if (creado)
+                    {
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    }
+                    else
+                    {
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    }
+                </svg>
+                <span>@mensaje</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private CrearProyectoDto modelo = new();
+    private string mensaje = "";
+    private bool creado = false;
+
+    private async Task CrearProyecto()
+    {
+        var resultado = await ProyectoService.CrearProyecto(modelo.Titulo,
+            modelo.Descripcion);
+
+        if (resultado)
+        {
+            mensaje = "Proyecto creado correctamente.";
+            creado = true;
+            modelo = new CrearProyectoDto();
+        }
+        else
+        {
+            mensaje = "No se pudo crear el proyecto.";
+            creado = false;
+        }
+    }
+}
