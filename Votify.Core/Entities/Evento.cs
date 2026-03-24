@@ -22,7 +22,7 @@ public class Evento
     [Required]
     public Categoria Categoria { get; set; }
     public Rol EventoUsuarioRols { get; set; }
-    public Proycto Proyecto { get; set; }
+    public Proyecto Proyecto { get; set; }
     public Votacion Votacion { get; set; }
     public bool Archivado {  get; set; }
 }

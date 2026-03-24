@@ -1,10 +1,12 @@
 ﻿@page "/"
 @page "/Login"
 @rendermode InteractiveServer
+@using Vofity.API.Components.Layout
 @using Votify.Core.Interfaces
 @inject ILogin LoginWindow
 @inject NavigationManager Navigation
 @using System.ComponentModel.DataAnnotations;
+@layout NoLayout
 
 
 <div class="login-container">

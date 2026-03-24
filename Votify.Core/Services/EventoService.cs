@@ -11,7 +11,7 @@ namespace Votify.Core.Services
     public class EventoService : IEvento
     {
         private Rol aux = new Rol();
-        private Proycto aux2 = new Proycto();
+        private Proyecto aux2 = new Proyecto();
         private Votacion aux3 = new Votacion();
         private readonly IEventoRepository eventoRepository;
         public EventoService(IEventoRepository eventoRepository)
