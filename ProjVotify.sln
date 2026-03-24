@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36511.14
+# Visual Studio Version 18
+VisualStudioVersion = 18.4.11612.150 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Votify.Core", "Votify.Core\Votify.Core.csproj", "{49879A66-DBE8-4C01-B2F0-3AFC44F3A38D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Votify.Infrastructure", "Votify.Infrastructure\Votify.Infrastructure.csproj", "{C047AD49-A889-49B7-8423-F9724EB3F203}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vofity.API", "Vofity.API\Vofity.API.csproj", "{04A5388D-D610-414A-BAEA-111D899A624F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Votify.API", "Vofity.API\Votify.API.csproj", "{04A5388D-D610-414A-BAEA-111D899A624F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Votify.Core.Tests", "Votify.Core.Tests\Votify.Core.Tests.csproj", "{FECD35CF-E957-158D-B28B-2B4EEA4BF002}"
 EndProject

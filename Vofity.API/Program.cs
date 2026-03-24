@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Vofity.API.Components;
+using Votify.API.Components;
 using Votify.Core.Interfaces;
 using Votify.Core.Services;
 using Votify.Infrastructure.Data;
