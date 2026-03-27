@@ -72,25 +72,39 @@
     {
         if (isLoading) return;
 
-        isLoading = true;
-        mensaje = "";
-
-        var resultado = await LoginWindow.ValidarUsuarioAsync(modelo.Usuario, modelo.Password);
-
-        if (resultado)
+        try
         {
-            mensaje = "¡Login correcto!";
-            loginExitoso = true;
-            await Task.Delay(1500);
-            Navigation.NavigateTo("/Main");
+            isLoading = true;
+            mensaje = "";
+            StateHasChanged();
+
+            // Llamada directa sin Task.Run
+            bool resultado = await LoginWindow.ValidarUsuarioAsync(modelo.Usuario, modelo.Password);
+
+            if (resultado)
+            {
+                mensaje = "¡Login correcto!";
+                loginExitoso = true;
+                StateHasChanged(); // Forzar actualización antes del delay
+                await Task.Delay(1500);
+                Navigation.NavigateTo("/Main");
+            }
+            else
+            {
+                mensaje = "Usuario o contraseña incorrectos";
+                loginExitoso = false;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            mensaje = "Usuario o contraseña incorrectos";
+            mensaje = "Error de conexión: " + ex.Message;
             loginExitoso = false;
         }
-
-        isLoading = false;
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 
     public class LoginModel
