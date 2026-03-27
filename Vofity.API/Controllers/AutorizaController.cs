@@ -16,14 +16,8 @@ public class AutorizaController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] Login request)
     {
-        // AÑADE ESTO PARA VER QUÉ LLEGA REALMENTE
-        Console.WriteLine($"Intento de login: Usuario='{request.Usuario}', Password='{request.Password}'");
+       
 
-        if (request == null || string.IsNullOrEmpty(request.Usuario))
-        {
-            return BadRequest("El servidor recibió un objeto vacío");
-
-        }
         var usuario = await _repo.ObtenerPorCredencialesAsync(request.Usuario, request.Password);
 
         if (usuario == null)
@@ -34,3 +28,11 @@ public class AutorizaController : ControllerBase
         return Ok(new { message = "Login correcto" });
     }
 }
+// debugging para verificar que los datos se reciben correctamente 
+/* Console.WriteLine($"Intento de login: Usuario='{request.Usuario}', Password='{request.Password}'");
+
+ if (request == null || string.IsNullOrEmpty(request.Usuario))
+ {
+     return BadRequest("El servidor recibió un objeto vacío");
+
+ }*/
