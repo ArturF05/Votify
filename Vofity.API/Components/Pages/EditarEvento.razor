@@ -86,9 +86,7 @@
     {
         categorias = await contexto.Categoria.ToListAsync();
 
-        evento = await contexto.Evento
-            .Include(e => e.Categoria)
-            .FirstOrDefaultAsync(e => e.Id == id);
+        evento = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == id);
 
         if (evento == null)
         {

@@ -52,23 +52,34 @@
 
     protected override async Task OnInitializedAsync()
     {
-        eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
+        eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
         HayEventos();
     }
 
     private async Task Desarchivar(Guid eventoId)
     {
-        var response = await Http.PatchAsync($"api/eventos/{eventoId}/archivo?archivar=false", null);
+        try
+        {
+            var response = await Http.PatchAsync(
+                $"api/eventos/{eventoId}/archivo?archivar=false",
+                new StringContent("")
+            );
 
-        if (response.IsSuccessStatusCode)
-        {
-            eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
-            HayEventos();
-            StateHasChanged();
+            if (response.IsSuccessStatusCode)
+            {
+                eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
+                HayEventos();
+                StateHasChanged();
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                noHayArchivados = $"No se pudo desarchivar el evento: {error}";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            noHayArchivados = "No se pudo desarchivar el evento";
+            noHayArchivados = $"Error al desarchivar: {ex.Message}";
         }
     }
 
@@ -91,7 +102,7 @@
 
         if (response.IsSuccessStatusCode)
         {
-            eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
+            eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
             HayEventos();
             StateHasChanged();
         }

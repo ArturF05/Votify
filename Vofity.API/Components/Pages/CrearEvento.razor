@@ -82,34 +82,43 @@
 
     private async Task GuardarEvento()
     {
-        eventos = await contexto.Evento.Include(e => e.Categoria).Where(e => e.Archivado == false).ToListAsync();
-        bool nombreUsado = false;
-        bool nombreVacio = string.IsNullOrWhiteSpace(nombre);
-        if (nombreVacio)
+        try
         {
-            mensaje = "El nombre del evento es obligatorio";
-        } else{
+            eventos = await contexto.Evento
+                .Include(e => e.Categoria)
+                .Where(e => e.Archivado == false)
+                .ToListAsync();
+
+            bool nombreUsado = false;
+            bool nombreVacio = string.IsNullOrWhiteSpace(nombre);
+
+            if (nombreVacio)
+            {
+                mensaje = "El nombre del evento es obligatorio";
+                return;
+            }
+
             foreach (var eve in eventos)
             {
-                if (eve.Nombre.ToLower().Equals(nombre.ToLower())) 
+                if (eve.Nombre.ToLower().Equals(nombre.ToLower()))
                 {
                     nombreUsado = true;
                     break;
                 }
             }
-            if (nombreUsado) mensaje = "El nombre del evento ya está en uso";
-            else mensaje = "";
-        }
-        if (fin.CompareTo(inicio) <= 0)
-        {
-            mensaje2 = "La fecha del fin del evento debe ser posterior a la fecha de inicio";
-        }
-        else
-        {
-            mensaje2 = "";
-        }
-        if (!nombreVacio && !nombreUsado && fin.CompareTo(inicio) > 0)
-        {
+
+            if (nombreUsado)
+            {
+                mensaje = "El nombre del evento ya está en uso";
+                return;
+            }
+
+            if (fin.CompareTo(inicio) <= 0)
+            {
+                mensaje2 = "La fecha del fin del evento debe ser posterior a la fecha de inicio";
+                return;
+            }
+
             var dto = new CrearEventoDTOs
             {
                 Nombre = nombre,
@@ -127,8 +136,13 @@
             }
             else
             {
-                mensaje = "No se pudo crear el evento";
+                var error = await response.Content.ReadAsStringAsync();
+                mensaje = $"No se pudo crear el evento: {error}";
             }
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error: {ex.Message}";
         }
     }
 }
