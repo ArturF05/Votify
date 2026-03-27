@@ -55,5 +55,9 @@ namespace Votify.Infrastructure.Repositorios
             evento.Archivado = archivar;
             await contexto.SaveChangesAsync();
         }
+        public async Task<Evento?> ObtenerEventoPorIdAsync(Guid id)
+        {
+            return await contexto.Evento.FindAsync(id);
+        }
     }
 }

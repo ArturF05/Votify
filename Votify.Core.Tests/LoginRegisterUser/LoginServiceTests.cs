@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Votify.Core.Entities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Votify.Core.Services;
-using Votify.Infrastructure.Data;
-using Votify.Infrastructure.Repositorios;
 
 namespace Votify.Core.Tests.LoginRegisterUser
 {
@@ -15,37 +13,16 @@ namespace Votify.Core.Tests.LoginRegisterUser
     public class LoginServiceTests
     {
         private LoginService loginService;
-        private AppDbContext context;
-
-        [TestInitialize]
-        public void Setup()
-        {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-            context = new AppDbContext(options);
-
-            var usuarioRepository = new UsuarioRepository(context);
-
-            loginService = new LoginService(usuarioRepository)
-;
-            context.Usuario.Add(new Usuario
-            {
-                Nombre = "usuarioTest",
-                Password = "passTest"
-            });
-
-            context.SaveChanges();
-        }
 
         [TestMethod]
         public async Task LoginValid()
         {
-            bool resultado = await loginService.ValidarUsuarioAsync(
-                "usuarioTest",
-                "passTest"
-            );
+            var jsonRespuesta = "true";
+
+            var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
+            loginService = new LoginService(httpClient);
+
+            bool resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "passTest");
 
             Assert.IsTrue(resultado);
         }
@@ -53,10 +30,12 @@ namespace Votify.Core.Tests.LoginRegisterUser
         [TestMethod]
         public async Task LoginIncorrectPass()
         {
-            bool resultado = await loginService.ValidarUsuarioAsync(
-                "usuarioTest",
-                "IncorrectPassTest"
-            );
+            var jsonRespuesta = "false";
+
+            var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
+            loginService = new LoginService(httpClient);
+
+            bool resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "IncorrectPassTest");
 
             Assert.IsFalse(resultado);
         }
@@ -64,10 +43,12 @@ namespace Votify.Core.Tests.LoginRegisterUser
         [TestMethod]
         public async Task LoginUserNotExists()
         {
-            bool resultado = await loginService.ValidarUsuarioAsync(
-                "InventadoUsuarioTest",
-                "passTest"
-            );
+            var jsonRespuesta = "false";
+
+            var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
+            loginService = new LoginService(httpClient);
+
+            bool resultado = await loginService.ValidarUsuarioAsync("InventadoUsuarioTest", "passTest");
 
             Assert.IsFalse(resultado);
         }
@@ -75,10 +56,12 @@ namespace Votify.Core.Tests.LoginRegisterUser
         [TestMethod]
         public async Task LoginUserNull()
         {
-            bool resultado = await loginService.ValidarUsuarioAsync(
-                "",
-                "passTest"
-            );
+            var jsonRespuesta = "false";
+
+            var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
+            loginService = new LoginService(httpClient);
+
+            bool resultado = await loginService.ValidarUsuarioAsync("", "passTest");
 
             Assert.IsFalse(resultado);
         }
@@ -86,12 +69,46 @@ namespace Votify.Core.Tests.LoginRegisterUser
         [TestMethod]
         public async Task LoginPassNull()
         {
-            bool resultado = await loginService.ValidarUsuarioAsync(
-                "usuarioTest",
-                ""
-            );
+            var jsonRespuesta = "false";
+
+            var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
+            loginService = new LoginService(httpClient);
+
+            bool resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "");
 
             Assert.IsFalse(resultado);
+        }
+
+        private HttpClient CrearHttpClientFalso(string contenidoRespuesta, HttpStatusCode codigoEstado)
+        {
+            var handler = new FakeHttpMessageHandler(contenidoRespuesta, codigoEstado);
+
+            return new HttpClient(handler)
+            {
+                BaseAddress = new Uri("https://localhost:5001/")
+            };
+        }
+    }
+
+    public class FakeHttpMessageHandler : HttpMessageHandler
+    {
+        private readonly string contenidoRespuesta;
+        private readonly HttpStatusCode codigoEstado;
+
+        public FakeHttpMessageHandler(string contenidoRespuesta, HttpStatusCode codigoEstado)
+        {
+            this.contenidoRespuesta = contenidoRespuesta;
+            this.codigoEstado = codigoEstado;
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var response = new HttpResponseMessage(codigoEstado)
+            {
+                Content = new StringContent(contenidoRespuesta, Encoding.UTF8, "application/json")
+            };
+
+            return Task.FromResult(response);
         }
     }
 }

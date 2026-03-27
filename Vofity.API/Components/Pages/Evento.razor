@@ -1,20 +1,25 @@
 ﻿@page "/Evento"
+@using Microsoft.AspNetCore.Components.Web
 @using Microsoft.EntityFrameworkCore
+@using System.Net.Http.Json
 @using Votify.Core.Entities
-@using Votify.Core.Services
 @using Votify.Infrastructure.Data
-@using Votify.Infrastructure.Repositorios
-@inject NavigationManager nav;
+@inject NavigationManager nav
 @inject AppDbContext contexto
+@inject HttpClient Http
 @rendermode InteractiveServer
+
 <div class="titulo-y-archivados">
     <h2 class="titulo">Eventos</h2>
-    <button class="boton-archivados" @onclick="VerArchivados">Archivados <img src="/Archivados.png" alt="Símbolo Archivados" class="archivados-img" /> </button>
+    <button class="boton-archivados" @onclick="VerArchivados">
+        Archivados <img src="/Archivados.png" alt="Símbolo Archivados" class="archivados-img" />
+    </button>
 </div>
 
 <PageTitle>Evento</PageTitle>
+
 <div class="barra-busqueda">
-    <input @bind="busqueda" @bind:event="oninput" type="text" placeholder="Buscar eventos..." @onkeypress="(e) => EsEnter(e)" />
+    <input @bind="busqueda" @bind:event="oninput" type="text" placeholder="Buscar eventos..." @onkeypress="EsEnter" />
     <label style="vertical-align:text-bottom">Categoria: </label>
     <select @bind="Id_Categoria">
         <option value="@Guid.Empty">Todas</option>
@@ -23,7 +28,7 @@
             <option value="@cat.Id">@cat.Nombre</option>
         }
     </select>
-    <button @onclick='() => BuscarEventos()'>Buscar</button>
+    <button @onclick="BuscarEventos">Buscar</button>
 </div>
 
 <div>
@@ -41,82 +46,103 @@
         <tbody>
             @foreach (var evento in eventos.Where(e => e.Archivado == false))
             {
-            <tr>
-                <td>@evento.Nombre</td>
-                <td>@evento.Categoria.Nombre</td>
-                <td>@evento.FechaInicio</td>
-                <td>@evento.FechaFin</td>
-                <td><button class="boton-editar" @onclick='() => EditarEvento(evento)'>Editar</button></td>
-                <td><button class="boton-editar" @onclick="() => Archivar(evento)">Archivar</button></td>
-            </tr>
+                <tr>
+                    <td>@evento.Nombre</td>
+                    <td>@evento.Categoria.Nombre</td>
+                    <td>@evento.FechaInicio</td>
+                    <td>@evento.FechaFin</td>
+                    <td><button class="boton-editar" @onclick='() => EditarEvento(evento)'>Editar</button></td>
+                    <td><button class="boton-editar" @onclick='() => Archivar(evento.Id)'>Archivar</button></td>
+                </tr>
             }
         </tbody>
-        <label> @noHayResultados </label>
     </table>
+
+    <label>@noHayResultados</label>
 </div>
+
 <a href="/CrearEvento" class="botonLink">Crear Evento</a>
 
 @code {
     List<Votify.Core.Entities.Evento> eventos = new();
-    List<Votify.Core.Entities.Evento> eventosEncontrados = new();
-    private EventoRepository eventoRepository;
-    private EventoService eventoService;
-    private string busqueda;
-    private Guid Id_Categoria = Guid.Empty;
     List<Categoria> categorias = new();
+
+    private string busqueda = "";
+    private Guid Id_Categoria = Guid.Empty;
     private string noHayResultados = "";
 
     protected override async Task OnInitializedAsync()
     {
         eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
         categorias = await contexto.Categoria.ToListAsync();
-        iniciarServicio();
-        hayEventos();
-    }
-    private void iniciarServicio()
-    {
-        eventoRepository = new EventoRepository(contexto);
-        eventoService = new EventoService(eventoRepository);
-    }
-    private void EsEnter(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter") BuscarEventos();
+        HayEventos();
     }
 
-    async void BuscarEventos()
+    private async Task EsEnter(KeyboardEventArgs e)
     {
-        if (string.IsNullOrEmpty(busqueda) && Id_Categoria == Guid.Empty)
+        if (e.Key == "Enter")
+        {
+            await BuscarEventos();
+        }
+    }
+
+    private async Task BuscarEventos()
+    {
+        if (string.IsNullOrWhiteSpace(busqueda) && Id_Categoria == Guid.Empty)
         {
             eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
             noHayResultados = "";
-            if (eventos.Count == 0) noHayResultados = "No se han encontrado resultados";
-        } else {
-            if (busqueda == null) busqueda = "";
-            eventosEncontrados = await eventoService.BuscarEvento(busqueda, Id_Categoria);
-            eventos = eventosEncontrados;
-            if (eventos == null || eventos.Count == 0) noHayResultados = "No se han encontrado resultados para la búsqueda realizada";
-            else noHayResultados = "";
         }
+        else
+        {
+            var nombreBusqueda = busqueda ?? "";
+            var url = $"api/eventos/buscar?nombre={Uri.EscapeDataString(nombreBusqueda)}&idCategoria={Id_Categoria}";
+
+            var resultado = await Http.GetFromJsonAsync<List<Votify.Core.Entities.Evento>>(url);
+            eventos = resultado ?? new List<Votify.Core.Entities.Evento>();
+
+            if (eventos.Count == 0)
+                noHayResultados = "No se han encontrado resultados para la búsqueda realizada";
+            else
+                noHayResultados = "";
+        }
+
+        HayEventos();
         StateHasChanged();
-        iniciarServicio();
     }
 
-    void EditarEvento(Votify.Core.Entities.Evento evento)
+    private void EditarEvento(Votify.Core.Entities.Evento evento)
     {
         nav.NavigateTo($"/EditarEvento/{evento.Id}");
     }
-    void VerArchivados()
+
+    private void VerArchivados()
     {
         nav.NavigateTo("/EventosArchivados");
     }
-    private async void Archivar(Votify.Core.Entities.Evento evento)
+
+    private async Task Archivar(Guid eventoId)
     {
-        await eventoService.Archivo(evento, true);
-        hayEventos();
-        StateHasChanged();
+        var response = await Http.PatchAsync($"api/eventos/{eventoId}/archivo?archivar=true", null);
+
+        if (response.IsSuccessStatusCode)
+        {
+            eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
+            noHayResultados = "";
+            HayEventos();
+            StateHasChanged();
+        }
+        else
+        {
+            noHayResultados = "No se pudo archivar el evento";
+        }
     }
-    void hayEventos()
+
+    private void HayEventos()
     {
-        if (eventos.Where(e => e.Archivado == false).Count() == 0) noHayResultados = "No hay eventos";
+        if (eventos.Where(e => e.Archivado == false).Count() == 0)
+            noHayResultados = "No hay eventos";
+        else if (string.IsNullOrEmpty(noHayResultados) || noHayResultados == "No hay eventos")
+            noHayResultados = "";
     }
 }
