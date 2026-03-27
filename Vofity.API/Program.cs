@@ -15,13 +15,13 @@ builder.Services.AddScoped<IEventoRepository,  EventoRepository>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-builder.Services.AddScoped<ILogin, LoginService>();
+
 builder.Services.AddScoped<IRegister, RegisterService>();
 builder.Services.AddScoped<IProyectoService, ProyectoService>();
 builder.Services.AddScoped<IProyectoRepository, ProyectoRepository>();
 builder.Services.AddHttpClient<ILogin, LoginService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:5001"); // opcional
+    client.BaseAddress = new Uri("https://localhost:7053"); // usar 7053 no el 5129 , uno es para https y el otro para http
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
