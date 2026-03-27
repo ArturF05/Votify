@@ -27,6 +27,7 @@ builder.Services.AddHttpClient<ILogin, LoginService>(client =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -43,4 +44,5 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+app.MapControllers();
 app.Run();
