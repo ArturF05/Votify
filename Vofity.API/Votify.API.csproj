@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Votify.Core\Votify.Core.csproj" />
     <ProjectReference Include="..\Votify.Infrastructure\Votify.Infrastructure.csproj" />
   </ItemGroup>
