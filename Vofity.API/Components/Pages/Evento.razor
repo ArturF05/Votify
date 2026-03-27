@@ -73,7 +73,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
+        eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
         categorias = await contexto.Categoria.ToListAsync();
         HayEventos();
     }
@@ -90,7 +90,7 @@
     {
         if (string.IsNullOrWhiteSpace(busqueda) && Id_Categoria == Guid.Empty)
         {
-            eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
+            eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
             noHayResultados = "";
         }
         else
@@ -123,21 +123,28 @@
 
     private async Task Archivar(Guid eventoId)
     {
-        var response = await Http.PatchAsync($"api/eventos/{eventoId}/archivo?archivar=true", null);
+        try
+        {
+            var response = await Http.PatchAsync($"api/eventos/{eventoId}/archivo?archivar=true",new StringContent(""));
 
-        if (response.IsSuccessStatusCode)
-        {
-            eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
-            noHayResultados = "";
-            HayEventos();
-            StateHasChanged();
+            if (response.IsSuccessStatusCode)
+            {
+                eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
+                noHayResultados = "";
+                HayEventos();
+                StateHasChanged();
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                noHayResultados = $"No se pudo archivar el evento: {error}";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            noHayResultados = "No se pudo archivar el evento";
+            noHayResultados = $"Error al archivar: {ex.Message}";
         }
     }
-
     private void HayEventos()
     {
         if (eventos.Where(e => e.Archivado == false).Count() == 0)

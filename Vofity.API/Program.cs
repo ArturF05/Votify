@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Votify.API.Components;
 using Votify.Core.Interfaces;
@@ -24,9 +25,13 @@ builder.Services.AddHttpClient<ILogin, LoginService>(client =>
 {
     client.BaseAddress = new Uri("https://localhost:7053"); // usar 7053 no el 5129 , uno es para https y el otro para http
 });
-builder.Services.AddScoped(sp => new HttpClient
+builder.Services.AddScoped(sp =>
 {
-    BaseAddress = new Uri("https://localhost:5001/")
+    var navigationManager = sp.GetRequiredService<NavigationManager>();
+    return new HttpClient
+    {
+        BaseAddress = new Uri(navigationManager.BaseUri)
+    };
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
