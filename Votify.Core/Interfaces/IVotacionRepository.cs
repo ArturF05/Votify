@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Votify.Core.Entities;
-using Votify.Core.Interfaces;
 
-namespace Votify.Core.Services
+namespace Votify.Core.Interfaces
 {
-    public class Votacion : IVotacion
+    public interface IVotacionRepository
     {
-
+        Task<Votacion?> ObtenerPorIdAsync(Guid idVotacion);
     }
 }

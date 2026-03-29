@@ -22,6 +22,9 @@ builder.Services.AddScoped<IRegister, RegisterService>();
 
 builder.Services.AddScoped<IProyectoService, ProyectoService>();
 builder.Services.AddScoped<IProyectoRepository, ProyectoRepository>();
+builder.Services.AddScoped<IVotacion, VotacionService>();
+builder.Services.AddScoped<IVotacionRepository, VotacionRepository>();
+builder.Services.AddScoped<IVotoRepository, VotoRepository>();
 
 builder.Services.AddHttpClient<ILogin, LoginService>(client =>
 {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Votify.Core.Entities;
 using Votify.Core.Interfaces;
 using Votify.Infrastructure.Data;
@@ -11,19 +12,24 @@ namespace Votify.Infrastructure.Repositorios
 {
     public class ProyectoRepository : IProyectoRepository
     {
-        private readonly AppDbContext _context;
+        private readonly AppDbContext contexto;
         public ProyectoRepository(AppDbContext context)
         {
-            _context = context;
+            contexto = context;
         }
         public async Task<bool> CrearProyectoAsync(Proyecto proyecto)
         {
             
-                    
-            await _context.Proyecto.AddAsync(proyecto);
-           await _context.SaveChangesAsync();
+
+            await contexto.Proyecto.AddAsync(proyecto);
+           await contexto.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<List<Proyecto>> ObtenerPorIdAsync(List<Guid> idsProyectos)
+        {
+            return await contexto.Proyecto.Where(p => idsProyectos.Contains(p.Id)).ToListAsync();
         }
     }
 }

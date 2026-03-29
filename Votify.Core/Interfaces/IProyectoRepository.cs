@@ -10,5 +10,6 @@ namespace Votify.Core.Interfaces
    
     public interface IProyectoRepository{
         Task<bool> CrearProyectoAsync(Proyecto proyecto);
+        Task<List<Proyecto>> ObtenerPorIdAsync(List<Guid> idsProyectos);
         }
 }
