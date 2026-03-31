@@ -11,8 +11,8 @@ namespace Votify.Core.Services
     public class EventoService : IEvento
     {
         private Rol aux = new Rol();
-        private Proyecto aux2 = new Proyecto();
-        private Votacion aux3 = new Votacion();
+        private List<Proyecto> aux2 = new List<Proyecto>();
+        private Votify.Core.Entities.Votacion aux3 = new Votify.Core.Entities.Votacion();
         private readonly IEventoRepository eventoRepository;
         public EventoService(IEventoRepository eventoRepository)
         {
@@ -38,6 +38,9 @@ namespace Votify.Core.Services
                 Descripcion = descripcion,
                 FechaInicio = fechaInicio,
                 FechaFin = fechaFin,
+                EventoUsuarioRols = aux,
+                Proyectos = aux2,
+                Votacion = aux3,
                 Archivado = false
             };
 

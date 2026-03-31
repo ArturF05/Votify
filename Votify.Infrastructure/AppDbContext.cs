@@ -31,9 +31,6 @@ public class AppDbContext : DbContext
             .Ignore(e => e.EventoUsuarioRols);
 
         modelBuilder.Entity<Evento>()
-            .Ignore(e => e.Proyecto);
-
-        modelBuilder.Entity<Evento>()
             .Ignore(e => e.Votacion);
     }
 }

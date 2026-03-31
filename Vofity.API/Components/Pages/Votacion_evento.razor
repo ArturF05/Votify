@@ -1,0 +1,70 @@
+﻿@page "/Votacion_evento/{id:guid}"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using Votify.Core.Entities
+@using Votify.Core.Services
+@using Votify.Infrastructure.Data
+@using Votify.Infrastructure.Repositorios
+@inject NavigationManager nav;
+@inject AppDbContext contexto
+<h2 class="titulo">Elija sus 3 proyectos favoritos</h2>
+<table class="evento-container">
+    <tbody>
+        @{int x = 0;}
+        <tr>
+            @if(evento == null)
+            {
+                <label>Cargando evento...</label>
+            }
+            else if (evento.Proyectos == null || evento.Proyectos.Count == 0)
+            {
+                <label>"No se han presentado proyectos para este evento todavía"</label>
+            }
+            else
+            {
+                @foreach (var proyecto in evento.Proyectos)
+                {
+
+                    <td>
+                        <div class="proyecto-card">
+                            <button class="boton-favorito" @onclick="Favorito" ><img src="/Estrella.png" alt="Símbolo Favorito" class="estrella-img" /> </button>
+                            <div class="proyecto-header">
+                                <div class="logo-container">
+                                    <label>@proyecto.Titulo</label>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    x++;
+
+                    if (x == 4)
+                    {
+                        @:</tr><tr>
+                        x = 0;
+                    }
+
+                }
+            }
+        </tr>
+    </tbody>
+</table>
+
+
+
+
+@code{
+    List<Votify.Core.Entities.Evento> eventos = new();
+    private Votify.Core.Entities.Evento evento;
+    private Guid Id_Categoria = Guid.Empty;
+    [Parameter]
+    public Guid id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
+    }
+    private void Favorito()
+    {
+        //al hacer click al botón debe cambiarse la imagen a EsFavorito y añadirla a favoritos en el backend
+    }
+}

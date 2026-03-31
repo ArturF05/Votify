@@ -1,0 +1,55 @@
+﻿.titulo {
+    font-size: 28px;
+}
+.proyecto-card {
+    background: #ffffff;
+    border-radius: 1.25rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 280px;
+    min-width: 280px;
+    min-height: 190px;
+    max-height: 190px;
+    margin-right:20px;
+}
+
+.proyecto-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.proyecto-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.proyecto-subtitle {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0.25rem 0 0;
+}
+
+.proyecto-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.proyecto-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.estrella-img {
+    width: 20px;
+    height: auto;
+}
+.boton-favorito {
+    background-color: #ffffff;
+    color: white;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    margin-left: auto;
+}

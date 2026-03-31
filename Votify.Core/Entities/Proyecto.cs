@@ -10,10 +10,9 @@ namespace Votify.Core.Entities;
 public class Proyecto
 {
     public Guid Id { get; set; }
-    public String Titulo { get; set; } = "";
-
-    [ForeignKey("Evento")]
-    public Guid? Id_evento { get; set; }
-    public Evento? Evento { get; set; }
+    public String Titulo { get; set; }
+    [ForeignKey(nameof(Evento))]
+    public Guid Id_evento { get; set; }
+    public Evento Evento { get; set; }
     public String Descripcion { get; set; }
 }

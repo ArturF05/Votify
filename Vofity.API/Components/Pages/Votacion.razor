@@ -1,0 +1,51 @@
+@page "/Votacion"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using Votify.Core.Entities
+@using Votify.Core.Services
+@using Votify.Infrastructure.Data
+@using Votify.Infrastructure.Repositorios
+@inject NavigationManager nav;
+@inject AppDbContext contexto
+<h2 class="titulo">Elija un evento sobre el que votar</h2>
+<table class="evento-container">
+    <tbody>
+        @{int x = 0;}
+        <tr>
+        @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateOnly.FromDateTime(DateTime.Now))>0))
+        {
+
+            <td>
+                <button class="evento-card" @onclick="() => irAEvento(evento)">@evento.Nombre</button>
+            </td>
+            x++;
+
+            if (x == 4)
+            {
+                @:</tr><tr>
+                x = 0;
+            }
+            
+        }
+        </tr>
+    </tbody>
+</table>
+
+
+
+
+@code{
+    List<Votify.Core.Entities.Evento> eventos = new();
+    private Guid Id_Categoria = Guid.Empty;
+    private string noHayResultados = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
+    }
+
+    private void irAEvento(Votify.Core.Entities.Evento evento)
+    {
+        nav.NavigateTo($"/Votacion_evento/{evento.Id}");
+    }
+}
