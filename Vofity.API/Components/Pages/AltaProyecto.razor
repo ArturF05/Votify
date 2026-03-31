@@ -55,7 +55,7 @@
                     <span>Crear Proyecto</span>
                 }
             </button>
-    }
+    
         </EditForm>
 
         @if (!string.IsNullOrEmpty(mensaje))
@@ -85,14 +85,24 @@
 
     private async Task CrearProyecto()
     {
+        cargando = true;
+        mensaje = "";
+
         try
         {
-            var response = await Http.PostAsJsonAsync("api/v1/proyecto", modelo);
+            // Enviar como JSON con propiedades en minúsculas da fallo al redibirlo en el backend,
+            //  por eso se envía como un objeto anónimo con las propiedades en minúsculas
+            var response = await Http.PostAsJsonAsync("api/v1/proyecto", new
+            {
+                titulo = modelo.Titulo,
+                descripcion = modelo.Descripcion
+            });
+
             var result = await response.Content.ReadFromJsonAsync<RespuestaApi>();
 
             if (response.IsSuccessStatusCode && result?.Success == true)
             {
-                mensaje = result.Message;
+                mensaje = result.Message ?? "Proyecto creado exitosamente";
                 creado = true;
                 modelo = new CrearProyectoDto();
             }
@@ -107,14 +117,15 @@
             mensaje = "Error de conexión: " + ex.Message;
             creado = false;
         }
-        finally {
-            cargando = true;
+        finally
+        {
+            cargando = false; // CORREGIDO: era true, debe ser false
         }
     }
 
     public class RespuestaApi
     {
         public bool Success { get; set; }
-        public string Message { get; set; }
+        public string? Message { get; set; }
     }
 }
