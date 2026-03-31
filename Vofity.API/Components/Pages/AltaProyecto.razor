@@ -1,7 +1,7 @@
 ﻿@page "/AltaProyecto"
 @using Votify.Core.DTOs
-@using Votify.Core.Interfaces
-@inject IProyectoService ProyectoService
+@using System.Net.Http.Json
+@inject HttpClient Http
 
 <div class="crear-proyecto-container">
     <div class="crear-proyecto-card">
@@ -14,7 +14,8 @@
         <h2 class="crear-proyecto-titulo">Crear Proyecto</h2>
         <p class="crear-proyecto-subtitulo">Completa los datos para iniciar tu nuevo proyecto</p>
 
-        <EditForm Model="modelo" OnValidSubmit="CrearProyecto">
+        <EditForm Model="modelo" OnValidSubmit="CrearProyecto" FormName="altaProyectoForm">
+            
             <DataAnnotationsValidator />
 
             <!-- Campo Titulo -->
@@ -44,9 +45,17 @@
                 <ValidationMessage For="@(() => modelo.Descripcion)" />
             </div>
 
-            <button type="submit" class="btn-crear">
-                Crear Proyecto
+            <button type="submit" class="btn-crear" disabled="@cargando">
+                @if (cargando)
+                {
+                    <span>Creando...</span>
+                }
+                else
+                {
+                    <span>Crear Proyecto</span>
+                }
             </button>
+    }
         </EditForm>
 
         @if (!string.IsNullOrEmpty(mensaje))
@@ -72,22 +81,40 @@
     private CrearProyectoDto modelo = new();
     private string mensaje = "";
     private bool creado = false;
+    private bool cargando = false;
 
     private async Task CrearProyecto()
     {
-        var resultado = await ProyectoService.CrearProyecto(modelo.Titulo,
-            modelo.Descripcion);
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/v1/proyecto", modelo);
+            var result = await response.Content.ReadFromJsonAsync<RespuestaApi>();
 
-        if (resultado)
-        {
-            mensaje = "Proyecto creado correctamente.";
-            creado = true;
-            modelo = new CrearProyectoDto();
+            if (response.IsSuccessStatusCode && result?.Success == true)
+            {
+                mensaje = result.Message;
+                creado = true;
+                modelo = new CrearProyectoDto();
+            }
+            else
+            {
+                mensaje = result?.Message ?? "Error al crear proyecto";
+                creado = false;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            mensaje = "No se pudo crear el proyecto.";
+            mensaje = "Error de conexión: " + ex.Message;
             creado = false;
         }
+        finally {
+            cargando = true;
+        }
+    }
+
+    public class RespuestaApi
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
     }
 }
