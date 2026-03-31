@@ -36,9 +36,6 @@
 
 @code{
     List<Votify.Core.Entities.Evento> eventos = new();
-    private Guid Id_Categoria = Guid.Empty;
-    private string noHayResultados = "";
-
     protected override async Task OnInitializedAsync()
     {
         eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
