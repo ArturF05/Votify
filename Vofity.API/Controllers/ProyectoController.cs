@@ -4,7 +4,7 @@ using Votify.Core.Interfaces;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class ProyectoController : ControllerBase  // plural: "Proyectos"
+public class ProyectoController : ControllerBase  
 {
     private readonly IProyectoService _proyectoService;
 
@@ -17,6 +17,7 @@ public class ProyectoController : ControllerBase  // plural: "Proyectos"
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CrearProyectoDto dto)
     {
+
         if (string.IsNullOrEmpty(dto.Titulo))
             return BadRequest(new
             {
