@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 18
-VisualStudioVersion = 18.5.11619.145 insiders
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37012.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Votify.Core", "Votify.Core\Votify.Core.csproj", "{49879A66-DBE8-4C01-B2F0-3AFC44F3A38D}"
 EndProject

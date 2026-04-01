@@ -1,4 +1,5 @@
 ﻿@page "/AltaProyecto"
+@rendermode InteractiveServer
 @using Votify.Core.DTOs
 @using System.Net.Http.Json
 @inject HttpClient Http
@@ -14,7 +15,7 @@
         <h2 class="crear-proyecto-titulo">Crear Proyecto</h2>
         <p class="crear-proyecto-subtitulo">Completa los datos para iniciar tu nuevo proyecto</p>
 
-        <EditForm Model="modelo" OnValidSubmit="CrearProyecto" FormName="altaProyectoForm">
+        <EditForm Model="modelo" OnValidSubmit="CrearProyecto" >
             
             <DataAnnotationsValidator />
 
@@ -90,25 +91,21 @@
 
         try
         {
-            // Enviar como JSON con propiedades en minúsculas da fallo al redibirlo en el backend,
-            //  por eso se envía como un objeto anónimo con las propiedades en minúsculas
             var response = await Http.PostAsJsonAsync("api/v1/proyecto", new
             {
                 titulo = modelo.Titulo,
                 descripcion = modelo.Descripcion
             });
 
-            var result = await response.Content.ReadFromJsonAsync<RespuestaApi>();
-
-            if (response.IsSuccessStatusCode && result?.Success == true)
+            if (response.IsSuccessStatusCode)
             {
-                mensaje = result.Message ?? "Proyecto creado exitosamente";
+                mensaje = "Proyecto creado exitosamente";
                 creado = true;
                 modelo = new CrearProyectoDto();
             }
             else
             {
-                mensaje = result?.Message ?? "Error al crear proyecto";
+                mensaje = "Error al crear proyecto";
                 creado = false;
             }
         }
@@ -119,13 +116,14 @@
         }
         finally
         {
-            cargando = false; // CORREGIDO: era true, debe ser false
+            cargando = false;
         }
     }
+   
 
     public class RespuestaApi
     {
-        public bool Success { get; set; }
+        public string? Status { get; set; }
         public string? Message { get; set; }
     }
 }
