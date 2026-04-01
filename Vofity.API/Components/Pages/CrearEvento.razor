@@ -5,8 +5,11 @@
 @using Votify.Core.Services
 @using Votify.Infrastructure.Data
 @using Votify.Infrastructure.Repositorios
+@using Votify.API.DTOs
+@using System.Net.Http.Json
 @inject NavigationManager nav
 @inject AppDbContext contexto
+@inject HttpClient Http
 
 <h3>Crear Evento</h3>
 
@@ -60,10 +63,7 @@
     DateOnly fin = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
     private string nombre = "";
     private Guid Id_categoria = new Guid("0d4e9ac5-56ee-4a5c-817e-ee78bf8a8ed9");
-    private Categoria categoria;
     private string descripcion = "";
-    private EventoRepository eventoRepository;
-    private EventoService eventoService;
     private string mensaje = "";
     private string mensaje2 = "";
     List<Categoria> categorias = new();
@@ -72,8 +72,6 @@
     protected override async Task OnInitializedAsync()
     {
         categorias = await contexto.Categoria.ToListAsync();
-        eventoRepository = new EventoRepository(contexto);
-        eventoService = new EventoService(eventoRepository);
     }
 
 
@@ -84,34 +82,67 @@
 
     private async Task GuardarEvento()
     {
-        categoria = await contexto.Categoria.FindAsync(Id_categoria);
-        eventos = await contexto.Evento.Include(e => e.Categoria).Where(e => e.Archivado == false).ToListAsync();
-        bool nombreUsado = false;
-        bool nombreVacio = string.IsNullOrWhiteSpace(nombre);
-        if (nombreVacio)
+        try
         {
-            mensaje = "El nombre del evento es obligatorio";
-        } else{
+            eventos = await contexto.Evento
+                .Include(e => e.Categoria)
+                .Where(e => e.Archivado == false)
+                .ToListAsync();
+
+            bool nombreUsado = false;
+            bool nombreVacio = string.IsNullOrWhiteSpace(nombre);
+
+            if (nombreVacio)
+            {
+                mensaje = "El nombre del evento es obligatorio";
+                return;
+            }
+
             foreach (var eve in eventos)
             {
-                if (eve.Nombre.ToLower().Equals(nombre.ToLower())) 
+                if (eve.Nombre.ToLower().Equals(nombre.ToLower()))
                 {
                     nombreUsado = true;
                     break;
                 }
             }
-            if (nombreUsado) mensaje = "El nombre del evento ya está en uso";
+
+            if (nombreUsado)
+            {
+                mensaje = "El nombre del evento ya está en uso";
+                return;
+            }
+
+            if (fin.CompareTo(inicio) <= 0)
+            {
+                mensaje2 = "La fecha del fin del evento debe ser posterior a la fecha de inicio";
+                return;
+            }
+
+            var dto = new CrearEventoDTOs
+            {
+                Nombre = nombre,
+                Id_categoria = Id_categoria,
+                FechaInicio = inicio,
+                Descripcion = descripcion,
+                FechaFin = fin
+            };
+
+            var response = await Http.PostAsJsonAsync("api/eventos", dto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                nav.NavigateTo("/Evento");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensaje = $"No se pudo crear el evento: {error}";
+            }
         }
-        if (fin.CompareTo(inicio) <= 0)
+        catch (Exception ex)
         {
-            mensaje2 = "La fecha del fin del evento debe ser posterior a la fecha de inicio";
-        }
-        else if (!nombreVacio && !nombreUsado)
-        {
-            mensaje = "";
-            mensaje2 = "";
-            await eventoService.CrearEvento(nombre, categoria, inicio, descripcion, fin);
-            nav.NavigateTo("/Evento");
+            mensaje = $"Error: {ex.Message}";
         }
     }
 }

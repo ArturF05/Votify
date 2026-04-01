@@ -22,8 +22,9 @@ namespace Votify.Infrastructure.Repositorios
         public async Task<Usuario?> ObtenerPorCredencialesAsync(string usuario, string password)
         {
             return await _context.Usuario
-                .FirstOrDefaultAsync(u => u.Nombre == usuario && u.Password == password);
+                .FirstOrDefaultAsync(u => u.Nombre.Trim()== usuario.Trim() && u.Password.Trim() == password.Trim());
         }
+        //he añadido el trim para evitar problemas con espacios en blanco al comparar las credenciales (no me iba por espaciado de chars)
 
         public async Task<Usuario?> ObtenerPorNombreAsync(string nombre)
         {

@@ -22,50 +22,71 @@ namespace Votify.Core.Services
         {
             return await eventoRepository.BuscarPorNombreAsync(nombre, Id_Categoria);
         }
-        public async Task CrearEvento(string titulo, Categoria categoria, DateOnly fecha_inicio, string descripcion, DateOnly fecha_cierre)
+        public async Task CrearEvento(string titulo, Guid categoriaId, DateOnly fechaInicio, string descripcion, DateOnly fechaFin)
         {
-                var nuevoEvento = new Evento
-                {
-                    Id = Guid.NewGuid(),
-                    Nombre = titulo,
-                    Id_categoria = categoria.Id,
-                    Categoria = categoria,
-                    Descripcion = descripcion,
-                    FechaInicio = fecha_inicio,
-                    FechaFin = fecha_cierre,
-                    EventoUsuarioRols = aux,
-                    Proyecto = aux2,
-                    Votacion = aux3,
-                    Archivado = false
-                }; 
-                await eventoRepository.CrearEventoAsync(nuevoEvento);
-         
+            if (string.IsNullOrWhiteSpace(titulo))
+                throw new Exception("El título es obligatorio");
+
+            if (fechaFin < fechaInicio)
+                throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
+
+            var nuevoEvento = new Evento
+            {
+                Id = Guid.NewGuid(),
+                Nombre = titulo,
+                Id_categoria = categoriaId,
+                Descripcion = descripcion,
+                FechaInicio = fechaInicio,
+                FechaFin = fechaFin,
+                Archivado = false
+            };
+
+            await eventoRepository.CrearEventoAsync(nuevoEvento);
         }
 
-        public async Task EditarEvento(string titulo, Categoria categoria, DateOnly fecha_inicio, string descripcion, DateOnly fecha_cierre, Evento evento)
+        public async Task EditarEvento(Guid eventoId, string titulo, Guid categoriaId, DateOnly fechaInicio, string descripcion, DateOnly fechaFin)
         {
-            if (titulo == null || categoria == null || fecha_cierre.CompareTo(fecha_inicio) <= 0)
-            {
+            var evento = await eventoRepository.ObtenerEventoPorIdAsync(eventoId);
 
-            }
-            else
-            {
-                evento.Nombre = titulo;
-                evento.Categoria = categoria;
-                evento.Descripcion = descripcion;
-                evento.FechaInicio = fecha_inicio;
-                evento.FechaFin = fecha_cierre;
-                await eventoRepository.EditarEventoAsync(evento);
-            }
+            if (evento == null)
+                throw new Exception("El evento no existe");
+
+            if (string.IsNullOrWhiteSpace(titulo))
+                throw new Exception("El título es obligatorio");
+
+            if (fechaFin < fechaInicio)
+                throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
+
+            evento.Nombre = titulo;
+            evento.Id_categoria = categoriaId;
+            evento.Descripcion = descripcion;
+            evento.FechaInicio = fechaInicio;
+            evento.FechaFin = fechaFin;
+
+            await eventoRepository.EditarEventoAsync(evento);
         }
 
-        public async Task EliminarEvento(Evento evento)
+        public async Task EliminarEvento(Guid eventoId)
         {
+            var evento = await eventoRepository.ObtenerEventoPorIdAsync(eventoId);
+
+            if (evento == null)
+                throw new Exception("El evento no existe");
+
             await eventoRepository.EliminarEventoAsync(evento);
         }
-        public async Task Archivo(Evento evento, bool archivar)
+        public async Task Archivo(Guid eventoId, bool archivar)
         {
+            var evento = await eventoRepository.ObtenerEventoPorIdAsync(eventoId);
+
+            if (evento == null)
+                throw new Exception("El evento no existe");
+
             await eventoRepository.ArchivoEventoAsync(evento, archivar);
+        }
+        public async Task<Evento?> ObtenerEventoPorIdAsync(Guid id)
+        {
+            return await eventoRepository.ObtenerEventoPorIdAsync(id);
         }
     }
 }

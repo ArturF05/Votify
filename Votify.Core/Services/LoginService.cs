@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
+using Votify.Core.DTOs;
 using Votify.Core.Entities;
 using Votify.Core.Interfaces;
 
@@ -10,19 +13,29 @@ namespace Votify.Core.Services
 {
     public class LoginService : ILogin
     {
-        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly HttpClient _http;
 
-        public LoginService(IUsuarioRepository usuarioRepository)
+        public LoginService(HttpClient http)
         {
-            _usuarioRepository = usuarioRepository;
+            _http = http;
         }
 
         public async Task<bool> ValidarUsuarioAsync(string usuario, string password)
         {
-            if (string.IsNullOrWhiteSpace(usuario) || string.IsNullOrWhiteSpace(password)) return false;
+            try
+            {
+                var loginDto = new Login { Usuario = usuario, Password = password };
 
-            var user = await _usuarioRepository.ObtenerPorCredencialesAsync(usuario, password);
-            return user != null;
+                
+                var response = await _http.PostAsJsonAsync("api/v1/autoriza/login", loginDto);
+
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception)
+            {
+            
+                return false;
+            }
         }
     }
 }
