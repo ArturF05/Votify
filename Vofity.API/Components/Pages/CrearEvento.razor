@@ -31,6 +31,13 @@
                 }
             </select>
         </div>
+        <div class="campo">
+            <label>Tipo de evento*:</label>
+            <select @bind="tipo">
+                <option value="Hackathon">Hackathon</option>
+                <option value="Concurso">Concurso</option>
+            </select>
+        </div>
         <div class="campo campo-derecha">
             <label>Fecha de inicio*:</label>
             <input type="date" @bind="inicio" />
@@ -66,6 +73,7 @@
     private string descripcion = "";
     private string mensaje = "";
     private string mensaje2 = "";
+    private string tipo = "Hackathon";
     List<Categoria> categorias = new();
     List<Votify.Core.Entities.Evento> eventos = new();
 
@@ -125,7 +133,8 @@
                 Id_categoria = Id_categoria,
                 FechaInicio = inicio,
                 Descripcion = descripcion,
-                FechaFin = fin
+                FechaFin = fin,
+                Tipo=tipo
             };
 
             var response = await Http.PostAsJsonAsync("api/eventos", dto);

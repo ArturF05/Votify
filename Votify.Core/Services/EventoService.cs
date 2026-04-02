@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Votify.Core.Entities;
+using Votify.Core.Factories;
 using Votify.Core.Interfaces;
 
 namespace Votify.Core.Services
@@ -14,6 +15,7 @@ namespace Votify.Core.Services
         private Proyecto aux2 = new Proyecto();
         private Votacion aux3 = new Votacion();
         private readonly IEventoRepository eventoRepository;
+        private readonly EventoFactory eventoFactory = new ConcreteEventFactory();
         public EventoService(IEventoRepository eventoRepository)
         {
             this.eventoRepository = eventoRepository;
@@ -22,24 +24,17 @@ namespace Votify.Core.Services
         {
             return await eventoRepository.BuscarPorNombreAsync(nombre, Id_Categoria);
         }
-        public async Task CrearEvento(string titulo, Guid categoriaId, DateOnly fechaInicio, string descripcion, DateOnly fechaFin)
+        public async Task CrearEvento(string titulo, Guid categoriaId, DateOnly fechaInicio, string descripcion, DateOnly fechaFin,string tipo)
         {
+            EventoFactory factory = new ConcreteEventFactory();
             if (string.IsNullOrWhiteSpace(titulo))
                 throw new Exception("El título es obligatorio");
 
             if (fechaFin < fechaInicio)
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
 
-            var nuevoEvento = new Evento
-            {
-                Id = Guid.NewGuid(),
-                Nombre = titulo,
-                Id_categoria = categoriaId,
-                Descripcion = descripcion,
-                FechaInicio = fechaInicio,
-                FechaFin = fechaFin,
-                Archivado = false
-            };
+            Evento nuevoEvento = eventoFactory.CreateEvento(tipo, titulo, descripcion, fechaInicio, fechaFin, categoriaId);
+
 
             await eventoRepository.CrearEventoAsync(nuevoEvento);
         }

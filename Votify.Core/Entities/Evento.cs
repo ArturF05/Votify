@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Votify.Core.Entities;
 
-public class Evento
+public abstract class Evento
 {
     [Key]
     public Guid Id { get; set; }
