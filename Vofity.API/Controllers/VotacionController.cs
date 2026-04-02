@@ -5,7 +5,7 @@ using Votify.Core.Interfaces;
 namespace Votify.API.Controllers
 {
     [ApiController]
-    [Route("api/v1/votaciones")]
+    [Route("api/[controller]")]
     public class VotacionController : ControllerBase
     {
         private readonly IVotacion votacionService;
@@ -18,11 +18,18 @@ namespace Votify.API.Controllers
         [HttpPost("{idVotacion}/votos")]
         public async Task<IActionResult> EmitirVoto(Guid idVotacion, [FromBody] EmitirVotoDTO dto)
         {
-            var resultado = await votacionService.RegistrarVotoAsync(idVotacion, dto);
+            try
+            {
+                var resultado = await votacionService.RegistrarVotoAsync(idVotacion, dto);
 
-            if(!resultado) { return BadRequest("No se pudo registrar el voto."); }
+                if (!resultado) { return BadRequest("No se pudo registrar el voto."); }
 
-            return Ok("Voto registrado correctamente.");
+                return Ok(new { mensaje = "Voto registrado correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
     }
 }

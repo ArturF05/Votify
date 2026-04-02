@@ -15,7 +15,7 @@ public class Voto
     public Guid Id_proyecto { get; set; }
     public decimal Puntuacion { get; set; }
     public DateOnly Fecha_voto { get; set; }
-    public Categoria Categoria { get; set; }
+    public Categoria? Categoria { get; set; }
     public Usuario Usuario { get; set; }
     public Votacion Votacion { get; set; }
 }

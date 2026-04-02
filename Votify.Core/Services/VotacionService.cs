@@ -25,6 +25,7 @@ namespace Votify.Core.Services
         public async Task<bool> RegistrarVotoAsync(Guid idVotacion, EmitirVotoDTO dto)
         {
             if (dto == null || dto.IdsProyectos == null) { return false; }
+            if (dto.IdsProyectos.Count != 3) { return false; }
             if (dto.IdsProyectos.Distinct().Count() != 3) { return false; }
 
             var votacion = await votacionRepository.ObtenerPorIdAsync(idVotacion);
