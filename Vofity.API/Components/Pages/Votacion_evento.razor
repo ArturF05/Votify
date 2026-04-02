@@ -44,6 +44,11 @@
     <button type="button" class="boton-volver" @onclick='() => EnviarVoto()'>Enviar Voto</button>
 </div>
 
+@if (!string.IsNullOrEmpty(mensaje))
+{
+    <p>@mensaje</p>
+}
+
 @code{
     private Votify.Core.Entities.Evento evento;
     [Parameter]
@@ -56,6 +61,10 @@
     protected override async Task OnInitializedAsync()
     {
         evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
+        var votacion = await contexto.Votacione.FirstOrDefaultAsync(v => v.id_evento == id);
+        if (votacion != null) { idVotacion = votacion.Id; }
+        var usuario = await contexto.Usuario.FirstOrDefaultAsync();
+        if (usuario != null) { idVotante = usuario.Id; }
     }
     private void Favorito(Guid idProyecto)
     {
@@ -76,12 +85,12 @@
     {
         var votoDto = new EmitirVotoDTO
         {
-            IdVotacion = idVotacion,
             IdVotante = idVotante,
             IdsProyectos = proyectosSeleccionados
         };
 
-        var respuesta = await Http.PostAsJsonAsync("api/votacion/emitir", votoDto);
+        var respuesta = await Http.PostAsJsonAsync($"api/v1/votaciones/{idVotacion}/votos", votoDto);
+        var errorMsg = await respuesta.Content.ReadAsStringAsync();
 
         if (respuesta.IsSuccessStatusCode)
         {
@@ -89,7 +98,7 @@
         }
         else
         {
-            mensaje = "No se pudo enviar el voto.";
+            mensaje = $"Error {(int)respuesta.StatusCode} : {errorMsg}";
         }
     }
 

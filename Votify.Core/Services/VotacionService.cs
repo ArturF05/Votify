@@ -22,18 +22,19 @@ namespace Votify.Core.Services
             this.proyectoRepository = proyectoRepository;
         }
 
-        public async Task<bool> RegistrarVotoAsync(EmitirVotoDTO dto)
+        public async Task<bool> RegistrarVotoAsync(Guid idVotacion, EmitirVotoDTO dto)
         {
             if (dto == null || dto.IdsProyectos == null) { return false; }
             if (dto.IdsProyectos.Distinct().Count() != 3) { return false; }
 
-            var votacion = await votacionRepository.ObtenerPorIdAsync(dto.IdVotacion);
+            var votacion = await votacionRepository.ObtenerPorIdAsync(idVotacion);
             if (votacion == null) { return false; }
 
             var hoy = DateOnly.FromDateTime(DateTime.Now);
             if(hoy < votacion.FechaInicio || hoy > votacion.FechaFin) { return false; }
 
             bool yaVoto = await votoRepository.UsuarioYaVotoAsync(dto.IdVotacion, dto.IdVotante)
+            bool yaVoto = await votoRepository.UsuarioYaVotoAsync(idVotacion, dto.IdVotante);
             if(yaVoto) { return false; }
 
             var proyectos = await proyectoRepository.ObtenerPorIdAsync(dto.IdsProyectos);
@@ -43,7 +44,7 @@ namespace Votify.Core.Services
             var votos = dto.IdsProyectos.Select(idProyecto => new Voto
             {
                 Id = Guid.NewGuid(),
-                Id_votacion = dto.IdVotacion,
+                Id_votacion = idVotacion,
                 Id_proyecto = idProyecto,
                 Id_votante = dto.IdVotante,
                 Puntuacion = 1,

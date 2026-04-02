@@ -8,7 +8,6 @@ namespace Votify.Core.DTOs
 {
     public class EmitirVotoDTO
     {
-        public Guid IdVotacion { get; set; }
         public Guid IdVotante { get; set; }
         public List<Guid> IdsProyectos { get; set; } = new();
     }

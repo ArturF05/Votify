@@ -10,6 +10,6 @@ namespace Votify.Core.Interfaces
 {
     public interface IVotacion
     {
-        Task<bool> RegistrarVotoAsync(EmitirVotoDTO dto);
+        Task<bool> RegistrarVotoAsync(Guid idVotacion, EmitirVotoDTO dto);
     }
 }
