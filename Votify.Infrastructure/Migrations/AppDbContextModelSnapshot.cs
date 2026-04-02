@@ -162,7 +162,29 @@ namespace Votify.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("DimensionesDeValorsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("FechaFin")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("FechaInicio")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("PermiteAutoVoto")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ResultadosId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("id_evento")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("DimensionesDeValorsId");
+
+                    b.HasIndex("ResultadosId");
 
                     b.ToTable("Votacione");
                 });
@@ -173,7 +195,40 @@ namespace Votify.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("CategoriaId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Fecha_voto")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("Id_categoria")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Id_proyecto")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Id_votacion")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Id_votante")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Puntuacion")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("VotacionId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoriaId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("VotacionId");
 
                     b.ToTable("Voto");
                 });
@@ -210,6 +265,52 @@ namespace Votify.Infrastructure.Migrations
                         .HasForeignKey("Votify.Core.Entities.Proyecto", "Id_evento");
 
                     b.Navigation("Evento");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Votacion", b =>
+                {
+                    b.HasOne("Votify.Core.Entities.DimensionesDeValor", "DimensionesDeValors")
+                        .WithMany()
+                        .HasForeignKey("DimensionesDeValorsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Votify.Core.Entities.Resultado", "Resultados")
+                        .WithMany()
+                        .HasForeignKey("ResultadosId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DimensionesDeValors");
+
+                    b.Navigation("Resultados");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Voto", b =>
+                {
+                    b.HasOne("Votify.Core.Entities.Categoria", "Categoria")
+                        .WithMany()
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Votify.Core.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Votify.Core.Entities.Votacion", "Votacion")
+                        .WithMany()
+                        .HasForeignKey("VotacionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Categoria");
+
+                    b.Navigation("Usuario");
+
+                    b.Navigation("Votacion");
                 });
 #pragma warning restore 612, 618
         }

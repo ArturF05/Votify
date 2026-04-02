@@ -32,6 +32,7 @@
             </select>
         </div>
 
+
         <div class="campo campo-derecha">
             <label>Fecha de inicio*:</label>
             <input type="date" @bind="inicio" />
@@ -76,6 +77,7 @@
     private string descripcion = "";
     private string mensaje = "";
     private string mensaje2 = "";
+    private string tipo = "Hackaton";
 
     List<Categoria> categorias = new();
 
@@ -156,6 +158,10 @@
         descripcion = evento.Descripcion;
         inicio = evento.FechaInicio;
         fin = evento.FechaFin;
+        if (evento is EventoConcurso)
+            tipo = "Concurso";
+        else
+            tipo = "Hackathon";
     }
 
     private async Task GuardarEvento()
@@ -197,7 +203,7 @@
                 Id_categoria = Id_categoria,
                 FechaInicio = inicio,
                 Descripcion = descripcion,
-                FechaFin = fin
+                FechaFin = fin,
             };
 
             var response = await Http.PutAsJsonAsync($"api/eventos/{evento.Id}", dto);

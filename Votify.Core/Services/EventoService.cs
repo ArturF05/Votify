@@ -58,6 +58,7 @@ namespace Votify.Core.Services
             evento.FechaInicio = fechaInicio;
             evento.FechaFin = fechaFin;
 
+
             await eventoRepository.EditarEventoAsync(evento);
         }
 
