@@ -61,7 +61,7 @@
     protected override async Task OnInitializedAsync()
     {
         evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
-        var votacion = await contexto.Votacione.FirstOrDefaultAsync(v => v.id_evento == id);
+        var votacion = await contexto.Votacion.FirstOrDefaultAsync(v => v.Id_evento == id);
         if (votacion != null) { idVotacion = votacion.Id; }
         var usuario = await contexto.Usuario.FirstOrDefaultAsync();
         if (usuario != null) { idVotante = usuario.Id; }

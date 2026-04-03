@@ -16,7 +16,7 @@ public class AppDbContext : DbContext
 
     public DbSet<Usuario> Usuario { get; set; }
     public DbSet<Voto> Voto { get; set; }
-    public DbSet<Votacion> Votacione { get; set; }
+    public DbSet<Votacion> Votacion { get; set; }
     public DbSet<Rol> Role { get; set; }
     public DbSet<Resultado> Resultado { get; set; }
     public DbSet<Proyecto> Proyecto { get; set; }

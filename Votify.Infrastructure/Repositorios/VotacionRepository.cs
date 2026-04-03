@@ -21,7 +21,7 @@ namespace Votify.Infrastructure.Repositorios
 
         public async Task<Votacion?> ObtenerPorIdAsync(Guid idVotacion)
         {
-            return await contexto.Votacione.FirstOrDefaultAsync(v => v.Id == idVotacion);
+            return await contexto.Votacion.FirstOrDefaultAsync(v => v.Id == idVotacion);
         }
     }
 }

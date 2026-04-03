@@ -40,7 +40,7 @@ namespace Votify.Core.Services
 
             var proyectos = await proyectoRepository.ObtenerPorIdAsync(dto.IdsProyectos);
             if(proyectos.Count != 3) { return false; }
-            if(proyectos.Any(p => p.Id_evento != votacion.id_evento)) { return false; }
+            if(proyectos.Any(p => p.Id_evento != votacion.Id_evento)) { return false; }
 
             var votos = dto.IdsProyectos.Select(idProyecto => new Voto
             {
