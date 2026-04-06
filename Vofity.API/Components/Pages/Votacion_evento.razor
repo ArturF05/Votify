@@ -63,8 +63,8 @@
         evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
         var votacion = await contexto.Votacion.FirstOrDefaultAsync(v => v.Id_evento == id);
         if (votacion != null) { idVotacion = votacion.Id; }
-        var usuario = await contexto.Usuario.FirstOrDefaultAsync();
-        if (usuario != null) { idVotante = usuario.Id; }
+        var usuario = await contexto.Usuario.Include(u => u.Rol).FirstOrDefaultAsync(u => u.Id == idVotante);
+        
     }
     private void Favorito(Guid idProyecto)
     {
