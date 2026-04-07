@@ -20,7 +20,7 @@ namespace Votify.Core.Services
             _http = http;
         }
 
-        public async Task<bool> ValidarUsuarioAsync(string usuario, string password)
+        public async Task<Usuario?> ValidarUsuarioAsync(string usuario, string password)
         {
             try
             {
@@ -29,12 +29,16 @@ namespace Votify.Core.Services
                 
                 var response = await _http.PostAsJsonAsync("api/v1/autoriza/login", loginDto);
 
-                return response.IsSuccessStatusCode;
+                if (!response.IsSuccessStatusCode) { return null; }
+                    
+                var usuarioRespuesta = await response.Content.ReadFromJsonAsync<Usuario>();
+
+                return usuarioRespuesta;
             }
             catch (Exception)
             {
             
-                return false;
+                return null;
             }
         }
     }

@@ -14,19 +14,16 @@ public class AutorizaController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] Login request)
+    public async Task<IActionResult> Login(Login dto)
     {
-       
-
-        var usuario = await _repo.ObtenerPorCredencialesAsync(request.Usuario, request.Password);
+        var usuario = await _repo.GetByCredencialesAsync(dto.Usuario, dto.Password);
 
         if (usuario == null)
-        {
-            return Unauthorized(new { message = "Credenciales inválidas" });
-        }
+            return Unauthorized();
 
-        return Ok(new { message = "Login correcto" });
+        return Ok(usuario);
     }
+    
 }
 // debugging para verificar que los datos se reciben correctamente 
 /* Console.WriteLine($"Intento de login: Usuario='{request.Usuario}', Password='{request.Password}'");

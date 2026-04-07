@@ -38,7 +38,7 @@ namespace Votify.Core.Services
                 Descripcion = descripcion,
                 FechaInicio = fechaInicio,
                 FechaFin = fechaFin,
-                EventoUsuarioRols = aux,
+                
                 Proyectos = aux2,
                 Votacion = aux3,
                 Archivado = false

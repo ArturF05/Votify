@@ -4,6 +4,7 @@
 @using Votify.API.Components.Layout
 @using Votify.Core.Interfaces
 @inject ILogin LoginWindow
+@inject IUsuarioSesion UsuarioSesion
 @inject NavigationManager Navigation
 @using System.ComponentModel.DataAnnotations;
 @layout NoLayout
@@ -78,14 +79,16 @@
             mensaje = "";
             StateHasChanged();
 
-            // Llamada directa sin Task.Run
-            bool resultado = await LoginWindow.ValidarUsuarioAsync(modelo.Usuario, modelo.Password);
+            
+            var usuario = await LoginWindow.ValidarUsuarioAsync(modelo.Usuario, modelo.Password);
 
-            if (resultado)
+            if (usuario != null)
             {
+                UsuarioSesion.UsuarioActual = usuario;
+
                 mensaje = "¡Login correcto!";
                 loginExitoso = true;
-                StateHasChanged(); // Forzar actualización antes del delay
+
                 await Task.Delay(1500);
                 Navigation.NavigateTo("/Main");
             }

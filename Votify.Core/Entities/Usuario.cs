@@ -18,5 +18,8 @@ public class Usuario
 
     [ForeignKey(nameof(Id_rol))]
     public Rol Rol { get; set; }
+
+
+    public ICollection<EventoUsuarioRol> EventoUsuarioRoles { get; set; }
 }
     

@@ -37,5 +37,13 @@ namespace Votify.Infrastructure.Repositorios
             await _context.Usuario.AddAsync(usuario);
             await _context.SaveChangesAsync();
         }
+        public async Task<Usuario?> GetByCredencialesAsync(string usuario, string password)
+        {
+            return await _context.Usuario
+                .Include(u => u.Rol)
+                .FirstOrDefaultAsync(u =>
+                    u.Nombre == usuario &&
+                    u.Password == password);
+        }
     }
 }

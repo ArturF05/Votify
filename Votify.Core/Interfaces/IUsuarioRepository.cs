@@ -12,5 +12,6 @@ namespace Votify.Core.Interfaces
         Task<Usuario?> ObtenerPorCredencialesAsync(string usuario, string password);
         Task<Usuario?> ObtenerPorNombreAsync(string nombre);
         Task CrearUsuarioAsync(Usuario usuario);
+        Task<Usuario?> GetByCredencialesAsync(string usuario, string password);
     }
 }
