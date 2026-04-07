@@ -8,33 +8,17 @@
 @inject NavigationManager nav;
 @inject AppDbContext contexto
 <h2 class="titulo">Elija un evento sobre el que votar</h2>
-<table class="evento-container">
-    <tbody>
-        @{int x = 0;}
-        <tr>
-        @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateOnly.FromDateTime(DateTime.Now))>0))
-        {
-
-            <td>
-                <button class="evento-card" @onclick="() => irAEvento(evento)">@evento.Nombre</button>
-            </td>
-            x++;
-
-            if (x == 4)
-            {
-                @:</tr><tr>
-                x = 0;
-            }
-            
-        }
-        </tr>
-    </tbody>
-</table>
+<div class="evento-container">
+    @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateOnly.FromDateTime(DateTime.Now)) > 0 && e.FechaInicio.CompareTo(DateOnly.FromDateTime(DateTime.Now)) <= 0))
+    {
+        <button class="evento-card" @onclick="() => irAEvento(evento)">@evento.Nombre</button>
+    }
+</div>
 
 
 
 
-@code{
+@code {
     List<Votify.Core.Entities.Evento> eventos = new();
     protected override async Task OnInitializedAsync()
     {

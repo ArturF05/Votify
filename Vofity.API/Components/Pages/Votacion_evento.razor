@@ -9,21 +9,19 @@
 @inject NavigationManager nav;
 @inject AppDbContext contexto
 @inject HttpClient Http
-<h2 class="titulo">Elija sus 3 proyectos favoritos</h2>
-<table class="evento-container">
-    <tbody>
-        @{int x = 0;}
-        <tr>
             @if(evento == null)
             {
-                <label>Cargando evento...</label>
+                <label>Cargando proyectos...</label>
             }
             else if (evento.Proyectos == null || evento.Proyectos.Count == 0)
             {
-                <label>"No se han presentado proyectos para este evento todavía"</label>
+                <h2 class="titulo">Proyectos del evento @evento.Nombre</h2>
+                <label>No se han presentado proyectos para este evento todavía</label>
             }
             else
             {
+                <h2 class="titulo">Proyectos del evento @evento.Nombre</h2>
+                <div class="proyecto-container">    
                 @foreach (var proyecto in evento.Proyectos)
                 {
                     <div class="proyecto-card">
@@ -38,6 +36,7 @@
                         </div>
                     </div>
                 }
+                </div>
             }
 <div>
     <button type="button" class="boton-volver" @onclick='() => Volver()'>Volver</button>
@@ -63,7 +62,10 @@
         evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
         var votacion = await contexto.Votacion.FirstOrDefaultAsync(v => v.Id_evento == id);
         if (votacion != null) { idVotacion = votacion.Id; }
-        var usuario = await contexto.Usuario.Include(u => u.Rol).FirstOrDefaultAsync(u => u.Id == idVotante);
+        if (idVotante != Guid.Empty)
+        {
+            var usuario = await contexto.Usuario.Include(u => u.Rol).FirstOrDefaultAsync(u => u.Id == idVotante);
+        }
         
     }
     private void Favorito(Guid idProyecto)

@@ -32,15 +32,17 @@ namespace Votify.Core.Services
             if (votacion == null) { return false; }
 
             var hoy = DateOnly.FromDateTime(DateTime.Now);
-            if(hoy < votacion.FechaInicio || hoy > votacion.FechaFin) { return false; }
+            if (hoy < DateOnly.FromDateTime(votacion.FechaInicio) ||hoy > DateOnly.FromDateTime(votacion.FechaFin))
+            {
+                return false;
+            }
 
-            bool yaVoto = await votoRepository.UsuarioYaVotoAsync(dto.IdVotacion, dto.IdVotante)
             bool yaVoto = await votoRepository.UsuarioYaVotoAsync(idVotacion, dto.IdVotante);
-            if(yaVoto) { return false; }
+            if (yaVoto) { return false; }
 
             var proyectos = await proyectoRepository.ObtenerPorIdAsync(dto.IdsProyectos);
-            if(proyectos.Count != 3) { return false; }
-            if(proyectos.Any(p => p.Id_evento != votacion.Id_evento)) { return false; }
+            if (proyectos.Count != 3) { return false; }
+            if (proyectos.Any(p => p.Id_evento != votacion.Id_evento)) { return false; }
 
             var votos = dto.IdsProyectos.Select(idProyecto => new Voto
             {

@@ -8,5 +8,5 @@ namespace Votify.Core.Entities;
 
 public class DimensionesDeValor
 {
-    public Guid Id { get; set; }
+    public Guid? Id { get; set; }
 }

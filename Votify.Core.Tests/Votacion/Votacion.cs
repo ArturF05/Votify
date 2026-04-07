@@ -78,8 +78,8 @@ namespace Votify.Core.Tests.Votacion
             {
                 Id = idVotacion,
                 Id_evento = idEvento,
-                FechaInicio = hoy.AddDays(-1),
-                FechaFin = hoy.AddDays(1)
+                FechaInicio = hoy.AddDays(-1).ToDateTime(TimeOnly.MinValue),
+                FechaFin = hoy.AddDays(1).ToDateTime(TimeOnly.MinValue)
             });
 
             context.Proyecto.Add(new Proyecto
@@ -238,8 +238,8 @@ namespace Votify.Core.Tests.Votacion
             {
                 Id = votacionFueraFechaId,
                 Id_evento = idEvento,
-                FechaInicio = hoy.AddDays(2),
-                FechaFin = hoy.AddDays(5)
+                FechaInicio = hoy.AddDays(2).ToDateTime(TimeOnly.MinValue),
+                FechaFin = hoy.AddDays(5).ToDateTime(TimeOnly.MinValue),
             });
 
             context.SaveChanges();

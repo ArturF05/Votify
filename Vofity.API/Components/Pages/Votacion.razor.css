@@ -1,6 +1,13 @@
-﻿.titulo {
+﻿﻿.titulo {
     font-size: 28px;
 }
+
+.evento-container {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr)
+}
+
 .evento-card {
     background: #ffffff;
     border-radius: 1.25rem;
@@ -11,13 +18,15 @@
     min-width: 280px;
     min-height: 190px;
     max-height: 190px;
-    margin-right:20px;
+    margin-right: 20px;
+    margin-bottom: 20px;
 }
 
 .evento-header {
     text-align: center;
     margin-bottom: 2rem;
 }
+
 .evento-title {
     font-size: 1.125rem;
     font-weight: 600;

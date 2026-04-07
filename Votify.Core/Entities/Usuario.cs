@@ -14,9 +14,9 @@ public class Usuario
     public string Password { get; set; } = "";
 
     [Column("Id_rol")]
-    public Guid id_Rol { get; set; }
+    public Guid Id_rol { get; set; }
 
-    [ForeignKey("id_Rol")]
+    [ForeignKey(nameof(Id_rol))]
     public Rol Rol { get; set; }
 }
     
