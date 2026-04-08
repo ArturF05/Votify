@@ -17,8 +17,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IEvento, EventoService>();
 builder.Services.AddScoped<IEventoRepository, EventoRepository>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-builder.Services.AddScoped<ILogin, LoginService>();
-builder.Services.AddScoped<IUsuarioSesion, UsuarioSesion>();
 builder.Services.AddScoped<IRegister, RegisterService>();
 builder.Services.AddScoped<IProyectoService, ProyectoService>();
 builder.Services.AddScoped<IProyectoRepository, ProyectoRepository>();
@@ -28,27 +26,24 @@ builder.Services.AddScoped<IVotoRepository, VotoRepository>();
 
 builder.Services.AddControllers();
 
+builder.Services.AddScoped<IUsuarioSesion, UsuarioSesion>();
+
+// 1. Registro para el servicio de Login (Typed Client)
 builder.Services.AddHttpClient<ILogin, LoginService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7053"); // usar 7053 no el 5129 , uno es para https y el otro para http
+    client.BaseAddress = new Uri("https://localhost:7053");
 });
+
+// 2. Registro ÚNICO para el HttpClient genérico que usa el resto de la app
 builder.Services.AddScoped(sp =>
 {
-    var navigationManager = sp.GetRequiredService<NavigationManager>();
-    return new HttpClient
-    {
-        BaseAddress = new Uri(navigationManager.BaseUri)
-    };
+    return new HttpClient { BaseAddress = new Uri("https://localhost:7053") }; // Your actual server port
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped(sp =>
-{
-    var navigation = sp.GetRequiredService<NavigationManager>();
-    return new HttpClient { BaseAddress = new Uri(navigation.BaseUri) };
-});
+
 
 var app = builder.Build();
 app.UseSwagger();

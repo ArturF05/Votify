@@ -9,6 +9,10 @@
 @inject NavigationManager nav;
 @inject AppDbContext contexto
 @inject HttpClient Http
+@inject IVotacion VotacionService
+@using Votify.Core.Interfaces
+@inject IUsuarioSesion UsuarioSesion
+
             @if(evento == null)
             {
                 <label>Cargando proyectos...</label>
@@ -54,7 +58,7 @@
     public Guid id { get; set; }
     private List<Guid> proyectosSeleccionados = new();
     private Guid idVotacion;
-    private Guid idVotante;
+    
     private string mensaje = "";
 
     protected override async Task OnInitializedAsync()
@@ -62,10 +66,7 @@
         evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
         var votacion = await contexto.Votacion.FirstOrDefaultAsync(v => v.Id_evento == id);
         if (votacion != null) { idVotacion = votacion.Id; }
-        if (idVotante != Guid.Empty)
-        {
-            var usuario = await contexto.Usuario.Include(u => u.Rol).FirstOrDefaultAsync(u => u.Id == idVotante);
-        }
+     
         
     }
     private void Favorito(Guid idProyecto)
@@ -85,15 +86,13 @@
 
     private async Task EnviarVoto()
     {
-        var usuario = await contexto.Usuario
-       .Include(u => u.Rol)
-       .FirstOrDefaultAsync(u => u.Id == idVotante);
-
-        if (usuario == null)
+        if (UsuarioSesion.UsuarioActual == null)
         {
-            mensaje = "Usuario no encontrado.";
+            mensaje = "Error: No se detecta una sesión activa. Por favor, reingresa.";
             return;
         }
+
+        var usuario = UsuarioSesion.UsuarioActual;
 
       
         if (idVotacion == Guid.Empty)
@@ -101,42 +100,35 @@
             mensaje = "No existe votación para este evento.";
             return;
         }
+        var tipoEvento = evento.TipoVotacion;
+        var rolUsuario = usuario.Rol.Nombre;
 
-       // permisos de roles 
-        var atorizacion = await contexto.EventoUsuarioRol
-            .Include(eur => eur.Rol)
-            .FirstOrDefaultAsync(eur =>
-                eur.EventoId == evento.Id &&
-                eur.UsuarioId == usuario.Id);
-
-        if (atorizacion == null)
+        if (tipoEvento == TipoVotacion.Publico)
         {
-            mensaje = "No estás autorizado para votar en este evento.";
+            if (rolUsuario != "Publico")
+            {
+                mensaje = "Solo usuarios públicos pueden votar en este evento.";
+                return;
+            }
+        }
+        if (tipoEvento == TipoVotacion.Jurado)
+        {
+            var atorizacion = await contexto.EventoUsuarioRol
+                .Where(eur => eur.EventoId == id && eur.UsuarioId == usuario.Id)
+                .AnyAsync();
+
+            if (!atorizacion)
+            {
+                mensaje = "Solo el jurado asignado puede votar.";
+                return;
+            }
+        }
+       
+
+        if (proyectosSeleccionados.Count != 3)
+        {
+            mensaje = "Debes seleccionar exactamente 3 proyectos para votar.";
             return;
-        }
-
-        if (atorizacion.Rol.Nombre == "Jurado")
-        {
-            if (proyectosSeleccionados.Count == 0)
-            {
-                mensaje = "Selecciona al menos un proyecto.";
-                return;
-            }
-
-            if (proyectosSeleccionados.Count > 3)
-            {
-                mensaje = "El jurado puede votar hasta 3 proyectos.";
-                return;
-            }
-        }
-
-        if (atorizacion.Rol.Nombre == "Publico")
-        {
-            if (proyectosSeleccionados.Count != 1)
-            {
-                mensaje = "El público solo puede votar a 1 proyecto.";
-                return;
-            }
         }
 
         // evitar votos duplicados  
@@ -150,20 +142,27 @@
         }
         var votoDto = new EmitirVotoDTO
         {
-            IdVotante = idVotante,
+            IdVotante = UsuarioSesion.UsuarioActual.Id,
             IdsProyectos = proyectosSeleccionados
         };
 
-        var respuesta = await Http.PostAsJsonAsync($"api/v1/votaciones/{idVotacion}/votos", votoDto);
-        var errorMsg = await respuesta.Content.ReadAsStringAsync();
+        try
+        {
+            var resultado = await VotacionService.RegistrarVotoAsync(idVotacion, votoDto);
 
-        if (respuesta.IsSuccessStatusCode)
-        {
-            mensaje = "Voto enviado correctamente.";
+            if (resultado)
+            {
+                mensaje = "Voto enviado correctamente.";
+            }
+            else
+            {
+                mensaje = "Error al registrar el voto. Verifica que no hayas votado antes y que la votación esté activa.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            mensaje = $"Error {(int)respuesta.StatusCode} : {errorMsg}";
+            mensaje = $"HTTP Error: {ex.Message}";
+            Console.WriteLine($"[DEBUG] Full exception: {ex}");
         }
     }
 
