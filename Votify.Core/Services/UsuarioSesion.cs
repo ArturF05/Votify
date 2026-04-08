@@ -15,3 +15,7 @@ public class UsuarioSesion : IUsuarioSesion
 {
     public Usuario? UsuarioActual { get; set; }
 }
+// para el futuro, se puede implementar un servicio de autenticación que maneje la sesión del usuario,
+// y este servicio podría ser inyectado en los controladores o servicios que lo necesiten.
+
+// De esta manera, se podría mantener la información del usuario actual de manera más segura y estructurada.
