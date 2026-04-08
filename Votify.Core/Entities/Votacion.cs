@@ -15,4 +15,5 @@ public class Votacion
     public DateTime FechaFin { get; set; }
     public DimensionesDeValor? DimensionesDeValores { get; set; }
     public Resultado? Resultados { get; set; }
+   
 }

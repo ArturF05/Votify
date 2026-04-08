@@ -26,5 +26,7 @@ public class Evento
     public Votacion Votacion { get; set; }
     public bool Archivado {  get; set; }
 
+    public TipoVotacion TipoVotacion { get; set; } = TipoVotacion.Publico;
+
     public ICollection<EventoUsuarioRol> EventoUsuarioRoles { get; set; }
 }
