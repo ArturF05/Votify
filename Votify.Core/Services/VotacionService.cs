@@ -27,16 +27,16 @@ namespace Votify.Core.Services
             if (dto == null || dto.IdsProyectos == null) { return false; }
             if (dto.IdsProyectos.Count != 3) { return false; }
             if (dto.IdsProyectos.Distinct().Count() != 3) { return false; }
-
+            
             var votacion = await votacionRepository.ObtenerPorIdAsync(idVotacion);
             if (votacion == null) { return false; }
-
+            
             var hoy = DateOnly.FromDateTime(DateTime.Now);
-            if (hoy < DateOnly.FromDateTime(votacion.FechaInicio) ||hoy > DateOnly.FromDateTime(votacion.FechaFin))
+            if (hoy < DateOnly.FromDateTime(votacion.FechaInicio) || hoy > DateOnly.FromDateTime(votacion.FechaFin))
             {
                 return false;
             }
-
+            
             bool yaVoto = await votoRepository.UsuarioYaVotoAsync(idVotacion, dto.IdVotante);
             if (yaVoto) { return false; }
 
