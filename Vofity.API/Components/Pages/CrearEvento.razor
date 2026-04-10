@@ -16,6 +16,7 @@
 <div class="form-evento">
     <h3>Nuevo evento</h3>
     <hr class="linea">
+
     <div class="campo">
         <label>Nombre*:</label>
         <input type="text" @bind="nombre" placeholder="Nombre del evento..." />
@@ -31,26 +32,54 @@
                 }
             </select>
         </div>
+
         <div class="campo campo-derecha">
             <label>Fecha de inicio*:</label>
             <input type="date" @bind="inicio" />
         </div>
-        <div class="campo"> 
-            <label>Descripción:</label>
-            <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
+
+        <div class="campo campo-tipo-votacion">
+            <label>Tipo de votación*:</label>
+            <div class="grupo-botones-votacion">
+                <button type="button"
+                        class="boton-votacion @(tipoVotacion == TipoVotacion.Publico ? "activo" : "")"
+                        @onclick='() => SeleccionarTipo(TipoVotacion.Publico)'>
+                    Público
+                </button>
+
+                <button type="button"
+                        class="boton-votacion @(tipoVotacion == TipoVotacion.Jurado ? "activo" : "")"
+                        @onclick='() => SeleccionarTipo(TipoVotacion.Jurado)'>
+                    Jurado
+                </button>
+
+                <button type="button"
+                        class="boton-votacion @(tipoVotacion == TipoVotacion.Mixto ? "activo" : "")"
+                        @onclick='() => SeleccionarTipo(TipoVotacion.Mixto)'>
+                    Mixto
+                </button>
+            </div>
         </div>
+
         <div class="campo campo-derecha">
             <label>Fecha de cierre*:</label>
             <input type="date" @bind="fin" />
         </div>
+
+        <div class="campo">
+            <label>Descripción:</label>
+            <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
+        </div>
     </div>
+
     <div class="errores">
-        <div><label style="color:red"> @mensaje</label></div>
+        <div><label style="color:red">@mensaje</label></div>
         <div><label style="color:red">@mensaje2</label></div>
     </div>
+
     <div class="botones">
         <div>
-            <button type="button" class="boton-secundario" @onclick='() => Cancelar()'>Cancelar</button>
+            <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar</button>
         </div>
         <div>
             <button type="button" class="boton-principal" @onclick="GuardarEvento">Crear Evento</button>
@@ -66,6 +95,7 @@
     private string descripcion = "";
     private string mensaje = "";
     private string mensaje2 = "";
+    private TipoVotacion tipoVotacion = TipoVotacion.Publico;
     List<Categoria> categorias = new();
     List<Votify.Core.Entities.Evento> eventos = new();
 
@@ -79,6 +109,11 @@
     {
         nav.NavigateTo("/Evento");
     }
+    void SeleccionarTipo(TipoVotacion tipo)
+    {
+        tipoVotacion = tipo;
+    }
+
 
     private async Task GuardarEvento()
     {
@@ -125,7 +160,8 @@
                 Id_categoria = Id_categoria,
                 FechaInicio = inicio,
                 Descripcion = descripcion,
-                FechaFin = fin
+                FechaFin = fin,
+                TipoVotacion= tipoVotacion
             };
 
             var response = await Http.PostAsJsonAsync("api/eventos", dto);

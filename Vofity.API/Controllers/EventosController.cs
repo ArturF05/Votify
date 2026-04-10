@@ -24,14 +24,20 @@ namespace Votify.API.Controllers
                     dto.Id_categoria,
                     dto.FechaInicio,
                     dto.Descripcion,
-                    dto.FechaFin
+                    dto.FechaFin,
+                    dto.TipoVotacion
                 );
 
                 return Ok(new { mensaje = "Evento creado correctamente" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensaje = ex.Message });
+                return BadRequest(new
+                {
+                    mensaje = ex.Message,
+                    inner = ex.InnerException?.Message,
+                    inner2 = ex.InnerException?.InnerException?.Message
+                });
             }
         }
 
@@ -103,5 +109,6 @@ namespace Votify.API.Controllers
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
+
     }
 }

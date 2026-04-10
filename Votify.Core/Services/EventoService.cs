@@ -22,7 +22,7 @@ namespace Votify.Core.Services
         {
             return await eventoRepository.BuscarPorNombreAsync(nombre, Id_Categoria);
         }
-        public async Task CrearEvento(string titulo, Guid categoriaId, DateOnly fechaInicio, string descripcion, DateOnly fechaFin)
+        public async Task CrearEvento(string titulo, Guid categoriaId, DateOnly fechaInicio, string descripcion, DateOnly fechaFin,TipoVotacion tipoVotacion)
         {
             if (string.IsNullOrWhiteSpace(titulo))
                 throw new Exception("El título es obligatorio");
@@ -38,7 +38,7 @@ namespace Votify.Core.Services
                 Descripcion = descripcion,
                 FechaInicio = fechaInicio,
                 FechaFin = fechaFin,
-                
+                TipoVotacion=tipoVotacion,
                 Proyectos = aux2,
                 Votacion = aux3,
                 Archivado = false

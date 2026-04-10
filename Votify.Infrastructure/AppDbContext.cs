@@ -27,11 +27,17 @@ public class AppDbContext : DbContext
       
     protected override void OnModelCreating(ModelBuilder modelBuilder) //Si no se pone da problemas raros
     {
-        
+
         // Ignorar propiedades sin FK en la BD
-      
+        base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Evento>()
             .Ignore(e => e.Votacion);
+        modelBuilder.Entity<Evento>()
+    .HasDiscriminator<string>("Discriminator")
+    .HasValue<Evento>("Evento")
+    .HasValue<EventoConcurso>("EventoConcurso")
+    .HasValue<EventoHackathon>("EventoHackathon");
+
     }
 }
