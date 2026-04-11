@@ -49,7 +49,7 @@
 
 @if (!string.IsNullOrEmpty(mensaje))
 {
-    <p>@mensaje</p>
+    <p class="texto-error">@mensaje</p>
 }
 
 @code{
@@ -64,7 +64,7 @@
     protected override async Task OnInitializedAsync()
     {
         evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
-        var votacion = await contexto.Votacion.FirstOrDefaultAsync(v => v.Id_evento == id);
+        var votacion = await contexto.Votacion.Where(v=> v.FechaInicio.CompareTo(DateTime.UtcNow)<=0 && v.FechaFin.CompareTo(DateTime.UtcNow)>0).FirstOrDefaultAsync(v => v.Evento.Id == id);
         if (votacion != null) { idVotacion = votacion.Id; }
      
         
@@ -97,7 +97,7 @@
       
         if (idVotacion == Guid.Empty)
         {
-            mensaje = "No existe votación para este evento.";
+            mensaje = "No hay una votación activa para este evento, espera a que haya una para poder votar.";
             return;
         }
         var tipoEvento = evento.TipoVotacion;

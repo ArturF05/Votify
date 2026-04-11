@@ -1,5 +1,5 @@
 ﻿@page "/CrearEvento"
-@rendermode InteractiveServer //Es necesario, si no se pone los botones no funcionan
+@rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
 @using Votify.Core.Entities
 @using Votify.Core.Services
@@ -10,8 +10,6 @@
 @inject NavigationManager nav
 @inject AppDbContext contexto
 @inject HttpClient Http
-
-<h3>Crear Evento</h3>
 
 <div class="form-evento">
     <h3>Nuevo evento</h3>
@@ -65,7 +63,6 @@
             <label>Fecha de cierre*:</label>
             <input type="date" @bind="fin" />
         </div>
-
         <div class="campo">
             <label>Descripción:</label>
             <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
