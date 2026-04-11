@@ -37,11 +37,6 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Evento>()
             .Ignore(e => e.Votacion);
-        modelBuilder.Entity<Evento>()
-    .HasDiscriminator<string>("Discriminator")
-    .HasValue<Evento>("Evento")
-    .HasValue<EventoConcurso>("EventoConcurso")
-    .HasValue<EventoHackathon>("EventoHackathon");
 
     }
 }

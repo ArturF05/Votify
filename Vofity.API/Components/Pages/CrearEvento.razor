@@ -1,5 +1,5 @@
 ﻿@page "/CrearEvento"
-@rendermode InteractiveServer //Es necesario, si no se pone los botones no funcionan
+@rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
 @using Votify.Core.Entities
 @using Votify.Core.Services
@@ -19,7 +19,7 @@
 
     <div class="campo">
         <label>Nombre*:</label>
-        <input type="text" @bind="nombre" placeholder="Nombre del evento..." />
+        <input type="text" class="input-ancho" @bind="nombre" placeholder="Nombre del evento..." />
     </div>
 
     <div class="form-grid">
@@ -32,6 +32,7 @@
                 }
             </select>
         </div>
+
         <div class="campo">
             <label>Tipo de evento*:</label>
             <select @bind="tipo">
@@ -39,12 +40,18 @@
                 <option value="Concurso">Concurso</option>
             </select>
         </div>
-        <div class="campo campo-derecha">
+
+        <div class="campo">
             <label>Fecha de inicio*:</label>
             <input type="date" @bind="inicio" />
         </div>
 
-        <div class="campo campo-tipo-votacion">
+        <div class="campo">
+            <label>Fecha de cierre*:</label>
+            <input type="date" @bind="fin" />
+        </div>
+
+        <div class="campo campo-completo campo-tipo-votacion">
             <label>Tipo de votación*:</label>
             <div class="grupo-botones-votacion">
                 <button type="button"
@@ -67,12 +74,7 @@
             </div>
         </div>
 
-        <div class="campo campo-derecha">
-            <label>Fecha de cierre*:</label>
-            <input type="date" @bind="fin" />
-        </div>
-
-        <div class="campo">
+        <div class="campo campo-completo campo-descripcion">
             <label>Descripción:</label>
             <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
         </div>
@@ -111,21 +113,23 @@
         categorias = await contexto.Categoria.ToListAsync();
     }
 
-
     void Cancelar()
     {
         nav.NavigateTo("/Evento");
     }
+
     void SeleccionarTipo(TipoVotacion tipo)
     {
         tipoVotacion = tipo;
     }
 
-
     private async Task GuardarEvento()
     {
         try
         {
+            mensaje = "";
+            mensaje2 = "";
+
             eventos = await contexto.Evento
                 .Include(e => e.Categoria)
                 .Where(e => e.Archivado == false)
@@ -168,8 +172,8 @@
                 FechaInicio = inicio,
                 Descripcion = descripcion,
                 FechaFin = fin,
-                Tipo=tipo
-                TipoVotacion= tipoVotacion
+                Tipo = tipo,
+                TipoVotacion = tipoVotacion
             };
 
             var response = await Http.PostAsJsonAsync("api/eventos", dto);

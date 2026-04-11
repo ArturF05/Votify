@@ -1,94 +1,63 @@
-﻿..form-evento {
+﻿.form-evento {
     background-color: white;
     border: 1px solid #DADADA;
     border-radius: 8px;
-    padding: 20px;
+    padding: 24px;
+    max-width: 1100px;
 }
 
-.form-evento h3 {
-    margin-top: 0;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap: 25px 60px;
-}
-
-.campo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-    .campo textarea {
-        width: 100%;
-        height: 90px;
-        flex: 1;
+    .form-evento h3 {
+        margin-top: 0;
     }
-
-.campo-derecha {
-    justify-content: flex-end;
-}
-
-.columna-derecha {
-    text-align: right;
-}
 
 .linea {
     height: 3px;
     background-color: #F28C2F;
     border: none;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
-.campo input,
-.campo select,
-.campo textarea {
-    margin-left: 10px;
-    border: 1px solid #DADADA;
-    border-radius: 6px;
-    padding: 6px;
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px 40px;
+    align-items: start;
 }
 
-textarea {
-    width: 100%;
-    height: 90px;
-    resize: vertical;
-}
-
-.botones {
+.campo {
     display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0;
 }
 
-.boton-principal {
-    background-color: #F28C2F;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-    .boton-principal:hover {
-        background-color: #E85A2A;
+    .campo label {
+        min-width: 150px;
+        font-weight: 500;
     }
 
-.boton-secundario {
-    background-color: white;
-    border: 1px solid #DADADA;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
+    .campo input,
+    .campo select,
+    .campo textarea {
+        border: 1px solid #DADADA;
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 1rem;
+    }
+
+    .campo input,
+    .campo select {
+        width: 100%;
+        max-width: 260px;
+    }
+
+.input-ancho {
+    max-width: 360px !important;
 }
 
-    .boton-secundario:hover {
-        background-color: #f5f5f5;
-        border-color: #F28C2F;
-    }
+.campo-completo {
+    grid-column: 1 / -1;
+}
 
 .campo-tipo-votacion {
     align-items: center;
@@ -97,7 +66,6 @@ textarea {
 .grupo-botones-votacion {
     display: flex;
     gap: 12px;
-    margin-left: 10px;
     flex-wrap: wrap;
 }
 
@@ -105,11 +73,11 @@ textarea {
     background-color: #FFF7F0;
     border: 1px solid #F2C9A5;
     color: #7A4B21;
-    padding: 10px 18px;
+    padding: 10px 20px;
     border-radius: 999px;
     cursor: pointer;
     font-weight: 600;
-    min-width: 95px;
+    min-width: 110px;
     transition: all 0.2s ease;
 }
 
@@ -128,4 +96,50 @@ textarea {
 
     .boton-votacion:active {
         transform: scale(0.97);
+    }
+
+.campo-descripcion {
+    align-items: flex-start;
+}
+
+    .campo-descripcion textarea {
+        width: 100%;
+        min-height: 110px;
+        resize: vertical;
+    }
+
+.errores {
+    margin-top: 20px;
+}
+
+.botones {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 24px;
+}
+
+.boton-principal {
+    background-color: #F28C2F;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+    .boton-principal:hover {
+        background-color: #E85A2A;
+    }
+
+.boton-secundario {
+    background-color: white;
+    border: 1px solid #DADADA;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+    .boton-secundario:hover {
+        background-color: #f5f5f5;
+        border-color: #F28C2F;
     }

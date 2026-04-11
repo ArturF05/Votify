@@ -25,7 +25,7 @@ namespace Votify.API.Controllers
                     dto.FechaInicio,
                     dto.Descripcion,
                     dto.FechaFin,
-                    dto.Tipo
+                    dto.Tipo,
                     dto.TipoVotacion
                 );
 
