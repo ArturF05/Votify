@@ -5,7 +5,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Votify.Core.Interfaces;
 using Votify.Core.Services;
+using Moq;
+using Votify.Core.Entities;
 
 namespace Votify.Core.Tests.LoginRegisterUser
 {
@@ -17,14 +20,21 @@ namespace Votify.Core.Tests.LoginRegisterUser
         [TestMethod]
         public async Task LoginValid()
         {
-            var jsonRespuesta = "true";
+            var jsonRespuesta = """
+            {
+                "id": "11111111-1111-1111-1111-111111111111",
+                "nombre": "usuarioTest",
+                "password": "passTest",
+                "id_rol": "22222222-2222-2222-2222-222222222222"
+            }
+            """;
 
             var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
-            loginService = new LoginService(httpClient);
+            var sessionMock = new Mock<IUsuarioSesion>();
+            loginService = new LoginService(httpClient, sessionMock.Object);
 
-            bool resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "passTest");
-
-            Assert.IsTrue(resultado);
+            Usuario? resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "passTest");
+            Assert.IsNotNull(resultado);
         }
 
         [TestMethod]
@@ -33,11 +43,12 @@ namespace Votify.Core.Tests.LoginRegisterUser
             var jsonRespuesta = "false";
 
             var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
-            loginService = new LoginService(httpClient);
+            var sessionMock = new Mock<IUsuarioSesion>();
+            loginService = new LoginService(httpClient, sessionMock.Object);
 
-            bool resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "IncorrectPassTest");
+            Usuario? resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "IncorrectPassTest");
 
-            Assert.IsFalse(resultado);
+            Assert.IsNull(resultado);
         }
 
         [TestMethod]
@@ -46,11 +57,12 @@ namespace Votify.Core.Tests.LoginRegisterUser
             var jsonRespuesta = "false";
 
             var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
-            loginService = new LoginService(httpClient);
+            var sessionMock = new Mock<IUsuarioSesion>();
+            loginService = new LoginService(httpClient, sessionMock.Object);
 
-            bool resultado = await loginService.ValidarUsuarioAsync("InventadoUsuarioTest", "passTest");
+            Usuario? resultado = await loginService.ValidarUsuarioAsync("InventadoUsuarioTest", "passTest");
 
-            Assert.IsFalse(resultado);
+            Assert.IsNull(resultado);
         }
 
         [TestMethod]
@@ -59,11 +71,12 @@ namespace Votify.Core.Tests.LoginRegisterUser
             var jsonRespuesta = "false";
 
             var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
-            loginService = new LoginService(httpClient);
+            var sessionMock = new Mock<IUsuarioSesion>();
+            loginService = new LoginService(httpClient, sessionMock.Object);
 
-            bool resultado = await loginService.ValidarUsuarioAsync("", "passTest");
+            Usuario? resultado = await loginService.ValidarUsuarioAsync("", "passTest");
 
-            Assert.IsFalse(resultado);
+            Assert.IsNull(resultado);
         }
 
         [TestMethod]
@@ -72,11 +85,12 @@ namespace Votify.Core.Tests.LoginRegisterUser
             var jsonRespuesta = "false";
 
             var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
-            loginService = new LoginService(httpClient);
+            var sessionMock = new Mock<IUsuarioSesion>();
+            loginService = new LoginService(httpClient, sessionMock.Object);
 
-            bool resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "");
+            Usuario? resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "");
 
-            Assert.IsFalse(resultado);
+            Assert.IsNull(resultado);
         }
 
         private HttpClient CrearHttpClientFalso(string contenidoRespuesta, HttpStatusCode codigoEstado)
