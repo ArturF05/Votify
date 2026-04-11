@@ -124,37 +124,5 @@ namespace Votify.Core.Tests.LoginRegisterUser
 
             return Task.FromResult(response);
         }
-
-        private HttpClient CrearHttpClientFalso(string contenidoRespuesta, HttpStatusCode codigoEstado)
-        {
-            var handler = new FakeHttpMessageHandler(contenidoRespuesta, codigoEstado);
-
-            return new HttpClient(handler)
-            {
-                BaseAddress = new Uri("https://localhost:5001/")
-            };
-        }
-    }
-
-    public class FakeHttpMessageHandler : HttpMessageHandler
-    {
-        private readonly string contenidoRespuesta;
-        private readonly HttpStatusCode codigoEstado;
-
-        public FakeHttpMessageHandler(string contenidoRespuesta, HttpStatusCode codigoEstado)
-        {
-            this.contenidoRespuesta = contenidoRespuesta;
-            this.codigoEstado = codigoEstado;
-        }
-
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            var response = new HttpResponseMessage(codigoEstado)
-            {
-                Content = new StringContent(contenidoRespuesta, Encoding.UTF8, "application/json")
-            };
-
-            return Task.FromResult(response);
-        }
     }
 }

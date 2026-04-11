@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Votify.Core.DTOs;
 using Votify.Core.Entities;
+using Votify.Core.Factories;
 using Votify.Core.Services;
 using Votify.Infrastructure.Data;
 using Votify.Infrastructure.Repositorios;
@@ -17,6 +18,7 @@ namespace Votify.Core.Tests.Votacion
     {
         private VotacionService votacionService;
         private AppDbContext context;
+        private ConcreteEventFactory factory;
 
         private Guid idEvento;
         private Guid idVotacion;
@@ -34,6 +36,7 @@ namespace Votify.Core.Tests.Votacion
                 .Options;
 
             context = new AppDbContext(options);
+            factory = new ConcreteEventFactory();
 
             var votacionRepository = new VotacionRepository(context);
             var votoRepository = new VotoRepository(context);
@@ -45,7 +48,6 @@ namespace Votify.Core.Tests.Votacion
                 proyectoRepository
             );
 
-            idEvento = Guid.NewGuid();
             idVotacion = Guid.NewGuid();
             idVotante = Guid.NewGuid();
 
@@ -55,24 +57,49 @@ namespace Votify.Core.Tests.Votacion
             idProyectoOtroEvento = Guid.NewGuid();
 
             var hoy = DateOnly.FromDateTime(DateTime.Now);
+            var categoriaId = Guid.NewGuid();
 
-            context.Evento.Add(new Evento
+            context.Categoria.Add(new Categoria
             {
-                Id = idEvento,
-                Nombre = "Evento test",
-                Descripcion = "Descripcion test",
-                FechaInicio = hoy.AddDays(-1),
-                FechaFin = hoy.AddDays(1)
+                Id = categoriaId,
+                Nombre = "Categoria test"
             });
 
-            context.Evento.Add(new Evento
-            {
-                Id = Guid.NewGuid(),
-                Nombre = "Otro evento",
-                Descripcion = "Descripcion otro evento",
-                FechaInicio = hoy.AddDays(-1),
-                FechaFin = hoy.AddDays(1)
-            });
+            var eventoPrincipal = factory.CreateEvento(
+                "Hackathon",
+                TipoVotacion.Publico,
+                "Evento test",
+                "Descripcion test",
+                hoy.AddDays(-1),
+                hoy.AddDays(1),
+                categoriaId
+            );
+            idEvento = eventoPrincipal.Id;
+
+            var otroEvento = factory.CreateEvento(
+                "Hackathon",
+                TipoVotacion.Publico,
+                "Otro evento",
+                "Descripcion otro evento",
+                hoy.AddDays(-1),
+                hoy.AddDays(1),
+                categoriaId
+            );
+
+            var otroEvento2 = factory.CreateEvento(
+                "Concurso",
+                TipoVotacion.Publico,
+                "Otro evento 2",
+                "Descripcion otro evento 2",
+                hoy.AddDays(-1),
+                hoy.AddDays(1),
+                categoriaId
+            );
+            var idOtroEvento = otroEvento2.Id;
+
+            context.Evento.Add(eventoPrincipal);
+            context.Evento.Add(otroEvento);
+            context.Evento.Add(otroEvento2);
 
             context.Votacion.Add(new Votify.Core.Entities.Votacion
             {
@@ -104,16 +131,6 @@ namespace Votify.Core.Tests.Votacion
                 Titulo = "Proyecto 3",
                 Descripcion = "Descripcion proyecto 3",
                 Id_evento = idEvento
-            });
-
-            var idOtroEvento = Guid.NewGuid();
-            context.Evento.Add(new Evento
-            {
-                Id = idOtroEvento,
-                Nombre = "Otro evento 2",
-                Descripcion = "Descripcion otro evento 2",
-                FechaInicio = hoy.AddDays(-1),
-                FechaFin = hoy.AddDays(1)
             });
 
             context.Proyecto.Add(new Proyecto

@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Votify.Core.Services;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Votify.Core.Entities;
+using Votify.Core.Factories;
 using Votify.Infrastructure.Data;
-using Votify.Infrastructure.Repositorios;
 
 namespace Votify.Core.Tests.Participantes
 {
@@ -15,6 +12,7 @@ namespace Votify.Core.Tests.Participantes
     public class ParticipantesTests
     {
         private AppDbContext context;
+        private ConcreteEventFactory factory;
 
         private Guid idRolPublico;
         private Guid idRolJurado;
@@ -36,6 +34,7 @@ namespace Votify.Core.Tests.Participantes
                 .Options;
 
             context = new AppDbContext(options);
+            factory = new ConcreteEventFactory();
 
             idRolPublico = Guid.NewGuid();
             idRolJurado = Guid.NewGuid();
@@ -99,47 +98,55 @@ namespace Votify.Core.Tests.Participantes
             idEventoMixto = Guid.NewGuid();
             idOtroEventoJurado = Guid.NewGuid();
 
+            var eventoPublico = factory.CreateEvento(
+                "Hackathon",
+                TipoVotacion.Publico,
+                "Evento Publico",
+                "Evento publico test",
+                hoy.AddDays(-1),
+                hoy.AddDays(1),
+                categoriaId
+            );
+            eventoPublico.Id = idEventoPublico;
+
+            var eventoJurado = factory.CreateEvento(
+                "Hackathon",
+                TipoVotacion.Jurado,
+                "Evento Jurado",
+                "Evento jurado test",
+                hoy.AddDays(-1),
+                hoy.AddDays(1),
+                categoriaId
+            );
+            eventoJurado.Id = idEventoJurado;
+
+            var eventoMixto = factory.CreateEvento(
+                "Hackathon",
+                TipoVotacion.Mixto,
+                "Evento Mixto",
+                "Evento mixto test",
+                hoy.AddDays(-1),
+                hoy.AddDays(1),
+                categoriaId
+            );
+            eventoMixto.Id = idEventoMixto;
+
+            var otroEventoJurado = factory.CreateEvento(
+                "Concurso",
+                TipoVotacion.Jurado,
+                "Otro Evento Jurado",
+                "Otro evento jurado test",
+                hoy.AddDays(-1),
+                hoy.AddDays(1),
+                categoriaId
+            );
+            otroEventoJurado.Id = idOtroEventoJurado;
+
             context.Evento.AddRange(
-                new Evento
-                {
-                    Id = idEventoPublico,
-                    Nombre = "Evento Publico",
-                    Descripcion = "Evento publico test",
-                    FechaInicio = hoy.AddDays(-1),
-                    FechaFin = hoy.AddDays(1),
-                    Id_categoria = categoriaId,
-                    TipoVotacion = TipoVotacion.Publico
-                },
-                new Evento
-                {
-                    Id = idEventoJurado,
-                    Nombre = "Evento Jurado",
-                    Descripcion = "Evento jurado test",
-                    FechaInicio = hoy.AddDays(-1),
-                    FechaFin = hoy.AddDays(1),
-                    Id_categoria = categoriaId,
-                    TipoVotacion = TipoVotacion.Jurado
-                },
-                new Evento
-                {
-                    Id = idEventoMixto,
-                    Nombre = "Evento Mixto",
-                    Descripcion = "Evento mixto test",
-                    FechaInicio = hoy.AddDays(-1),
-                    FechaFin = hoy.AddDays(1),
-                    Id_categoria = categoriaId,
-                    TipoVotacion = TipoVotacion.Mixto
-                },
-                new Evento
-                {
-                    Id = idOtroEventoJurado,
-                    Nombre = "Otro Evento Jurado",
-                    Descripcion = "Otro evento jurado test",
-                    FechaInicio = hoy.AddDays(-1),
-                    FechaFin = hoy.AddDays(1),
-                    Id_categoria = categoriaId,
-                    TipoVotacion = TipoVotacion.Jurado
-                }
+                eventoPublico,
+                eventoJurado,
+                eventoMixto,
+                otroEventoJurado
             );
 
             context.EventoUsuarioRol.Add(new EventoUsuarioRol
