@@ -17,13 +17,15 @@ public class AutorizaController : ControllerBase
     public async Task<IActionResult> Login(Login dto)
     {
         var usuario = await _repo.GetByCredencialesAsync(dto.Usuario, dto.Password);
-
+       
         if (usuario == null)
             return Unauthorized();
 
         return Ok(usuario);
+        }
+
+        return Ok(new { message = "Login correcto" });
     }
-    
 }
 // debugging para verificar que los datos se reciben correctamente 
 /* Console.WriteLine($"Intento de login: Usuario='{request.Usuario}', Password='{request.Password}'");

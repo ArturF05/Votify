@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Votify.Core.Entities;
+using Votify.Core.Factories;
 using Votify.Core.Interfaces;
 
 namespace Votify.Core.Services
@@ -14,6 +15,7 @@ namespace Votify.Core.Services
         private List<Proyecto> aux2 = new List<Proyecto>();
         private Votify.Core.Entities.Votacion aux3 = new Votify.Core.Entities.Votacion();
         private readonly IEventoRepository eventoRepository;
+        private readonly EventoFactory eventoFactory = new ConcreteEventFactory();
         public EventoService(IEventoRepository eventoRepository)
         {
             this.eventoRepository = eventoRepository;
@@ -22,27 +24,17 @@ namespace Votify.Core.Services
         {
             return await eventoRepository.BuscarPorNombreAsync(nombre, Id_Categoria);
         }
-        public async Task CrearEvento(string titulo, Guid categoriaId, DateOnly fechaInicio, string descripcion, DateOnly fechaFin,TipoVotacion tipoVotacion)
+        public async Task CrearEvento(string titulo, Guid categoriaId, DateOnly fechaInicio, string descripcion, DateOnly fechaFin,string tipo,TipoVotacion tipoVotacion)
         {
+            EventoFactory factory = new ConcreteEventFactory();
             if (string.IsNullOrWhiteSpace(titulo))
                 throw new Exception("El título es obligatorio");
 
             if (fechaFin < fechaInicio)
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
 
-            var nuevoEvento = new Evento
-            {
-                Id = Guid.NewGuid(),
-                Nombre = titulo,
-                Id_categoria = categoriaId,
-                Descripcion = descripcion,
-                FechaInicio = fechaInicio,
-                FechaFin = fechaFin,
-                TipoVotacion=tipoVotacion,
-                Proyectos = aux2,
-                Votacion = aux3,
-                Archivado = false
-            };
+            Evento nuevoEvento = eventoFactory.CreateEvento(tipo,tipoVotacion, titulo, descripcion, fechaInicio, fechaFin, categoriaId);
+
 
             await eventoRepository.CrearEventoAsync(nuevoEvento);
         }

@@ -27,6 +27,10 @@ public class AppDbContext : DbContext
       
     protected override void OnModelCreating(ModelBuilder modelBuilder) //Si no se pone da problemas raros
     {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<EventoHackathon>().HasBaseType<Evento>();
+        modelBuilder.Entity<EventoConcurso>().HasBaseType<Evento>();
 
         // Ignorar propiedades sin FK en la BD
         base.OnModelCreating(modelBuilder);

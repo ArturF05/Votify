@@ -10,6 +10,7 @@ namespace Votify.API.DTOs
         public DateOnly FechaFin { get; set; }
         public Guid Id_categoria { get; set; }
         public bool Archivado { get; set; }
+        public string Tipo { get; set; }
         public TipoVotacion TipoVotacion { get; set; }
     }
 }
