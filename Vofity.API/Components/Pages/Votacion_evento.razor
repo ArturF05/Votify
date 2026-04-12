@@ -6,13 +6,14 @@
 @using Votify.Core.Services
 @using Votify.Infrastructure.Data
 @using Votify.Infrastructure.Repositorios
+@using Votify.Core.Interfaces
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 @inject NavigationManager nav;
 @inject AppDbContext contexto
 @inject HttpClient Http
+@inject ProtectedSessionStorage sessionStorage
 @inject IVotacion VotacionService
-@using Votify.Core.Interfaces
-@inject IUsuarioSesion UsuarioSesion
+@inject UsuarioSesion usuarioSesion
 
 <div class="votacion-evento-page">
     @if (evento == null)
@@ -93,7 +94,7 @@
     public Guid id { get; set; }
     private List<Guid> proyectosSeleccionados = new();
     private Guid idVotacion;
-    
+    private Guid idVotante;
     private string mensaje = "";
     private Dictionary<Guid, string> comentariosPorProyecto = new();
 
@@ -135,7 +136,7 @@
 
     private async Task EnviarVoto()
     {
-        if (UsuarioSesion.UsuarioActual == null)
+        if (idVotante == Guid.Empty)
         {
             mensaje = "Error: No se detecta una sesión activa. Por favor, reingresa.";
             return;

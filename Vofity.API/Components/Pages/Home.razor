@@ -1,11 +1,12 @@
 ﻿@page "/Home"
-@using Microsoft.EntityFrameworkCore
-@using Votify.Infrastructure.Data
 @rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Votify.Infrastructure.Data
 @inject AppDbContext contexto
-@using Votify.Core.Interfaces
 @inject HttpClient Http
-@inject IUsuarioSesion UsuarioSesion
+@inject ProtectedSessionStorage sessionStorage
+@inject NavigationManager nav
 
 <div class="page">
 
@@ -51,43 +52,79 @@
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Votify.Core.Entities.Evento> eventosParticipando = new();
     List<Votify.Core.Entities.Evento> eventosDisponibles = new();
-    private String mensaje = "";
-    protected override async Task OnInitializedAsync()
+
+    private string mensaje = "";
+    private Guid idUsuario;
+    private Votify.Core.Entities.Usuario? usuarioActual;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var usuario = UsuarioSesion.UsuarioActual;
+        if (!firstRender) return;
 
-        eventos = await contexto.Evento
-            .AsNoTracking()
-            .Include(e => e.Categoria)
-            .ToListAsync();
+        try
+        {
+            var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
 
-        // IDs de eventos donde participa el usuario
-        var eventosUsuarioIds = await contexto.EventoUsuarioRol
-            .Where(eur => eur.UsuarioId == usuario.Id)
-            .Select(eur => eur.EventoId)
-            .ToListAsync();
+            if (!resultado.Success || resultado.Value == Guid.Empty)
+            {
+                nav.NavigateTo("/Login");
+                return;
+            }
 
-        eventosParticipando = eventos
-            .Where(e => eventosUsuarioIds.Contains(e.Id))
-            .ToList();
+            idUsuario = resultado.Value;
 
-        eventosDisponibles = eventos
-            .Where(e => !eventosUsuarioIds.Contains(e.Id))
-            .ToList();
+            usuarioActual = await contexto.Usuario
+                .Include(u => u.Rol)
+                .FirstOrDefaultAsync(u => u.Id == idUsuario);
+
+            if (usuarioActual == null)
+            {
+                nav.NavigateTo("/Login");
+                return;
+            }
+
+            eventos = await contexto.Evento
+                .AsNoTracking()
+                .Include(e => e.Categoria)
+                .ToListAsync();
+
+            var eventosUsuarioIds = await contexto.EventoUsuarioRol
+                .Where(eur => eur.UsuarioId == idUsuario)
+                .Select(eur => eur.EventoId)
+                .ToListAsync();
+
+            eventosParticipando = eventos
+                .Where(e => eventosUsuarioIds.Contains(e.Id))
+                .ToList();
+
+            eventosDisponibles = eventos
+                .Where(e => !eventosUsuarioIds.Contains(e.Id))
+                .ToList();
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error cargando Home: {ex.Message}";
+            Console.WriteLine($"[HOME ERROR] {ex}");
+        }
     }
 
     private async Task Apuntarse(Guid eventoId)
     {
         try
         {
-            var usuario = UsuarioSesion.UsuarioActual;
-            if (usuario == null)
+            if (idUsuario == Guid.Empty)
             {
                 mensaje = "No hay sesión.";
                 return;
             }
-            var respuesta = await Http.PatchAsync($"api/eventos/{eventoId}/apuntarse?usuarioId={usuario.Id}&apuntar=true", new StringContent(""));
-            if(respuesta.IsSuccessStatusCode)
+
+            var respuesta = await Http.PatchAsync(
+                $"api/eventos/{eventoId}/apuntarse?usuarioId={idUsuario}&apuntar=true",
+                new StringContent(""));
+
+            if (respuesta.IsSuccessStatusCode)
             {
                 var evento = eventosDisponibles.FirstOrDefault(e => e.Id == eventoId);
 
@@ -114,13 +151,16 @@
     {
         try
         {
-            var usuario = UsuarioSesion.UsuarioActual;
-            if (usuario == null)
+            if (idUsuario == Guid.Empty)
             {
                 mensaje = "No hay sesión.";
                 return;
             }
-            var respuesta = await Http.PatchAsync($"api/eventos/{eventoId}/apuntarse?usuarioId={usuario.Id}&apuntar=false", new StringContent(""));
+
+            var respuesta = await Http.PatchAsync(
+                $"api/eventos/{eventoId}/apuntarse?usuarioId={idUsuario}&apuntar=false",
+                new StringContent(""));
+
             if (respuesta.IsSuccessStatusCode)
             {
                 var evento = eventosParticipando.FirstOrDefault(e => e.Id == eventoId);

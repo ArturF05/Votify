@@ -15,7 +15,7 @@ public class AutorizaController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(Login dto)
+    public async Task<IActionResult> Login([FromBody] Login request)
     {
         var usuario = await _repo.ObtenerPorCredencialesAsync(request.Usuario, request.Password);
 

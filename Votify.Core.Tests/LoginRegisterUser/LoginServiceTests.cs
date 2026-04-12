@@ -5,10 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Votify.Core.Interfaces;
 using Votify.Core.Services;
-using Moq;
-using Votify.Core.Entities;
 
 namespace Votify.Core.Tests.LoginRegisterUser
 {
@@ -24,73 +21,96 @@ namespace Votify.Core.Tests.LoginRegisterUser
             {
                 "id": "11111111-1111-1111-1111-111111111111",
                 "nombre": "usuarioTest",
-                "password": "passTest",
-                "id_rol": "22222222-2222-2222-2222-222222222222"
+                "rol": "Publico"
             }
             """;
 
             var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
-            var sessionMock = new Mock<IUsuarioSesion>();
-            loginService = new LoginService(httpClient, sessionMock.Object);
+            var usuarioSesion = new UsuarioSesion();
+            loginService = new LoginService(httpClient, usuarioSesion);
 
-            Usuario? resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "passTest");
-            Assert.IsNotNull(resultado);
+            bool resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "passTest");
+
+            Assert.IsTrue(resultado);
+            Assert.AreEqual(Guid.Parse("11111111-1111-1111-1111-111111111111"), usuarioSesion.IdUsuario);
+            Assert.AreEqual("usuarioTest", usuarioSesion.NombreUsuario);
+            Assert.AreEqual("Publico", usuarioSesion.Rol);
         }
 
         [TestMethod]
         public async Task LoginIncorrectPass()
         {
-            var jsonRespuesta = "false";
+            var jsonRespuesta = """
+            {
+                "message": "Credenciales inválidas"
+            }
+            """;
 
-            var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
-            var sessionMock = new Mock<IUsuarioSesion>();
-            loginService = new LoginService(httpClient, sessionMock.Object);
+            var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.Unauthorized);
+            var usuarioSesion = new UsuarioSesion();
+            loginService = new LoginService(httpClient, usuarioSesion);
 
-            Usuario? resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "IncorrectPassTest");
+            bool resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "IncorrectPassTest");
 
-            Assert.IsNull(resultado);
+            Assert.IsFalse(resultado);
+            Assert.AreEqual(Guid.Empty, usuarioSesion.IdUsuario);
         }
 
         [TestMethod]
         public async Task LoginUserNotExists()
         {
-            var jsonRespuesta = "false";
+            var jsonRespuesta = """
+            {
+                "message": "Credenciales inválidas"
+            }
+            """;
 
-            var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
-            var sessionMock = new Mock<IUsuarioSesion>();
-            loginService = new LoginService(httpClient, sessionMock.Object);
+            var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.Unauthorized);
+            var usuarioSesion = new UsuarioSesion();
+            loginService = new LoginService(httpClient, usuarioSesion);
 
-            Usuario? resultado = await loginService.ValidarUsuarioAsync("InventadoUsuarioTest", "passTest");
+            bool resultado = await loginService.ValidarUsuarioAsync("InventadoUsuarioTest", "passTest");
 
-            Assert.IsNull(resultado);
+            Assert.IsFalse(resultado);
+            Assert.AreEqual(Guid.Empty, usuarioSesion.IdUsuario);
         }
 
         [TestMethod]
         public async Task LoginUserNull()
         {
-            var jsonRespuesta = "false";
+            var jsonRespuesta = """
+            {
+                "message": "Credenciales inválidas"
+            }
+            """;
 
-            var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
-            var sessionMock = new Mock<IUsuarioSesion>();
-            loginService = new LoginService(httpClient, sessionMock.Object);
+            var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.Unauthorized);
+            var usuarioSesion = new UsuarioSesion();
+            loginService = new LoginService(httpClient, usuarioSesion);
 
-            Usuario? resultado = await loginService.ValidarUsuarioAsync("", "passTest");
+            bool resultado = await loginService.ValidarUsuarioAsync("", "passTest");
 
-            Assert.IsNull(resultado);
+            Assert.IsFalse(resultado);
+            Assert.AreEqual(Guid.Empty, usuarioSesion.IdUsuario);
         }
 
         [TestMethod]
         public async Task LoginPassNull()
         {
-            var jsonRespuesta = "false";
+            var jsonRespuesta = """
+            {
+                "message": "Credenciales inválidas"
+            }
+            """;
 
-            var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.OK);
-            var sessionMock = new Mock<IUsuarioSesion>();
-            loginService = new LoginService(httpClient, sessionMock.Object);
+            var httpClient = CrearHttpClientFalso(jsonRespuesta, HttpStatusCode.Unauthorized);
+            var usuarioSesion = new UsuarioSesion();
+            loginService = new LoginService(httpClient, usuarioSesion);
 
-            Usuario? resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "");
+            bool resultado = await loginService.ValidarUsuarioAsync("usuarioTest", "");
 
-            Assert.IsNull(resultado);
+            Assert.IsFalse(resultado);
+            Assert.AreEqual(Guid.Empty, usuarioSesion.IdUsuario);
         }
 
         private HttpClient CrearHttpClientFalso(string contenidoRespuesta, HttpStatusCode codigoEstado)

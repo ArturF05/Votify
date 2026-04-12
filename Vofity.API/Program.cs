@@ -41,7 +41,6 @@ builder.Services.AddScoped(sp =>
     return new HttpClient { BaseAddress = new Uri("https://localhost:7053") }; // Your actual server port
 });
 
-builder.Services.AddScoped<IUsuarioSesion, UsuarioSesion>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

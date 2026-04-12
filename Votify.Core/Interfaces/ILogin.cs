@@ -9,6 +9,6 @@ namespace Votify.Core.Interfaces
 {
     public interface ILogin
     {
-        Task<Usuario?> ValidarUsuarioAsync(string usuario, string password);
+        Task<bool> ValidarUsuarioAsync(string usuario, string password);
     }
 }

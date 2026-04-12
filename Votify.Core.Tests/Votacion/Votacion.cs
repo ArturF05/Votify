@@ -282,7 +282,7 @@ namespace Votify.Core.Tests.Votacion
                 Id_proyecto = idProyecto1,
                 Id_votante = idVotante,
                 Puntuacion = 1,
-                Fecha_voto = DateOnly.FromDateTime(DateTime.Now)
+                Fecha_voto = DateTime.Now
             });
 
             context.SaveChanges();

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Votify.Core.DTOs;
 using Votify.Core.Interfaces;
 
-
 namespace Votify.Core.Services
 {
     public class LoginService : ILogin
@@ -19,7 +18,7 @@ namespace Votify.Core.Services
             _usuarioSesion = usuarioSesion;
         }
 
-        public async Task<Usuario?> ValidarUsuarioAsync(string usuario, string password)
+        public async Task<bool> ValidarUsuarioAsync(string usuario, string password)
         {
             try
             {
@@ -35,10 +34,11 @@ namespace Votify.Core.Services
                     return false;
 
                 var respuesta = await response.Content.ReadFromJsonAsync<LoginRespuesta>();
-                Console.WriteLine($"Usuario logueado ID: {respuesta.Id}");
 
                 if (respuesta == null)
                     return false;
+
+                Console.WriteLine($"Usuario logueado ID: {respuesta.Id}");
 
                 _usuarioSesion.IdUsuario = respuesta.Id;
                 _usuarioSesion.NombreUsuario = respuesta.Nombre;
