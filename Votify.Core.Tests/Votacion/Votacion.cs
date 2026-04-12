@@ -340,7 +340,7 @@ namespace Votify.Core.Tests.Votacion
             var voto = await context.Voto.FirstOrDefaultAsync(v => v.Id_votante == idVotante);
 
             Assert.IsNotNull(voto);
-            Assert.AreEqual(DateOnly.FromDateTime(DateTime.Now), voto.Fecha_voto);
+            Assert.AreEqual(DateTime.Today, voto.Fecha_voto.Date);
         }
 
 
