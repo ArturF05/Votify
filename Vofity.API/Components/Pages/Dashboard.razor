@@ -1,0 +1,66 @@
+﻿@page "/Dashboard"
+@rendermode InteractiveServer
+@using Votify.Core.DTOs
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager nav;
+@inject IJSRuntime JS
+
+<div class="resultados-container">
+
+    <div class="topbar">
+        <div class="title">
+            <h1>Dashboard</h1>
+            <p>Resultados de la votación</p>
+        </div>
+
+        <div class="top-actions">
+            <div class="pill">Votación cerrada</div>
+            <button class="back-button" @onclick="Volver">← Volver</button>
+        </div>
+    </div>
+
+    <div class="winner-panel">
+        <div class="winner-text">
+            <h2>EcoTrack</h2>
+            <p>Proyecto ganador del evento</p>
+        </div>
+
+        <div class="winner-card">
+            <div class="trophy">★</div>
+            <div><strong>238 votos</strong></div>
+        </div>
+    </div>
+
+    <div class="ranking">
+        <h3>Ranking</h3>
+
+        <div class="item">
+            <span class="pos">1. EcoTrack</span>
+            <span>238 votos</span>
+        </div>
+
+        <div class="item">
+            <span class="pos">2. SafeCampus</span>
+            <span>211 votos</span>
+        </div>
+
+        <div class="item">
+            <span class="pos">3. FoodLoop</span>
+            <span>183 votos</span>
+        </div>
+
+        <div class="item">
+            <span class="pos">4. StudyFlow</span>
+            <span>156 votos</span>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    void Volver()
+    {
+        JS.InvokeVoidAsync("history.back");
+    }
+}
