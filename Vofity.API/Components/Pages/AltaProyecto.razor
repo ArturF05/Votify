@@ -15,13 +15,28 @@
         <h2 class="crear-proyecto-titulo">Crear Proyecto</h2>
         <p class="crear-proyecto-subtitulo">Completa los datos para iniciar tu nuevo proyecto</p>
 
-        <EditForm Model="modelo" OnValidSubmit="CrearProyecto" >
-            
+        <EditForm Model="modelo" OnValidSubmit="CrearProyecto">
             <DataAnnotationsValidator />
 
-            <!-- Campo Titulo -->
             <div class="campo-grupo">
-                <label for="titulo" class="campo-label">Titulo del Proyecto</label>
+                <label for="evento" class="campo-label">Evento asociado</label>
+                <div class="campo-wrapper">
+                    <InputSelect id="evento"
+                                 @bind-Value="modelo.IdEvento"
+                                 class="campo-input">
+                        <option value="">-- Selecciona un evento --</option>
+                        @foreach (var evento in eventos)
+                        {
+                            <option value="@evento.Id">@evento.Nombre</option>
+                        }
+                    </InputSelect>
+                    <span class="campo-linea"></span>
+                </div>
+                <ValidationMessage For="@(() => modelo.IdEvento)" />
+            </div>
+
+            <div class="campo-grupo">
+                <label for="titulo" class="campo-label">Título del Proyecto</label>
                 <div class="campo-wrapper">
                     <InputText id="titulo"
                                @bind-Value="modelo.Titulo"
@@ -32,9 +47,8 @@
                 <ValidationMessage For="@(() => modelo.Titulo)" />
             </div>
 
-            <!-- Campo Descripcion -->
             <div class="campo-grupo">
-                <label for="descripcion" class="campo-label">Descripcion</label>
+                <label for="descripcion" class="campo-label">Descripción</label>
                 <div class="campo-wrapper">
                     <InputTextArea id="descripcion"
                                    @bind-Value="modelo.Descripcion"
@@ -56,7 +70,6 @@
                     <span>Crear Proyecto</span>
                 }
             </button>
-    
         </EditForm>
 
         @if (!string.IsNullOrEmpty(mensaje))
@@ -75,14 +88,56 @@
                 <span>@mensaje</span>
             </div>
         }
+
+        <p>Eventos cargados: @eventos.Count</p>
     </div>
 </div>
 
 @code {
     private CrearProyectoDto modelo = new();
+    private List<EventoDto> eventos = new();
     private string mensaje = "";
     private bool creado = false;
     private bool cargando = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarEventosAsync();
+    }
+
+    private async Task CargarEventosAsync()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/eventos");
+
+            mensaje = $"Status: {response.StatusCode}";
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return;
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            mensaje += $" | JSON: {json}";
+
+            var resultado = await response.Content.ReadFromJsonAsync<List<EventoDto>>();
+
+            if (resultado != null)
+            {
+                eventos = resultado;
+                mensaje += $" | Eventos cargados: {eventos.Count}";
+            }
+            else
+            {
+                mensaje += " | resultado = null";
+            }
+        }
+        catch (Exception ex)
+        {
+            mensaje = "Error al cargar eventos: " + ex.Message;
+        }
+    }
 
     private async Task CrearProyecto()
     {
@@ -94,7 +149,8 @@
             var response = await Http.PostAsJsonAsync("api/v1/proyecto", new
             {
                 titulo = modelo.Titulo,
-                descripcion = modelo.Descripcion
+                descripcion = modelo.Descripcion,
+                idEvento = modelo.IdEvento
             });
 
             if (response.IsSuccessStatusCode)
@@ -105,7 +161,8 @@
             }
             else
             {
-                mensaje = "Error al crear proyecto";
+                var error = await response.Content.ReadAsStringAsync();
+                mensaje = $"Error al crear proyecto: {error}";
                 creado = false;
             }
         }
@@ -119,11 +176,12 @@
             cargando = false;
         }
     }
-   
 
-    public class RespuestaApi
+    public class EventoDto
     {
-        public string? Status { get; set; }
-        public string? Message { get; set; }
+        public Guid Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
     }
 }
+<p>@mensaje</p>
+<p>Total eventos: @eventos.Count</p>

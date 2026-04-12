@@ -16,6 +16,6 @@ namespace Votify.Core.Interfaces
         Task ArchivoEventoAsync(Evento evento, bool archivar);
         Task ApuntarseEventoAsync(Evento evento, Guid usuarioId, bool apuntar);
         Task<Evento?> ObtenerEventoPorIdAsync(Guid id);
-
+        Task<List<Evento>> ObtenerTodos();
     }
 }

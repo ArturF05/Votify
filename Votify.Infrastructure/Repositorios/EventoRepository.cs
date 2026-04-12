@@ -86,5 +86,9 @@ namespace Votify.Infrastructure.Repositorios
         {
             return await contexto.Evento.FindAsync(id);
         }
+        public async Task<List<Evento>> ObtenerTodos()
+        {
+            return await contexto.Evento.ToListAsync();
+        }
     }
 }
