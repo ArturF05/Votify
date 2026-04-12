@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Votify.API.Components.Pages;
 
 namespace Votify.Core.DTOs
 {
@@ -16,5 +17,6 @@ namespace Votify.Core.DTOs
         [JsonPropertyName("titulo")] // Para mapear "titulo" del JSON al campo Titulo si no coincide el nombre
         public string Titulo { get; set; } = "";
         public string Descripcion { get; set; } = "";
+        public Guid? IdEvento { get; set; }
     }
 }

@@ -110,6 +110,26 @@ namespace Votify.API.Controllers
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> ObtenerEventos()
+        {
+            try
+            {
+                var eventos = await eventoService.ObtenerTodos();
+
+                var resultado = eventos.Select(e => new EventoListadoDto
+                {
+                    Id = e.Id,
+                    Nombre = e.Nombre
+                }).ToList();
+
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+        }
 
     }
 }
