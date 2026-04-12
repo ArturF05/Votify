@@ -6,9 +6,13 @@
 @using Votify.Core.Services
 @using Votify.Infrastructure.Data
 @using Votify.Infrastructure.Repositorios
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 @inject NavigationManager nav;
 @inject AppDbContext contexto
 @inject HttpClient Http
+@inject UsuarioSesion usuarioSesion
+@inject ProtectedSessionStorage sessionStorage
+@inject UsuarioSesion usuarioSesion
 @if (evento == null)
 {
     <label>Cargando proyectos...</label>
@@ -73,11 +77,20 @@ else
         evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
         var votacion = await contexto.Votacion.FirstOrDefaultAsync(v => v.Id_evento == id);
         if (votacion != null) { idVotacion = votacion.Id; }
-        if (idVotante != Guid.Empty)
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
         {
-            var usuario = await contexto.Usuario.Include(u => u.Rol).FirstOrDefaultAsync(u => u.Id == idVotante);
-        }
+            var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
 
+            if (resultado.Success)
+            {
+                idVotante = resultado.Value;
+                usuarioSesion.IdUsuario = resultado.Value;
+                StateHasChanged();
+            }
+        }
     }
     private void Favorito(Guid idProyecto)
     {
@@ -97,6 +110,11 @@ else
 
     private async Task EnviarVoto()
     {
+        if (idVotante == Guid.Empty)
+        {
+            mensaje = "No hay ningún usuario autenticado.";
+            return;
+        }
         var votoDto = new 
         {
             IdVotante = idVotante,

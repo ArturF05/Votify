@@ -53,7 +53,7 @@ namespace Votify.Core.Services
                 Id_votante = dto.IdVotante,
                 Comentario = v.Comentario,
                 Puntuacion = 1,
-                Fecha_voto = DateOnly.FromDateTime(DateTime.Now)
+                Fecha_voto =DateTime.UtcNow
             }).ToList();
 
             await votoRepository.GuardarVotosAsync(votos);

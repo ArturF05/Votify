@@ -7,6 +7,7 @@
 @using Votify.Infrastructure.Repositorios
 @inject NavigationManager nav;
 @inject AppDbContext contexto
+@inject UsuarioSesion usuarioSesion
 <h2 class="titulo">Elija un evento sobre el que votar</h2>
 <div class="evento-container">
     @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateOnly.FromDateTime(DateTime.Now)) > 0 && e.FechaInicio.CompareTo(DateOnly.FromDateTime(DateTime.Now)) <= 0))
