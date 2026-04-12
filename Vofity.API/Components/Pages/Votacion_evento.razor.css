@@ -153,6 +153,18 @@
     transition: all 0.2s ease;
 }
 
+.boton-volver {
+    background-color: #F28C2F;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+.texto-error{
+    margin-top: 10px;
+    color: red;
+}
     .boton-secundario:hover {
         background: #f28c28;
         color: white;

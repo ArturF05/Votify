@@ -1,0 +1,153 @@
+﻿@page "/CrearVotacion"
+@rendermode InteractiveServer 
+@using Microsoft.EntityFrameworkCore
+@using Votify.Core.Entities
+@using Votify.Core.Services
+@using Votify.Infrastructure.Data
+@using Votify.Infrastructure.Repositorios
+@using Votify.API.DTOs
+@using System.Net.Http.Json
+@inject NavigationManager nav
+@inject AppDbContext contexto
+@inject HttpClient Http
+
+<div class="form-evento">
+    <h3>Nueva votacion</h3>
+    <hr class="linea">
+    <div class="campo">
+        <label>Evento de la votación*: </label>
+        <select @bind="Id_evento" @bind:event="oninput" @onclick='() => ponerTiempos()'>
+            <option value="@Guid.Empty"></option>
+            @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateOnly.FromDateTime(DateTime.UtcNow))>=0))
+            {
+                <option value="@evento.Id">@evento.Nombre</option>
+            }
+        </select>
+    </div>
+    <div class="labels">
+        <label>Inicio del evento: @inicioEvento    </label>
+        <label>Fin del evento: @finEvento</label>
+    </div>
+    <hr>
+    <div class="campo">
+        <label>Permitir Autovoto*:</label>
+        <select @bind ="permiteAutoVoto">
+            <option value="1">Sí</option>
+            <option value="0">No</option>
+        </select>
+    </div>
+
+    <div class="campo">
+        <label>Inicio de la votación*:</label>
+        <input type="datetime-local" @bind="inicioVotacion" />
+    </div>
+    <div class="campo">
+        <label>Fin de la votación*:</label>
+        <input type="datetime-local" @bind="finVotacion" />
+    </div>
+
+    <div class="errores">
+        <div><label style="color:red">@mensaje</label></div>
+        <div><label style="color:red">@mensaje2</label></div>
+    </div>
+
+    <div class="botones">
+        <div>
+            <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar</button>
+        </div>
+        <div>
+            <button type="button" class="boton-principal" @onclick="GuardarVotacion">Crear Votacion</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int permiteAutoVoto = 1;
+    private DateTime inicioVotacion = DateTime.Now;
+    private DateTime finVotacion = DateTime.Now.AddHours(1);
+    private DateOnly inicioEvento = DateOnly.FromDateTime(DateTime.Now);
+    private DateOnly finEvento = DateOnly.FromDateTime(DateTime.Now).AddDays(1);
+    private Guid Id_evento = Guid.Empty;
+    private string mensaje = "";
+    private string mensaje2 = "";
+    List<Votify.Core.Entities.Evento> eventos = new();
+    List<Votify.Core.Entities.Votacion> votaciones = new();
+    private Votify.Core.Entities.Evento? evento;
+
+    protected override async Task OnInitializedAsync()
+    {
+        eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
+    }
+
+    private async Task ponerTiempos()
+    {
+        evento = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == Id_evento);
+        if (evento == null) return;
+        inicioEvento = evento.FechaInicio;
+        finEvento = evento.FechaFin;
+        StateHasChanged();
+    }
+    void Cancelar()
+    {
+        nav.NavigateTo("/GestionarVotaciones");
+    }
+
+    private async Task GuardarVotacion()
+    {
+        try
+        {
+            votaciones = await contexto.Votacion.ToListAsync();
+
+            bool franjaUsada = false;
+            if (Id_evento == Guid.Empty)
+            {
+                mensaje = "Selecciona un evento";
+                return;
+            }
+
+            foreach (var vot in votaciones.Where(e=> e.Id_evento == Id_evento))
+            {
+                if (inicioVotacion.CompareTo(vot.FechaInicio)>=0 && inicioVotacion.CompareTo(vot.FechaFin)<=0)
+                {
+                    franjaUsada = true;
+                    break;
+                }
+            }
+            if (finVotacion.CompareTo(inicioVotacion) <= 0)
+            {
+                mensaje2 = "El final de la votación debe ser posterior al inicio";
+                return;
+            }
+            if (franjaUsada)
+            {
+                mensaje = "Hay una votación en esta franja de tiempo, no se permiten votaciones concurrentes en un mismo evento";
+                return;
+            }
+
+            evento = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == Id_evento);
+            var dto = new CrearVotacionDTOs
+            {
+                Id_evento = Id_evento,
+                FechaInicio = inicioVotacion,
+                FechaFin = finVotacion,
+                PermiteAutoVoto = permiteAutoVoto == 1
+            };
+            var response = await Http.PostAsJsonAsync("api/Votacion", dto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                nav.NavigateTo("/GestionarVotaciones");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensaje = $"No se pudo crear la votación: {error}";
+                Console.WriteLine(error);
+            }
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error: {ex.Message}";
+        }
+    }
+}

@@ -65,8 +65,8 @@
             }
         </tbody>
     </table>
-    </div>
-    <label>@noHayResultados</label>
+
+    <label class="noHayResult">@noHayResultados</label>
 </div>
 
 <div class="acciones-inferiores">
@@ -103,6 +103,7 @@
         {
             eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
             noHayResultados = "";
+            HayEventos();
         }
         else
         {
@@ -118,7 +119,6 @@
                 noHayResultados = "";
         }
 
-        HayEventos();
         StateHasChanged();
     }
 

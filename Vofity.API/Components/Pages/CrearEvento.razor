@@ -80,11 +80,15 @@
                 </div>
             </div>
 
-            <div class="campo campo-columna campo-completo campo-descripcion">
-                <label>Descripción:</label>
-                <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
-            </div>
+        <div class="campo campo-derecha">
+            <label>Fecha de cierre*:</label>
+            <input type="date" @bind="fin" />
         </div>
+        <div class="campo">
+            <label>Descripción:</label>
+            <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
+        </div>
+    </div>
 
         <div>
             <div><label style="color:red">@mensaje</label></div>

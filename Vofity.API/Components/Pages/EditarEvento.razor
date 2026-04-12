@@ -134,7 +134,7 @@
 
     async Task ConfirmarEliminar()
     {
-        bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Seguro que quieres eliminar este evento?");
+        bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Seguro que quieres eliminar este evento? Esta acción no es reversible");
 
         if (confirmado)
         {

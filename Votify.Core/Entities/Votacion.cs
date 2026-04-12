@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,5 +16,7 @@ public class Votacion
     public DateTime FechaFin { get; set; }
     public DimensionesDeValor? DimensionesDeValores { get; set; }
     public Resultado? Resultados { get; set; }
+    [ForeignKey("Id_evento")]
+    public Evento Evento { get; set; }
    
 }
