@@ -26,8 +26,10 @@ public class ProyectoController : ControllerBase
                 message = "Datos inválidos",
                 details = new[] { new { field = "titulo", issue = "El título es requerido" } }
             });
+        if (dto.IdEvento == null)
+            return BadRequest("El evento es obligatorio");
 
-        var resultado = await _proyectoService.CrearProyecto(dto.Titulo, dto.Descripcion);
+        var resultado = await _proyectoService.CrearProyecto(dto.Titulo, dto.Descripcion,dto.IdEvento.Value);
 
         if (resultado)
             return StatusCode(201, new { status = "success", message = "Proyecto creado" });

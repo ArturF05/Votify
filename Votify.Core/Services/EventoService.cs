@@ -83,5 +83,9 @@ namespace Votify.Core.Services
         {
             return await eventoRepository.ObtenerEventoPorIdAsync(id);
         }
+        public async Task<List<Evento>> ObtenerTodos()
+        {
+            return await eventoRepository.ObtenerTodos();
+        }
     }
 }
