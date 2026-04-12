@@ -11,89 +11,99 @@
 @inject AppDbContext contexto
 @inject HttpClient Http
 
-<h3>Crear Evento</h3>
-
-<div class="form-evento">
-    <h3>Nuevo evento</h3>
-    <hr class="linea">
-
-    <div class="campo">
-        <label>Nombre*:</label>
-        <input type="text" class="input-ancho" @bind="nombre" placeholder="Nombre del evento..." />
+<div class="crear-evento-page">
+    <div class="page-header">
+        <h2 class="page-title">Crear Evento</h2>
     </div>
 
-    <div class="form-grid">
-        <div class="campo">
-            <label>Categoría*:</label>
-            <select @bind="Id_categoria">
-                @foreach (var cat in categorias)
-                {
-                    <option value="@cat.Id">@cat.Nombre</option>
-                }
-            </select>
+    <div class="form-evento">
+        <div class="evento-header">
+            <h3>Nuevo evento</h3>
         </div>
 
-        <div class="campo">
-            <label>Tipo de evento*:</label>
-            <select @bind="tipo">
-                <option value="Hackathon">Hackathon</option>
-                <option value="Concurso">Concurso</option>
-            </select>
+        <hr class="linea">
+
+        <div class="campo campo-columna">
+            <label>Nombre*:</label>
+            <input type="text" class="input-ancho" @bind="nombre" placeholder="Nombre del evento..." />
         </div>
 
-        <div class="campo">
-            <label>Fecha de inicio*:</label>
-            <input type="date" @bind="inicio" />
-        </div>
+        <div class="form-grid">
+            <div class="campo campo-columna">
+                <label>Categoría*:</label>
+                <select @bind="Id_categoria">
+                    @foreach (var cat in categorias)
+                    {
+                        <option value="@cat.Id">@cat.Nombre</option>
+                    }
+                </select>
+            </div>
 
-        <div class="campo">
-            <label>Fecha de cierre*:</label>
-            <input type="date" @bind="fin" />
-        </div>
+            <div class="campo campo-columna">
+                <label>Tipo de evento*:</label>
+                <select @bind="tipo">
+                    <option value="Hackathon">Hackathon</option>
+                    <option value="Concurso">Concurso</option>
+                </select>
+            </div>
 
-        <div class="campo campo-completo campo-tipo-votacion">
-            <label>Tipo de votación*:</label>
-            <div class="grupo-botones-votacion">
-                <button type="button"
-                        class="boton-votacion @(tipoVotacion == TipoVotacion.Publico ? "activo" : "")"
-                        @onclick='() => SeleccionarTipo(TipoVotacion.Publico)'>
-                    Público
-                </button>
+            <div class="campo campo-columna">
+                <label>Fecha de inicio*:</label>
+                <input type="date" @bind="inicio" />
+            </div>
 
-                <button type="button"
-                        class="boton-votacion @(tipoVotacion == TipoVotacion.Jurado ? "activo" : "")"
-                        @onclick='() => SeleccionarTipo(TipoVotacion.Jurado)'>
-                    Jurado
-                </button>
+            <div class="campo campo-columna">
+                <label>Fecha de cierre*:</label>
+                <input type="date" @bind="fin" />
+            </div>
 
-                <button type="button"
-                        class="boton-votacion @(tipoVotacion == TipoVotacion.Mixto ? "activo" : "")"
-                        @onclick='() => SeleccionarTipo(TipoVotacion.Mixto)'>
-                    Mixto
-                </button>
+            <div class="campo campo-columna campo-completo">
+                <label>Tipo de votación*:</label>
+                <div class="grupo-botones-votacion">
+                    <button type="button"
+                            class="boton-votacion @(tipoVotacion == TipoVotacion.Publico ? "activo" : "")"
+                            @onclick='() => SeleccionarTipo(TipoVotacion.Publico)'>
+                        Público
+                    </button>
+
+                    <button type="button"
+                            class="boton-votacion @(tipoVotacion == TipoVotacion.Jurado ? "activo" : "")"
+                            @onclick='() => SeleccionarTipo(TipoVotacion.Jurado)'>
+                        Jurado
+                    </button>
+
+                    <button type="button"
+                            class="boton-votacion @(tipoVotacion == TipoVotacion.Mixto ? "activo" : "")"
+                            @onclick='() => SeleccionarTipo(TipoVotacion.Mixto)'>
+                        Mixto
+                    </button>
+                </div>
+            </div>
+
+            <div class="campo campo-columna campo-completo campo-descripcion">
+                <label>Descripción:</label>
+                <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
             </div>
         </div>
 
-        <div class="campo campo-completo campo-descripcion">
-            <label>Descripción:</label>
-            <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
-        </div>
-    </div>
-
-    <div class="errores">
-        <div><label style="color:red">@mensaje</label></div>
-        <div><label style="color:red">@mensaje2</label></div>
-    </div>
-
-    <div class="botones">
         <div>
-            <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar</button>
+            <div><label style="color:red">@mensaje</label></div>
+            <div><label style="color:red">@mensaje2</label></div>
         </div>
-        <div>
-            <button type="button" class="boton-principal" @onclick="GuardarEvento">Crear Evento</button>
+
+        <div class="botones">
+            <div class="grupo-botones">
+                <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar</button>
+            </div>
+
+            <div class="grupo-botones">
+                <button type="button" class="boton-principal" @onclick="GuardarEvento">Crear Evento</button>
+            </div>
         </div>
     </div>
 </div>
+
+           
 
 @code {
     DateOnly inicio = DateOnly.FromDateTime(DateTime.Today);

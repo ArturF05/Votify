@@ -11,57 +11,67 @@
 @inject IJSRuntime JS
 @inject HttpClient Http
 
-<h3>Editar Evento</h3>
-
-<div class="form-evento">
-    <h3>@nombreAntiguo</h3>
-    <hr class="linea">
-    <div class="campo">
-        <label>Nombre*:</label>
-        <input type="text" @bind="nombre" placeholder="Nombre del evento..." />
-    </div>
-
-    <div class="form-grid">
-        <div class="campo">
-            <label>Categoría*:</label>
-            <select @bind="Id_categoria">
-                @foreach (var cat in categorias)
-                {
-                    <option value="@cat.Id">@cat.Nombre</option>
-                }
-            </select>
-        </div>
-
-
-        <div class="campo campo-derecha">
-            <label>Fecha de inicio*:</label>
-            <input type="date" @bind="inicio" />
-        </div>
-
-        <div class="campo">
-            <label>Descripción:</label>
-            <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
-        </div>
-
-        <div class="campo campo-derecha">
-            <label>Fecha de cierre*:</label>
-            <input type="date" @bind="fin" />
-        </div>
-    </div>
-
-    <div class="errores">
-        <div><label style="color:red">@mensaje</label></div>
-        <div><label style="color:red">@mensaje2</label></div>
-    </div>
-
-    <div class="botones">
+<div class="editar-evento-page">
+    <div class="page-header">
         <div>
-            <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar cambios</button>
-            <button type="button" class="boton-secundario" @onclick="ConfirmarEliminar">Eliminar evento</button>
+            <h2 class="page-title">Editar Evento</h2>
         </div>
+    </div>
+
+    <div class="form-evento">
+        <div class="evento-header">
+            <h3>@nombreAntiguo</h3>
+        </div>
+
+        <hr class="linea">
+
+        <div class="campo campo-columna">
+            <label>Nombre*:</label>
+            <input type="text" @bind="nombre" placeholder="Nombre del evento..." />
+        </div>
+
+        <div class="form-grid">
+            <div class="campo campo-columna">
+                <label>Categoría*:</label>
+                <select @bind="Id_categoria">
+                    @foreach (var cat in categorias)
+                    {
+                        <option value="@cat.Id">@cat.Nombre</option>
+                    }
+                </select>
+            </div>
+
+            <div class="campo campo-columna">
+                <label>Fecha de inicio*:</label>
+                <input type="date" @bind="inicio" />
+            </div>
+
+            <div class="campo campo-columna campo-descripcion">
+                <label>Descripción:</label>
+                <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
+            </div>
+
+            <div class="campo campo-columna">
+                <label>Fecha de cierre*:</label>
+                <input type="date" @bind="fin" />
+            </div>
+        </div>
+
         <div>
-            <button type="button" class="boton-secundario" @onclick="ArchivarEvento">Archivar</button>
-            <button type="button" class="boton-principal" @onclick="GuardarEvento">Guardar cambios</button>
+            <div><label style="color:red">@mensaje</label></div>
+            <div><label style="color:red">@mensaje2</label></div>
+        </div>
+
+        <div class="botones">
+            <div class="grupo-botones">
+                <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar cambios</button>
+                <button type="button" class="boton-secundario boton-peligro" @onclick="ConfirmarEliminar">Eliminar evento</button>
+            </div>
+
+            <div class="grupo-botones">
+                <button type="button" class="boton-secundario" @onclick="ArchivarEvento">Archivar</button>
+                <button type="button" class="boton-principal" @onclick="GuardarEvento">Guardar cambios</button>
+            </div>
         </div>
     </div>
 </div>
