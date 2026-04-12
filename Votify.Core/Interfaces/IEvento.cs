@@ -14,6 +14,7 @@ namespace Votify.Core.Interfaces
         Task EliminarEvento(Guid eventoId);
         Task<List<Evento>?> BuscarEvento(string nombre, Guid Id_Categoria);
         Task Archivo(Guid eventoId, bool archivar);
+        Task ApuntarseAsync(Guid eventoId, Guid idUsuario, bool apuntar);
         Task<Evento?> ObtenerEventoPorIdAsync(Guid id);
     }
 }

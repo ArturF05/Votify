@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Votify.API.DTOs;
+using Votify.Core.Entities;
 using Votify.Core.Interfaces;
 namespace Votify.API.Controllers
 {
@@ -111,5 +112,22 @@ namespace Votify.API.Controllers
             }
         }
 
+        [HttpPatch("{id}/apuntarse")]
+        public async Task<IActionResult> ApuntarseAEvento(Guid id, [FromQuery] Guid usuarioId, [FromQuery] bool apuntar)
+        {
+            try
+            {
+                await eventoService.ApuntarseAsync(id, usuarioId, apuntar);
+
+                if (apuntar)
+                    return Ok(new { mensaje = "Usuario apuntado correctamente al evento" });
+                else
+                    return Ok(new { mensaje = "Usuario desapuntado correctamente del evento" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+        }
     }
 }

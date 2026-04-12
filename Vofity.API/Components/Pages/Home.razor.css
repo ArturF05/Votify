@@ -1,0 +1,117 @@
+﻿.page {
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #1f2937;
+}
+
+.header h1 {
+    font-size: 2rem;
+    margin: 0;
+}
+
+.header p {
+    color: #6b7280;
+    margin-top: 5px;
+}
+
+.section {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+    .section h2 {
+        margin-bottom: 15px;
+        font-size: 1.35rem;
+    }
+
+.participando-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    background: #fffdfa;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+}
+
+.card {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 18px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 180px;
+    transition: all 0.2s ease;
+}
+
+    .card:hover {
+        transform: translateY(-5px);
+        border-color: #f28c28;
+        box-shadow: 0 15px 40px rgba(245, 166, 35, 0.2);
+    }
+
+.card-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #1a1a1a;
+}
+
+.card-desc {
+    font-size: 0.9rem;
+    color: #6b7280;
+    line-height: 1.45;
+}
+
+.card-dates {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.btn {
+    margin-top: auto;
+    background: linear-gradient(135deg, #F5A623, #FF8C00);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(245, 166, 35, 0.28);
+    }
+
+@media (max-width: 700px) {
+    .page {
+        padding: 18px;
+    }
+
+    .item {
+        flex-direction: column;
+        gap: 6px;
+    }
+}

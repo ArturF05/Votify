@@ -1,7 +1,146 @@
-﻿@page "/main"
+﻿@page "/Home"
+@using Microsoft.EntityFrameworkCore
+@using Votify.Infrastructure.Data
+@rendermode InteractiveServer
+@inject AppDbContext contexto
+@using Votify.Core.Interfaces
+@inject HttpClient Http
+@inject IUsuarioSesion UsuarioSesion
 
-<PageTitle>Home</PageTitle>
+<div class="page">
 
-<h1>Ventana Home</h1>
+    <div class="header">
+        <h1>Home</h1>
+        <p>Gestiona tus eventos y descubre nuevos</p>
+    </div>
 
-Pendiente de realizar
+    <div class="section">
+        <h2>Tus eventos</h2>
+        <div class="participando-list">
+            @foreach (var evento in eventosParticipando)
+            {
+                <div class="item">
+                    <span>@evento.Nombre</span>
+                    <button class="btn" @onclick='() => Desapuntarse(evento.Id)'>Desapuntarme</button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Eventos a los que unirte</h2>
+
+        <div class="grid">
+            @foreach (var evento in eventosDisponibles)
+            {
+                <div class="card">
+                    <div class="card-title">@evento.Nombre</div>
+                    <div class="card-desc">@evento.Descripcion</div>
+                    <div class="card-dates">Inicio: @evento.FechaInicio · Fin: @evento.FechaFin</div>
+                    <button class="btn" @onclick='() => Apuntarse(evento.Id)'>Apuntarme</button>
+                </div>
+            }
+        </div>
+    </div>
+    <div>
+        <label>@mensaje</label>
+    </div>
+</div>
+
+@code {
+    List<Votify.Core.Entities.Evento> eventos = new();
+    List<Votify.Core.Entities.Evento> eventosParticipando = new();
+    List<Votify.Core.Entities.Evento> eventosDisponibles = new();
+    private String mensaje = "";
+    protected override async Task OnInitializedAsync()
+    {
+        var usuario = UsuarioSesion.UsuarioActual;
+
+        eventos = await contexto.Evento
+            .AsNoTracking()
+            .Include(e => e.Categoria)
+            .ToListAsync();
+
+        // IDs de eventos donde participa el usuario
+        var eventosUsuarioIds = await contexto.EventoUsuarioRol
+            .Where(eur => eur.UsuarioId == usuario.Id)
+            .Select(eur => eur.EventoId)
+            .ToListAsync();
+
+        eventosParticipando = eventos
+            .Where(e => eventosUsuarioIds.Contains(e.Id))
+            .ToList();
+
+        eventosDisponibles = eventos
+            .Where(e => !eventosUsuarioIds.Contains(e.Id))
+            .ToList();
+    }
+
+    private async Task Apuntarse(Guid eventoId)
+    {
+        try
+        {
+            var usuario = UsuarioSesion.UsuarioActual;
+            if (usuario == null)
+            {
+                mensaje = "No hay sesión.";
+                return;
+            }
+            var respuesta = await Http.PatchAsync($"api/eventos/{eventoId}/apuntarse?usuarioId={usuario.Id}&apuntar=true", new StringContent(""));
+            if(respuesta.IsSuccessStatusCode)
+            {
+                var evento = eventosDisponibles.FirstOrDefault(e => e.Id == eventoId);
+
+                if (evento != null)
+                {
+                    eventosDisponibles.Remove(evento);
+                    eventosParticipando.Add(evento);
+                }
+
+                StateHasChanged();
+            }
+            else
+            {
+                mensaje = "No se pudo realizar la inscripción en el evento.";
+            }
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error al apuntarse: {ex.Message}";
+        }
+    }
+
+    private async Task Desapuntarse(Guid eventoId)
+    {
+        try
+        {
+            var usuario = UsuarioSesion.UsuarioActual;
+            if (usuario == null)
+            {
+                mensaje = "No hay sesión.";
+                return;
+            }
+            var respuesta = await Http.PatchAsync($"api/eventos/{eventoId}/apuntarse?usuarioId={usuario.Id}&apuntar=false", new StringContent(""));
+            if (respuesta.IsSuccessStatusCode)
+            {
+                var evento = eventosParticipando.FirstOrDefault(e => e.Id == eventoId);
+
+                if (evento != null)
+                {
+                    eventosParticipando.Remove(evento);
+                    eventosDisponibles.Add(evento);
+                }
+
+                StateHasChanged();
+            }
+            else
+            {
+                mensaje = "No se pudo cancelar la inscripción en el evento.";
+            }
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error al desapuntarse: {ex.Message}";
+        }
+    }
+}

@@ -79,6 +79,17 @@ namespace Votify.Core.Services
 
             await eventoRepository.ArchivoEventoAsync(evento, archivar);
         }
+
+        public async Task ApuntarseAsync(Guid eventoId, Guid usuarioId, bool apuntar)
+        {
+            var evento = await eventoRepository.ObtenerEventoPorIdAsync(eventoId);
+
+            if (evento == null)
+                throw new Exception("El evento no existe");
+
+            await eventoRepository.ApuntarseEventoAsync(evento, usuarioId, apuntar);
+        }
+
         public async Task<Evento?> ObtenerEventoPorIdAsync(Guid id)
         {
             return await eventoRepository.ObtenerEventoPorIdAsync(id);

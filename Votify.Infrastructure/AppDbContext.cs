@@ -38,5 +38,11 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Evento>()
             .Ignore(e => e.Votacion);
 
+        modelBuilder.Entity<EventoUsuarioRol>(entity =>
+        {
+            entity.ToTable("EventoUsuarioRol");
+            entity.Ignore(e => e.Id);
+            entity.HasKey(e => new { e.EventoId, e.UsuarioId, e.RolId });
+        });
     }
 }

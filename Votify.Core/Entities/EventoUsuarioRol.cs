@@ -9,6 +9,7 @@ namespace Votify.Core.Entities;
 
 public class EventoUsuarioRol
 {
+    [NotMapped]
     public Guid Id { get; set; }
     [Column("id_evento")]
     public Guid EventoId { get; set; }
