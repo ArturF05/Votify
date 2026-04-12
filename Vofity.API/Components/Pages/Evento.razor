@@ -9,18 +9,24 @@
 @inject HttpClient Http
 @rendermode InteractiveServer
 
+<PageTitle>Evento</PageTitle>
+<div class="eventos-page">
+
 <div class="titulo-y-archivados">
-    <h2 class="titulo">Eventos</h2>
+    <div>
+        <h2 class="titulo">Eventos</h2>
+        <p class="subtitulo">Gestiona los eventos de los que eres administrador</p>
+    </div>
+
     <button class="boton-archivados" @onclick="VerArchivados">
         Archivados <img src="/Archivados.png" alt="Símbolo Archivados" class="archivados-img" />
     </button>
 </div>
 
-<PageTitle>Evento</PageTitle>
-
-<div class="barra-busqueda">
+<div class="busqueda-card">
+    <div class="barra-busqueda">
     <input @bind="busqueda" @bind:event="oninput" type="text" placeholder="Buscar eventos..." @onkeypress="EsEnter" />
-    <label style="vertical-align:text-bottom">Categoria: </label>
+    <label class="categoria-label">Categoria: </label>
     <select @bind="Id_Categoria">
         <option value="@Guid.Empty">Todas</option>
         @foreach (var cat in categorias)
@@ -29,9 +35,11 @@
         }
     </select>
     <button @onclick="BuscarEventos">Buscar</button>
+    </div>
 </div>
 
-<div>
+<div class="tabla-card">
+    <div class="tabla-wrapper">
     <table class="tabla-eventos">
         <thead>
             <tr>
@@ -51,18 +59,21 @@
                     <td>@evento.Categoria.Nombre</td>
                     <td>@evento.FechaInicio</td>
                     <td>@evento.FechaFin</td>
-                    <td><button class="boton-editar" @onclick='() => EditarEvento(evento)'>Editar</button></td>
-                    <td><button class="boton-editar" @onclick='() => Archivar(evento.Id)'>Archivar</button></td>
+                    <td><button class="boton-secundario" @onclick='() => EditarEvento(evento)'>Editar</button></td>
+                    <td><button class="boton-secundario" @onclick='() => Archivar(evento.Id)'>Archivar</button></td>
                 </tr>
             }
         </tbody>
     </table>
-
+    </div>
     <label>@noHayResultados</label>
 </div>
 
-<a href="/CrearEvento" class="botonLink">Crear Evento</a>
+<div class="acciones-inferiores">
+    <a href="/CrearEvento" class="boton-principal">Crear Evento</a>
+</div>
 
+</div>
 @code {
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Categoria> categorias = new();
