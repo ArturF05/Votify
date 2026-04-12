@@ -1,4 +1,4 @@
-.resultados-container {
+/*.resultados-container {
     padding: 40px;
     max-width: 1100px;
     margin: auto;
@@ -56,6 +56,149 @@
     cursor: pointer;
     color: #1f2937;
 }
+
+.winner-panel {
+    background: linear-gradient(135deg, #fff1de 0%, #ffffff 60%);
+    border: 1px solid #efe7dc;
+    border-radius: 28px;
+    padding: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    gap: 20px;
+}
+
+.winner-text h2 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.winner-text p {
+    color: #6b7280;
+}
+
+.winner-card {
+    text-align: center;
+}
+
+.trophy {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #f28c28;
+    color: white;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 10px auto;
+    font-size: 1.3rem;
+}
+
+.ranking {
+    background: white;
+    border-radius: 22px;
+    padding: 20px;
+    border: 1px solid #efe7dc;
+}
+
+    .ranking h3 {
+        margin-bottom: 15px;
+    }
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    border-radius: 12px;
+    background: #fffdfa;
+    border: 1px solid #efe7dc;
+    margin-bottom: 10px;
+}
+
+.pos {
+    font-weight: bold;
+    color: #b96a00;
+}
+
+@media (max-width: 768px) {
+    .resultados-container {
+        padding: 24px;
+    }
+
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .winner-panel {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .winner-text h2 {
+        font-size: 2.3rem;
+    }
+
+    .top-actions {
+        flex-wrap: wrap;
+    }
+
+    .item {
+        flex-direction: column;
+        gap: 6px;
+    }
+}*/
+.resultados-container {
+    padding: 40px;
+    max-width: 1100px;
+    margin: auto;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #1f2937;
+    min-height: 100vh;
+    background: #ffffff;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    gap: 20px;
+}
+
+.title h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1A1A2E;
+    margin-bottom: 0.5rem;
+}
+
+.title p {
+    font-size: 1rem;
+    color: #6B7280;
+}
+
+.top-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.back-button {
+    background: white;
+    border: 1px solid #eadfd1;
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #1f2937;
+    transition: all 0.2s ease;
+}
+
+    .back-button:hover {
+        border-color: #f28c28;
+        color: #f28c28;
+    }
 
 .winner-panel {
     background: linear-gradient(135deg, #fff1de 0%, #ffffff 60%);

@@ -7,16 +7,21 @@
 @using Votify.Infrastructure.Repositorios
 @inject NavigationManager nav;
 @inject AppDbContext contexto
-<h2 class="titulo">Elija un evento sobre el que votar</h2>
-<div class="evento-container">
-    @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateOnly.FromDateTime(DateTime.Now)) > 0 && e.FechaInicio.CompareTo(DateOnly.FromDateTime(DateTime.Now)) <= 0))
-    {
-        <button class="evento-card" @onclick="() => irAEvento(evento)">@evento.Nombre</button>
-    }
+
+<div class="votacion-page">
+    <div class="page-header">
+        <h2 class="titulo">Elija un evento sobre el que votar</h2>
+    </div>
+
+    <div class="evento-container">
+        @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateOnly.FromDateTime(DateTime.Now)) > 0 && e.FechaInicio.CompareTo(DateOnly.FromDateTime(DateTime.Now)) <= 0))
+        {
+            <button class="evento-card" @onclick="() => irAEvento(evento)">
+                <div class="evento-nombre">@evento.Nombre</div>
+            </button>
+        }
+    </div>
 </div>
-
-
-
 
 @code {
     List<Votify.Core.Entities.Evento> eventos = new();
