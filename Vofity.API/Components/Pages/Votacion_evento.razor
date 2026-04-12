@@ -6,6 +6,7 @@
 @using Votify.Core.Services
 @using Votify.Infrastructure.Data
 @using Votify.Infrastructure.Repositorios
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 @inject NavigationManager nav;
 @inject AppDbContext contexto
 @inject HttpClient Http
@@ -55,6 +56,15 @@
                     <div class="proyecto-header">
                         <div class="proyecto-nombre">@proyecto.Titulo</div>
                     </div>
+                     @if (proyectosSeleccionados.Contains(proyecto.Id))
+                         {
+                             <div class="comentario-container">
+                                 <textarea @bind="comentariosPorProyecto[proyecto.Id]"
+                                           placeholder="Escribe tu comentario aquí..."
+                                           class="form-control">
+                                         </textarea>
+                             </div>
+                         }
                 </div>
             }
         </div>
@@ -85,14 +95,27 @@
     private Guid idVotacion;
     
     private string mensaje = "";
+    private Dictionary<Guid, string> comentariosPorProyecto = new();
 
     protected override async Task OnInitializedAsync()
     {
         evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
         var votacion = await contexto.Votacion.FirstOrDefaultAsync(v => v.Id_evento == id);
         if (votacion != null) { idVotacion = votacion.Id; }
-     
-        
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
+
+            if (resultado.Success)
+            {
+                idVotante = resultado.Value;
+                usuarioSesion.IdUsuario = resultado.Value;
+                StateHasChanged();
+            }
+        }
     }
     private void Favorito(Guid idProyecto)
     {
@@ -105,6 +128,7 @@
             if (proyectosSeleccionados.Count < 3)
             {
                 proyectosSeleccionados.Add(idProyecto);
+                comentariosPorProyecto[idProyecto] = "";
             }
         }
     }
@@ -117,8 +141,17 @@
             return;
         }
 
-        var usuario = UsuarioSesion.UsuarioActual;
-
+        var usuario = await contexto.Usuario.Include(u => u.Rol).FirstOrDefaultAsync(u => u.Id == idVotante);
+            if (usuario == null)
+        {
+            mensaje = "No se ha encontrado el usuario autenticado.";
+            return;
+        }
+        if (evento == null)
+        {
+            mensaje = "No se ha podido cargar el evento.";
+            return;
+        }
       
         if (idVotacion == Guid.Empty)
         {
@@ -167,22 +200,23 @@
         }
         var votoDto = new EmitirVotoDTO
         {
-            IdVotante = UsuarioSesion.UsuarioActual.Id,
-            IdsProyectos = proyectosSeleccionados
+            IdVotante = usuario.Id,
+            Votos = proyectosSeleccionados.Select(idProyecto => new VotoDetalleDTO
+            {
+                IdProyecto = idProyecto,
+                Comentario = comentariosPorProyecto.ContainsKey(idProyecto)
+                    ? comentariosPorProyecto[idProyecto]
+                    : string.Empty
+            }).ToList()
         };
 
-        try
+         try
         {
             var resultado = await VotacionService.RegistrarVotoAsync(idVotacion, votoDto);
 
-            if (resultado)
-            {
-                mensaje = "Voto enviado correctamente.";
-            }
-            else
-            {
-                mensaje = "Error al registrar el voto. Verifica que no hayas votado antes y que la votación esté activa.";
-            }
+            mensaje = resultado
+                ? "Voto enviado correctamente."
+                : "Error al registrar el voto. Verifica que no hayas votado antes y que la votación esté activa.";
         }
         catch (Exception ex)
         {

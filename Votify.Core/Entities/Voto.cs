@@ -19,11 +19,12 @@ public class Voto
     [Column("Id_proyecto")]
     public Guid Id_proyecto { get; set; }
     public decimal Puntuacion { get; set; }
-    public DateOnly Fecha_voto { get; set; }
+    public DateTime Fecha_voto { get; set; }
     [ForeignKey(nameof(Id_categoria))]
     public Categoria? Categoria { get; set; }
     [ForeignKey(nameof(Id_votante))]
     public Usuario Usuario { get; set; }
     [ForeignKey(nameof(Id_votacion))]
     public Votacion Votacion { get; set; }
+    public string? Comentario { get; set; }
 }

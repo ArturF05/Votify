@@ -1,5 +1,6 @@
-﻿using Votify.API.DTOs;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Votify.API.DTOs;
+using Votify.Core.DTOs;
 using Votify.Core.Interfaces;
 
 [ApiController]
@@ -16,20 +17,18 @@ public class AutorizaController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(Login dto)
     {
-        var usuario = await _repo.GetByCredencialesAsync(dto.Usuario, dto.Password);
+        var usuario = await _repo.ObtenerPorCredencialesAsync(request.Usuario, request.Password);
 
         if (usuario == null)
-            return Unauthorized();
+        {
+            return Unauthorized(new { message = "Credenciales inválidas" });
+        }
 
-        return Ok(usuario);
+        return Ok(new LoginRespuesta
+        {
+            Id = usuario.Id,
+            Nombre = usuario.Nombre,
+            Rol = usuario.Rol?.Nombre ?? string.Empty
+        });
     }
-
 }
-// debugging para verificar que los datos se reciben correctamente 
-/* Console.WriteLine($"Intento de login: Usuario='{request.Usuario}', Password='{request.Password}'");
-
- if (request == null || string.IsNullOrEmpty(request.Usuario))
- {
-     return BadRequest("El servidor recibió un objeto vacío");
-
- }*/

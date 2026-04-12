@@ -3,9 +3,13 @@
 @rendermode InteractiveServer
 @using Votify.API.Components.Layout
 @using Votify.Core.Interfaces
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+@using Votify.Core.Services
 @inject ILogin LoginWindow
 @inject IUsuarioSesion UsuarioSesion
 @inject NavigationManager Navigation
+@inject ProtectedSessionStorage sessionStorage
+@inject UsuarioSesion usuarioSesion
 @using System.ComponentModel.DataAnnotations;
 @layout NoLayout
 
@@ -88,7 +92,10 @@
 
                 mensaje = "¡Login correcto!";
                 loginExitoso = true;
-
+                await sessionStorage.SetAsync("IdUsuario", usuarioSesion.IdUsuario);
+                await sessionStorage.SetAsync("NombreUsuario", usuarioSesion.NombreUsuario);
+                await sessionStorage.SetAsync("Rol", usuarioSesion.Rol);
+                StateHasChanged(); // Forzar actualización antes del delay
                 await Task.Delay(1500);
                 Navigation.NavigateTo("/Home");
             }

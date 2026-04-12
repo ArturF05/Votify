@@ -1,48 +1,54 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
 using System.Threading.Tasks;
 using Votify.Core.DTOs;
-using Votify.Core.Entities;
 using Votify.Core.Interfaces;
+
 
 namespace Votify.Core.Services
 {
     public class LoginService : ILogin
     {
         private readonly HttpClient _http;
-        private readonly IUsuarioSesion _sesion; 
+        private readonly UsuarioSesion _usuarioSesion;
 
-        public LoginService(HttpClient http, IUsuarioSesion sesion)
+        public LoginService(HttpClient http, UsuarioSesion usuarioSesion)
         {
             _http = http;
-            _sesion = sesion;
+            _usuarioSesion = usuarioSesion;
         }
 
         public async Task<Usuario?> ValidarUsuarioAsync(string usuario, string password)
         {
             try
             {
-                var loginDto = new { Usuario = usuario, Password = password };
+                var loginDto = new LoginC
+                {
+                    Usuario = usuario,
+                    Password = password
+                };
+
                 var response = await _http.PostAsJsonAsync("api/v1/autoriza/login", loginDto);
 
-                if (!response.IsSuccessStatusCode) { return null; }
+                if (!response.IsSuccessStatusCode)
+                    return false;
 
-                var usuarioRespuesta = await response.Content.ReadFromJsonAsync<Usuario>();
+                var respuesta = await response.Content.ReadFromJsonAsync<LoginRespuesta>();
+                Console.WriteLine($"Usuario logueado ID: {respuesta.Id}");
 
-                if (usuarioRespuesta != null)
-                {
-                    _sesion.UsuarioActual = usuarioRespuesta;
-                }
+                if (respuesta == null)
+                    return false;
 
-                return usuarioRespuesta;
+                _usuarioSesion.IdUsuario = respuesta.Id;
+                _usuarioSesion.NombreUsuario = respuesta.Nombre;
+                _usuarioSesion.Rol = respuesta.Rol;
+
+                return true;
             }
-            catch (Exception)
+            catch
             {
-                return null;
+                return false;
             }
         }
     }

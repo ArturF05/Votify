@@ -5,6 +5,7 @@ using Votify.Core.Interfaces;
 using Votify.Core.Services;
 using Votify.Infrastructure.Data;
 using Votify.Infrastructure.Repositorios;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +24,9 @@ builder.Services.AddScoped<IProyectoRepository, ProyectoRepository>();
 builder.Services.AddScoped<IVotacion, VotacionService>();
 builder.Services.AddScoped<IVotacionRepository, VotacionRepository>();
 builder.Services.AddScoped<IVotoRepository, VotoRepository>();
-
+builder.Services.AddScoped<UsuarioSesion>();
+builder.Services.AddScoped<ProtectedSessionStorage>();
+builder.Services.AddScoped<UsuarioSesion>();
 builder.Services.AddControllers();
 
 // 1. Registro para el servicio de Login (Typed Client)
