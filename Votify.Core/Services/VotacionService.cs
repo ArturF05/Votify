@@ -24,9 +24,10 @@ namespace Votify.Core.Services
 
         public async Task<bool> RegistrarVotoAsync(Guid idVotacion, EmitirVotoDTO dto)
         {
-            if (dto == null || dto.IdsProyectos == null) { return false; }
-            if (dto.IdsProyectos.Count != 3) { return false; }
-            if (dto.IdsProyectos.Distinct().Count() != 3) { return false; }
+            if(dto == null || dto.Votos == null || dto.Votos.Count != 3) { return false; }
+
+            var idsProyectos = dto.Votos.Select(v => v.IdProyecto).ToList();
+            if (idsProyectos.Distinct().Count() != 3) { return false; }
 
             var votacion = await votacionRepository.ObtenerPorIdAsync(idVotacion);
             if (votacion == null) { return false; }
@@ -40,16 +41,17 @@ namespace Votify.Core.Services
             bool yaVoto = await votoRepository.UsuarioYaVotoAsync(idVotacion, dto.IdVotante);
             if (yaVoto) { return false; }
 
-            var proyectos = await proyectoRepository.ObtenerPorIdAsync(dto.IdsProyectos);
+            var proyectos = await proyectoRepository.ObtenerPorIdAsync(idsProyectos);
             if (proyectos.Count != 3) { return false; }
             if (proyectos.Any(p => p.Id_evento != votacion.Id_evento)) { return false; }
 
-            var votos = dto.IdsProyectos.Select(idProyecto => new Voto
+            var votos = dto.Votos.Select(v => new Voto
             {
                 Id = Guid.NewGuid(),
                 Id_votacion = idVotacion,
-                Id_proyecto = idProyecto,
+                Id_proyecto = v.IdProyecto,
                 Id_votante = dto.IdVotante,
+                Comentario = v.Comentario,
                 Puntuacion = 1,
                 Fecha_voto = DateOnly.FromDateTime(DateTime.Now)
             }).ToList();

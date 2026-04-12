@@ -9,35 +9,45 @@
 @inject NavigationManager nav;
 @inject AppDbContext contexto
 @inject HttpClient Http
-            @if(evento == null)
-            {
-                <label>Cargando proyectos...</label>
-            }
-            else if (evento.Proyectos == null || evento.Proyectos.Count == 0)
-            {
-                <h2 class="titulo">Proyectos del evento @evento.Nombre</h2>
-                <label>No se han presentado proyectos para este evento todavía</label>
-            }
-            else
-            {
-                <h2 class="titulo">Proyectos del evento @evento.Nombre</h2>
-                <div class="proyecto-container">    
-                @foreach (var proyecto in evento.Proyectos)
+@if (evento == null)
+{
+    <label>Cargando proyectos...</label>
+}
+else if (evento.Proyectos == null || evento.Proyectos.Count == 0)
+{
+    <h2 class="titulo">Proyectos del evento @evento.Nombre</h2>
+    <label>No se han presentado proyectos todavía</label>
+}
+else
+{
+    <h2 class="titulo">Proyectos del evento @evento.Nombre</h2>
+    <div class="proyecto-container">
+        @foreach (var proyecto in evento.Proyectos)
+        {
+            <div class="proyecto-card">
+                <button class="boton-favorito" @onclick="() => Favorito(proyecto.Id)">
+                    <img src="@(proyectosSeleccionados.Contains(proyecto.Id) ? "/EsFavorito.jpg" : "/Estrella.png")"
+                         class="estrella-img" />
+                </button>
+
+                <div class="proyecto-header">
+                    <label>@proyecto.Titulo</label>
+                </div>
+
+                
+                @if (proyectosSeleccionados.Contains(proyecto.Id))
                 {
-                    <div class="proyecto-card">
-                        <button class="boton-favorito" @onclick="() => Favorito(proyecto.Id)"><img src="@(proyectosSeleccionados.Contains(proyecto.Id)
-                            ? "/EsFavorito.jpg"
-                            : "/Estrella.png")"
-                            alt="Símbolo Favorito" class="estrella-img" /> </button>
-                        <div class="proyecto-header">
-                            <div class="logo-container">
-                                <label>@proyecto.Titulo</label>
-                            </div>
-                        </div>
+                    <div class="comentario-container">
+                        <textarea @bind="comentariosPorProyecto[proyecto.Id]"
+                                  placeholder="Escribe tu comentario aquí..."
+                                  class="form-control">
+                                </textarea>
                     </div>
                 }
-                </div>
-            }
+            </div>
+        }
+    </div>
+}
 <div>
     <button type="button" class="boton-volver" @onclick='() => Volver()'>Volver</button>
     <button type="button" class="boton-volver" @onclick='() => EnviarVoto()'>Enviar Voto</button>
@@ -56,6 +66,7 @@
     private Guid idVotacion;
     private Guid idVotante;
     private string mensaje = "";
+    private Dictionary<Guid, string> comentariosPorProyecto = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -66,7 +77,7 @@
         {
             var usuario = await contexto.Usuario.Include(u => u.Rol).FirstOrDefaultAsync(u => u.Id == idVotante);
         }
-        
+
     }
     private void Favorito(Guid idProyecto)
     {
@@ -79,16 +90,21 @@
             if (proyectosSeleccionados.Count < 3)
             {
                 proyectosSeleccionados.Add(idProyecto);
+                comentariosPorProyecto[idProyecto] = "";
             }
         }
     }
 
     private async Task EnviarVoto()
     {
-        var votoDto = new EmitirVotoDTO
+        var votoDto = new 
         {
             IdVotante = idVotante,
-            IdsProyectos = proyectosSeleccionados
+            Votos = proyectosSeleccionados.Select(id => new VotoDetalleDTO
+            {
+                IdProyecto = id,
+                Comentario = comentariosPorProyecto.ContainsKey(id) ? comentariosPorProyecto[id] : ""
+            }).ToList()
         };
 
         var respuesta = await Http.PostAsJsonAsync($"api/v1/votaciones/{idVotacion}/votos", votoDto);

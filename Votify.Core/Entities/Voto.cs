@@ -18,4 +18,5 @@ public class Voto
     public Categoria? Categoria { get; set; }
     public Usuario Usuario { get; set; }
     public Votacion Votacion { get; set; }
+    public string? Comentario { get; set; }
 }

@@ -6,9 +6,16 @@ using System.Threading.Tasks;
 
 namespace Votify.Core.DTOs
 {
+    public class VotoDetalleDTO
+    {
+        public Guid IdProyecto { get; set; }
+
+        public string Comentario { get; set; }
+    }
     public class EmitirVotoDTO
     {
         public Guid IdVotante { get; set; }
         public List<Guid> IdsProyectos { get; set; } = new();
+        public List<VotoDetalleDTO> Votos { get; set; }
     }
 }
