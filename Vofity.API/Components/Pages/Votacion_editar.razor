@@ -108,30 +108,14 @@
     {
         try
         {
-            votaciones = await contexto.Votacion.ToListAsync();
-
-            bool franjaUsada = false;
-
-            foreach (var vot in votaciones.Where(v => v.Id != votacion.Id && v.Id_evento == Id_evento))
-            {
-                if (inicioVotacion.CompareTo(vot.FechaInicio)>=0 && inicioVotacion.CompareTo(vot.FechaFin)<=0)
-                {
-                    franjaUsada = true;
-                    break;
-                }
-            }
-            if (finVotacion.CompareTo(inicioVotacion) <= 0)
+            // 1. Validaciones locales (se mantienen igual)
+            if (finVotacion <= inicioVotacion)
             {
                 mensaje2 = "El final de la votación debe ser posterior al inicio";
                 return;
             }
-            if (franjaUsada)
-            {
-                mensaje = "Hay una votación en esta franja de tiempo, no se permiten votaciones concurrentes";
-                return;
-            }
 
-
+            // 2. Crear el DTO con los datos de los inputs
             var dto = new CrearVotacionDTOs
             {
                 Id_evento = Id_evento,
@@ -139,22 +123,26 @@
                 FechaFin = finVotacion,
                 PermiteAutoVoto = permiteAutoVoto == 1
             };
-            var response = await Http.PutAsJsonAsync($"api/Votacion/{votacion.Id}", dto);
+
+            // 3. Llamar a la API con la RUTA CORRECTA (v1 y minúsculas)
+            // Usamos la variable 'id' que viene del parámetro @page
+            var response = await Http.PutAsJsonAsync($"api/v1/votaciones/{id}", dto);
 
             if (response.IsSuccessStatusCode)
             {
-                nav.NavigateTo("/GestionarVotaciones", forceLoad: true);
+                // Si funciona, volvemos a la lista
+                nav.NavigateTo("/GestionarVotaciones");
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
-                mensaje = $"No se pudo editar la votación: {error}";
-                Console.WriteLine(error);
+                // Si falla, leemos el mensaje de error que envía tu controlador
+                var errorContent = await response.Content.ReadAsStringAsync();
+                mensaje = $"Error al guardar: {errorContent}";
             }
         }
         catch (Exception ex)
         {
-            mensaje = $"Error: {ex.Message}";
+            mensaje = $"Error de conexión: {ex.Message}";
         }
     }
     async Task ConfirmarEliminar()
@@ -168,19 +156,11 @@
     }
     async Task EliminarVotacion()
     {
-        if (votacion == null)
-            return;
-
-        var response = await Http.DeleteAsync($"api/Votacion/{votacion.Id}");
+        // Solo necesitas el ID, no un 'dto'
+        var response = await Http.DeleteAsync($"api/v1/votaciones/{id}");
 
         if (response.IsSuccessStatusCode)
-        {
             nav.NavigateTo("/GestionarVotaciones");
-        }
-        else
-        {
-            var error = await response.Content.ReadAsStringAsync();
-            mensaje = $"No se pudo eliminar la votación: {error}";
-        }
+    
     }
 }
