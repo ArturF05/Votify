@@ -34,7 +34,8 @@ namespace Votify.Core.Services
             {
                 Id = Guid.NewGuid(),
                 Nombre = usuario,
-                Password = password
+                Password = password,
+                Id_rol = Guid.Parse("48d34079-ffa9-40bf-8ad4-7c352b481eac")
             };
 
             await _usuarioRepository.CrearUsuarioAsync(nuevoUsuario);
