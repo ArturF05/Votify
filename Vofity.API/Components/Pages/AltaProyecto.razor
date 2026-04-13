@@ -112,31 +112,26 @@
         {
             var response = await Http.GetAsync("api/eventos");
 
-            mensaje = $"Status: {response.StatusCode}";
-
+            
             if (!response.IsSuccessStatusCode)
             {
+                mensaje = "Error al obtener los eventos del servidor.";
+                creado = false;
                 return;
             }
-
-            var json = await response.Content.ReadAsStringAsync();
-            mensaje += $" | JSON: {json}";
 
             var resultado = await response.Content.ReadFromJsonAsync<List<EventoDto>>();
 
             if (resultado != null)
             {
                 eventos = resultado;
-                mensaje += $" | Eventos cargados: {eventos.Count}";
-            }
-            else
-            {
-                mensaje += " | resultado = null";
+                
             }
         }
         catch (Exception ex)
         {
-            mensaje = "Error al cargar eventos: " + ex.Message;
+            mensaje = "Error de conexión al cargar eventos.";
+            creado = false;
         }
     }
 
