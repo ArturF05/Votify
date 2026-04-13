@@ -49,45 +49,68 @@
 
             <div class="campo campo-columna">
                 <label>Fecha de inicio*:</label>
-                <input type="date" @bind="inicio" />
+                <input type="datetime-local" @bind="inicio" />
             </div>
 
             <div class="campo campo-columna">
                 <label>Fecha de cierre*:</label>
-                <input type="date" @bind="fin" />
+                <input type="datetime-local" @bind="fin" />
             </div>
+            <div class="campo">
+                <label>Descripción:</label>
+                <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
+            </div>
+            @for(int index = 0; index<votaciones.Count; index++)
+            {
+                int i = index;
+                <div class="campo campo-columna campo-completo">
+                    <h4>Votación @(i+1)</h4>
+                    <label>Tipo de votación*:</label>
+                    <div class="grupo-botones-votacion">
+                        <button type="button"
+                                class="boton-votacion @(votaciones[i].Tipo == TipoVotacion.Publico ? "activo" : "")"
+                                @onclick='() => SeleccionarTipo(TipoVotacion.Publico, i)'>
+                            Público
+                        </button>
 
-            <div class="campo campo-columna campo-completo">
-                <label>Tipo de votación*:</label>
-                <div class="grupo-botones-votacion">
-                    <button type="button"
-                            class="boton-votacion @(tipoVotacion == TipoVotacion.Publico ? "activo" : "")"
-                            @onclick='() => SeleccionarTipo(TipoVotacion.Publico)'>
-                        Público
-                    </button>
+                        <button type="button"
+                                class="boton-votacion @(votaciones[i].Tipo == TipoVotacion.Jurado ? "activo" : "")"
+                                @onclick='() => SeleccionarTipo(TipoVotacion.Jurado, i)'>
+                            Jurado
+                        </button>
 
-                    <button type="button"
-                            class="boton-votacion @(tipoVotacion == TipoVotacion.Jurado ? "activo" : "")"
-                            @onclick='() => SeleccionarTipo(TipoVotacion.Jurado)'>
-                        Jurado
-                    </button>
-
-                    <button type="button"
-                            class="boton-votacion @(tipoVotacion == TipoVotacion.Mixto ? "activo" : "")"
-                            @onclick='() => SeleccionarTipo(TipoVotacion.Mixto)'>
-                        Mixto
-                    </button>
+                        <button type="button"
+                                class="boton-votacion @(votaciones[i].Tipo == TipoVotacion.Mixto ? "activo" : "")"
+                                @onclick='() => SeleccionarTipo(TipoVotacion.Mixto, i)'>
+                            Mixto
+                        </button>
+                    </div>
                 </div>
+                <div class="campo">
+                    <label>Permitir Autovoto*:</label>
+                    <select @bind="votaciones[i].PermiteAutoVoto">
+                        <option value="1">Sí</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+                <div class="campo campo-columna">
+                    <label>Inicio de la votación*:</label>
+                    <input type="datetime-local" @bind-value="votaciones[i].Inicio" @bind-value:event="onchange" />
+                </div>
+                <div class="campo campo-columna">
+                    <label>Fin de la votación*:</label>
+                    <input type="datetime-local" @bind-value="votaciones[i].Fin" @bind-value:event="onchange" />
+                </div>
+                <div class="grupo-botones-votacion">
+                    <button type="button" class="boton-votacion" @onclick='() => quitarVotacion(i)' disabled="@(votaciones.Count<=1)">Quitar votación</button>
+                </div>
+            }
+            <div class="grupo-botones-votacion">
+                <button type="button" class="boton-votacion" @onclick="otraVotacion" disabled="@(votaciones.Count >= 3)">Añadir votación</button>
             </div>
 
-        <div class="campo campo-derecha">
-            <label>Fecha de cierre*:</label>
-            <input type="date" @bind="fin" />
-        </div>
-        <div class="campo">
-            <label>Descripción:</label>
-            <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
-        </div>
+            
+
     </div>
 
         <div>
@@ -110,21 +133,23 @@
            
 
 @code {
-    DateOnly inicio = DateOnly.FromDateTime(DateTime.Today);
-    DateOnly fin = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+    DateTime inicio = DateTime.Now;
+    DateTime fin = DateTime.Now.AddDays(1);
+    List<VotacionForm> votaciones = new();
     private string nombre = "";
     private Guid Id_categoria = new Guid("0d4e9ac5-56ee-4a5c-817e-ee78bf8a8ed9");
     private string descripcion = "";
     private string mensaje = "";
     private string mensaje2 = "";
     private string tipo = "Hackathon";
-    private TipoVotacion tipoVotacion = TipoVotacion.Publico;
     List<Categoria> categorias = new();
     List<Votify.Core.Entities.Evento> eventos = new();
+
 
     protected override async Task OnInitializedAsync()
     {
         categorias = await contexto.Categoria.ToListAsync();
+        otraVotacion();
     }
 
     void Cancelar()
@@ -132,9 +157,23 @@
         nav.NavigateTo("/Evento");
     }
 
-    void SeleccionarTipo(TipoVotacion tipo)
+    void SeleccionarTipo(TipoVotacion tipo, int numeroVotacion)
     {
-        tipoVotacion = tipo;
+        votaciones[numeroVotacion].Tipo = tipo;
+    }
+    private void otraVotacion()
+    {
+        votaciones.Add(new VotacionForm
+        {
+            Tipo = TipoVotacion.Publico,
+            Inicio = DateTime.Now,
+            Fin = DateTime.Now.AddDays(1),
+            PermiteAutoVoto = 1
+        });
+    }
+    private void quitarVotacion(int numeroVotacion)
+    {
+        votaciones.RemoveAt(numeroVotacion);
     }
 
     private async Task GuardarEvento()
@@ -178,27 +217,73 @@
                 mensaje2 = "La fecha del fin del evento debe ser posterior a la fecha de inicio";
                 return;
             }
-
+            bool franjaUsada = false;
+            bool tipoUsado = false;
+            for (int i = 0; i < votaciones.Count; i++)
+            {
+                for (int j = 0; j<votaciones.Count; j++)
+                {
+                    if (j != i)
+                    {
+                        franjaUsada = (votaciones[i].Inicio < votaciones[j].Fin && votaciones[i].Fin > votaciones[j].Inicio) || franjaUsada;
+                        tipoUsado = (votaciones[i].Tipo == votaciones[j].Tipo) || tipoUsado;
+                    }
+                }
+                if (votaciones[i].Inicio.CompareTo(inicio) < 0 || votaciones[i].Fin.CompareTo(fin) > 0)
+                {
+                    mensaje = "La votación " +(i+1)+ " debe de realizarse durante el evento";
+                    return;
+                }
+                if (votaciones[i].Fin.CompareTo(votaciones[i].Inicio) <= 0)
+                {
+                    mensaje2 = "El final de la votación "+ (i+1) + " debe ser posterior a su inicio";
+                    return;
+                }
+                if (franjaUsada)
+                {
+                    mensaje = "No se permiten votaciones concurrentes en un mismo evento";
+                    return;
+                }
+                if (tipoUsado)
+                {
+                    mensaje = "Sólo se permite una votación por tipo en cada evento";
+                    return;
+                }
+            }
+            List<CrearVotacionDTOs> crearVotacionDTOs = new();
+            for (int i = 0; i < votaciones.Count; i++)
+            {
+                var dtoVotacion = new CrearVotacionDTOs
+                {
+                    FechaInicio = votaciones[i].Inicio.ToUniversalTime(),
+                    FechaFin = votaciones[i].Fin.ToUniversalTime(),
+                    PermiteAutoVoto = votaciones[i].PermiteAutoVoto == 1,
+                    TipoVotacion = votaciones[i].Tipo
+                };
+                crearVotacionDTOs.Add(dtoVotacion);
+            }
             var dto = new CrearEventoDTOs
             {
                 Nombre = nombre,
                 Id_categoria = Id_categoria,
-                FechaInicio = inicio,
+                FechaInicio = inicio.ToUniversalTime(),
                 Descripcion = descripcion,
-                FechaFin = fin,
+                FechaFin = fin.ToUniversalTime(),
                 Tipo = tipo,
-                TipoVotacion = tipoVotacion
+                dTOsVotacion = crearVotacionDTOs
             };
 
-            var response = await Http.PostAsJsonAsync("api/eventos", dto);
+            var responseEvento = await Http.PostAsJsonAsync("api/eventos", dto);
+            var responseVotaciones = responseEvento;
 
-            if (response.IsSuccessStatusCode)
+            if (responseEvento.IsSuccessStatusCode)
             {
                 nav.NavigateTo("/Evento");
+
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
+                var error = await responseEvento.Content.ReadAsStringAsync();
                 mensaje = $"No se pudo crear el evento: {error}";
             }
         }
@@ -206,5 +291,12 @@
         {
             mensaje = $"Error: {ex.Message}";
         }
+    }
+    class VotacionForm
+    {
+        public TipoVotacion Tipo { get; set; }
+        public DateTime Inicio { get; set; }
+        public DateTime Fin { get; set; }
+        public int PermiteAutoVoto { get; set; }
     }
 }

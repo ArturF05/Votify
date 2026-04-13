@@ -43,7 +43,7 @@
 
             <div class="campo campo-columna">
                 <label>Fecha de inicio*:</label>
-                <input type="date" @bind="inicio" />
+                <input type="datetime-local" @bind="inicio" />
             </div>
 
             <div class="campo campo-columna campo-descripcion">
@@ -53,7 +53,7 @@
 
             <div class="campo campo-columna">
                 <label>Fecha de cierre*:</label>
-                <input type="date" @bind="fin" />
+                <input type="datetime-local" @bind="fin" />
             </div>
         </div>
 
@@ -77,8 +77,8 @@
 </div>
 
 @code {
-    DateOnly inicio = DateOnly.FromDateTime(DateTime.Today);
-    DateOnly fin = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+    DateTime inicio = DateTime.Today;
+    DateTime fin = DateTime.Today.AddDays(1);
 
     private EventoEntidad? evento;
     private string nombre = "";

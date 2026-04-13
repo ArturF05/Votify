@@ -10,8 +10,8 @@ namespace Votify.Core.Interfaces
 {
     public interface IEvento
     {
-        Task CrearEvento(string titulo, Guid categoriaId, DateOnly fecha_inicio, string descripcion, DateOnly fecha_cierre,string tipo,TipoVotacion tipoVotacion);
-        Task EditarEvento(Guid eventoId, string titulo, Guid categoriaId, DateOnly fechaInicio, string descripcion, DateOnly fechaFin);
+        Task<Evento> CrearEvento(string titulo, Guid categoriaId, DateTime fecha_inicio, string descripcion, DateTime fecha_cierre,string tipo,TipoVotacion tipoVotacion);
+        Task EditarEvento(Guid eventoId, string titulo, Guid categoriaId, DateTime fechaInicio, string descripcion, DateTime fechaFin);
         Task EliminarEvento(Guid eventoId);
         Task<List<Evento>?> BuscarEvento(string nombre, Guid Id_Categoria);
         Task Archivo(Guid eventoId, bool archivar);

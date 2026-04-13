@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 
 namespace Votify.Core.Entities;
 
-public abstract class Evento
+public class Evento
 {
     [Key]
     public Guid Id { get; set; }
     [Required]
     public string Nombre { get; set; }
     public string Descripcion { get; set; }
-    public DateOnly FechaInicio {  get; set; }
-    public DateOnly FechaFin {  get; set; }
+    public DateTime FechaInicio {  get; set; }
+    public DateTime FechaFin {  get; set; }
     [ForeignKey(nameof(Categoria))]
     public Guid Id_categoria { get; set; }
     [Required]
@@ -25,8 +25,6 @@ public abstract class Evento
     public ICollection<Proyecto> Proyectos { get; set; }
     public Votacion Votacion { get; set; }
     public bool Archivado {  get; set; }
-
-    public TipoVotacion TipoVotacion { get; set; } = TipoVotacion.Publico;
 
     public ICollection<EventoUsuarioRol> EventoUsuarioRoles { get; set; }
 }

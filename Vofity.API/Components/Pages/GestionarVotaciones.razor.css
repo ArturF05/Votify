@@ -1,91 +1,157 @@
-﻿.titulo {
-    font-size: 28px;
+﻿.titulo-y-finalizadas {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
+
+.titulo {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.boton-finalizadas {
+    background: #ffffff;
+    border: 1px solid #f28c28;
+    color: #f28c28;
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+    .boton-finalizadas:hover {
+        background: #f28c28;
+        color: white;
+    }
 
 .barra-busqueda {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    align-items:center;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    border: 1px solid #f1ebe3;
+    margin-bottom: 1.5rem;
 }
 
+    .barra-busqueda label {
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 0.95rem;
+    }
 
+    .barra-busqueda select {
+        background-color: #f3f4f6;
+        border: 2px solid transparent;
+        border-radius: 12px;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
 
-.barra-busqueda select {
-    height: 30px;
-    border: 1px solid #DADADA;
-    border-radius: 6px;
-    padding: 5px;
-}
-
+        .barra-busqueda select:hover,
+        .barra-busqueda select:focus {
+            border-color: #f28c28;
+            background-color: white;
+            outline: none;
+        }
 
 .tabla-votaciones {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 25px;
-    table-layout: fixed;
+    background: white;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    border: 1px solid #f1ebe3;
 }
 
-.tabla-votaciones th {
-    text-align: left;
-    padding: 12px;
-    border-bottom: 2px solid #DADADA;
-}
+    .tabla-votaciones thead {
+        background: #fffaf5;
+        color: #374151;
+    }
 
-.tabla-votaciones td {
-    padding: 12px;
-    border-bottom: 1px solid #ECECEC;
-}
+    .tabla-votaciones th,
+    .tabla-votaciones td {
+        padding: 1rem;
+        text-align: left;
+        font-size: 0.95rem;
+    }
+
+    .tabla-votaciones tbody tr {
+        border-bottom: 1px solid #f3f4f6;
+        transition: background 0.2s ease;
+    }
+
+        .tabla-votaciones tbody tr:hover {
+            background: #fff7f0;
+        }
 
 .boton-editar {
-    background-color: white;
-    border: 1px solid #F28C2F;
-    color: #F28C2F;
-    padding: 5px 12px;
-    border-radius: 5px;
+    background: #ffffff;
+    border: 1px solid #f28c28;
+    color: #f28c28;
+    padding: 0.5rem 0.9rem;
+    border-radius: 10px;
     cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
-.boton-editar:hover {
-    background-color: #F28C2F;
-    color: white;
+    .boton-editar:hover {
+        background: #f28c28;
+        color: white;
+    }
+
+.noHayResult {
+    display: block;
+    margin-top: 1rem;
+    color: #6b7280;
+    font-weight: 500;
 }
 
 .botonLink {
-    background-color: #F28C2F;
+    display: inline-block;
+    margin-top: 1.5rem;
+    background: linear-gradient(135deg, #F5A623 0%, #FF8C00 100%);
     color: white;
-    padding: 6px 14px;
-    border-radius: 5px;
+    padding: 0.9rem 1.3rem;
+    border-radius: 12px;
     text-decoration: none;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px -3px rgba(245, 166, 35, 0.45);
 }
 
-.botonLink:hover {
-    background-color: #e07e22;
-}
-.boton-finalizadas {
-    background-color: #F28C2F;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 6px;
-    font-size: 13px;
-    cursor: pointer;
-    margin-left: auto;
-}
+    .botonLink:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px -5px rgba(245, 166, 35, 0.5);
+    }
 
-.boton-finalizadas:hover {
-        background-color: #e07e22;
-}
-.titulo-y-finalizadas {
-    display: flex;
-    margin-bottom: 20px;
-    width: 100%;
-    align-items:center;
-}
-.finalizadas-img {
-    width: 20px;
-    height: auto;
-}
-.noHayResult{
-    margin-bottom: 20px;
+@media (max-width: 900px) {
+    .barra-busqueda {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tabla-votaciones th,
+    .tabla-votaciones td {
+        padding: 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .titulo-y-finalizadas {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

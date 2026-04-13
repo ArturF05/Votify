@@ -1,119 +1,99 @@
-﻿..form-evento {
-    background-color: white;
-    border: 1px solid #DADADA;
-    border-radius: 8px;
-    padding: 20px;
+﻿.crear-votacion-page {
+    width: 100%;
+    padding: 2rem;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #1f2937;
 }
 
-.form-evento h3 {
-    margin-top: 0;
+.form-evento {
+    background: #ffffff;
+    border-radius: 1.25rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    border: 1px solid #f1ebe3;
+    max-width: 1100px;
 }
 
-.form-grid {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap: 25px 60px;
-}
-
-.campo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-    .campo textarea {
-        width: 100%;
-        height: 90px;
-        flex: 1;
-    }
-
-.campo-derecha {
-    justify-content: flex-end;
-}
-
-.columna-derecha {
-    text-align: right;
+h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #1a1a1a;
+    font-weight: 700;
 }
 
 .linea {
     height: 3px;
-    background-color: #F28C2F;
+    background: linear-gradient(90deg, #F5A623 0%, #FF8C00 100%);
     border: none;
-    margin-bottom: 20px;
+    border-radius: 999px;
+    margin: 1.4rem 0 1.8rem;
 }
 
-.campo input,
-.campo select {
-    height:35px;
-    margin-left: 10px;
-    border: 1px solid #DADADA;
-    border-radius: 6px;
-    padding: 6px;
+.campo {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
+
+    .campo label {
+        font-weight: 600;
+        font-size: 0.98rem;
+        color: #1f2937;
+    }
+
+    .campo input,
+    .campo select{
+        max-width: 100%;
+        background-color: #f3f4f6;
+        border: 2px solid transparent;
+        border-radius: 18px;
+        padding: 0.95rem 1rem;
+        font-size: 1rem;
+        color: #1f2937;
+        outline: none;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+        vertical-align:middle;
+    }
+
+        .campo input:hover,
+        .campo input:focus,
+        .campo select:hover,
+        .campo select:focus,
+        .campo textarea:hover,
+        .campo textarea:focus {
+            border-color: #f28c28;
+            background-color: #ffffff;
+        }
+
 .labels {
     display: flex;
-    gap: 40px;
-    margin-left:40px;
-}
-textarea {
-    width: 100%;
-    height: 90px;
-    resize: vertical;
-}
-
-.botones {
-    display: flex;
     justify-content: space-between;
-    margin-top: 20px;
-}
-
-.boton-principal {
-    background-color: #F28C2F;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-    .boton-principal:hover {
-        background-color: #E85A2A;
-    }
-
-.boton-secundario {
-    background-color: white;
-    border: 1px solid #DADADA;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-    .boton-secundario:hover {
-        background-color: #f5f5f5;
-        border-color: #F28C2F;
-    }
-
-.campo-tipo-votacion {
-    align-items: center;
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
 }
 
 .grupo-botones-votacion {
     display: flex;
     gap: 12px;
-    margin-left: 10px;
     flex-wrap: wrap;
+    margin-top: 0.5rem;
+    margin-bottom: 20px;
 }
 
 .boton-votacion {
     background-color: #FFF7F0;
     border: 1px solid #F2C9A5;
     color: #7A4B21;
-    padding: 10px 18px;
+    padding: 10px 20px;
     border-radius: 999px;
     cursor: pointer;
     font-weight: 600;
-    min-width: 95px;
+    min-width: 110px;
     transition: all 0.2s ease;
 }
 
@@ -133,3 +113,74 @@ textarea {
     .boton-votacion:active {
         transform: scale(0.97);
     }
+
+.errores {
+    margin-top: 1rem;
+}
+
+.botones {
+    margin-top: 1.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.boton-principal {
+    background: linear-gradient(135deg, #F5A623 0%, #FF8C00 100%);
+    color: white;
+    border: none;
+    padding: 0.9rem 1.35rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px -3px rgba(245, 166, 35, 0.45);
+}
+
+    .boton-principal:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px -5px rgba(245, 166, 35, 0.5);
+    }
+
+.boton-secundario {
+    background: #ffffff;
+    border: 1px solid #f28c28;
+    color: #f28c28;
+    padding: 0.9rem 1.2rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+    .boton-secundario:hover {
+        background: #f28c28;
+        color: white;
+    }
+
+@media (max-width: 900px) {
+    .crear-votacion-page {
+        padding: 1.25rem;
+    }
+
+    .form-evento {
+        padding: 1.4rem;
+    }
+
+    .botones {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .grupo-botones-votacion {
+        flex-direction: column;
+    }
+
+        .grupo-botones-votacion button {
+            width: 100%;
+        }
+}

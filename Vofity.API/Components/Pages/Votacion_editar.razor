@@ -19,7 +19,7 @@
         <label>Evento de la votación*: </label>
         <select @bind="Id_evento" disabled>
             <option value="@Guid.Empty"></option>
-            @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateOnly.FromDateTime(DateTime.UtcNow))>=0))
+            @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateTime.Now)>=0))
             {
                 <option value="@evento.Id">@evento.Nombre</option>
             }
@@ -30,6 +30,26 @@
         <label>Fin del evento: @finEvento</label>
     </div>
     <hr>
+    <label>Tipo de votación*:</label>
+    <div class="grupo-botones-votacion">
+        <button type="button"
+                class="boton-votacion @(tipoVotacion == TipoVotacion.Publico ? "activo" : "")"
+                @onclick='() => SeleccionarTipo(TipoVotacion.Publico)'>
+            Público
+        </button>
+
+        <button type="button"
+                class="boton-votacion @(tipoVotacion == TipoVotacion.Jurado ? "activo" : "")"
+                @onclick='() => SeleccionarTipo(TipoVotacion.Jurado)'>
+            Jurado
+        </button>
+
+        <button type="button"
+                class="boton-votacion @(tipoVotacion == TipoVotacion.Mixto ? "activo" : "")"
+                @onclick='() => SeleccionarTipo(TipoVotacion.Mixto)'>
+            Mixto
+        </button>
+    </div>
     <div class="campo">
         <label>Permitir Autovoto*:</label>
         <select @bind-value="permiteAutoVoto" @bind-value:event="onchange">
@@ -55,7 +75,7 @@
     <div class="botones">
         <div>
             <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar</button>
-            <button type="button" class="boton-secundario" @onclick="ConfirmarEliminar">Eliminar Votación</button>
+            <button type="button" class="boton-secundario boton-peligro" @onclick="ConfirmarEliminar">Eliminar Votación</button>
         </div>
         <div>
             <button type="button" class="boton-principal" @onclick="GuardarVotacion">Guardar Cambios</button>
@@ -71,9 +91,10 @@
     private int permiteAutoVoto = 1;
     private DateTime inicioVotacion = DateTime.Now;
     private DateTime finVotacion = DateTime.Now.AddHours(1);
-    private DateOnly inicioEvento = DateOnly.FromDateTime(DateTime.Now);
-    private DateOnly finEvento = DateOnly.FromDateTime(DateTime.Now).AddDays(1);
+    private DateTime inicioEvento = DateTime.Now;
+    private DateTime finEvento = DateTime.Now.AddDays(1);
     private Guid Id_evento = Guid.Empty;
+    private TipoVotacion tipoVotacion = TipoVotacion.Publico;
     private string mensaje = "";
     private string mensaje2 = "";
     List<Votify.Core.Entities.Evento> eventos = new();
@@ -91,14 +112,20 @@
         Id_evento = votacion.Id_evento;
         inicioVotacion = votacion.FechaInicio.ToLocalTime();
         finVotacion = votacion.FechaFin.ToLocalTime();
+        tipoVotacion = votacion.TipoVotacion;
         if (votacion.PermiteAutoVoto) permiteAutoVoto = 1;
         else permiteAutoVoto = 0;
         evento = await contexto.Evento.Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == Id_evento);
         if (evento == null) return;
         inicioEvento = evento.FechaInicio;
         finEvento = evento.FechaFin;
+
     }
 
+    void SeleccionarTipo(TipoVotacion tipo)
+    {
+        tipoVotacion = tipo;
+    }
     void Cancelar()
     {
         nav.NavigateTo("/GestionarVotaciones");
@@ -111,6 +138,7 @@
             votaciones = await contexto.Votacion.ToListAsync();
 
             bool franjaUsada = false;
+            bool tipoUsado = false;
 
             foreach (var vot in votaciones.Where(v => v.Id != votacion.Id && v.Id_evento == Id_evento))
             {
@@ -118,6 +146,11 @@
                 {
                     franjaUsada = true;
                     break;
+                    if (tipoVotacion == vot.TipoVotacion)
+                    {
+                        tipoUsado = true;
+                        break;
+                    }
                 }
             }
             if (finVotacion.CompareTo(inicioVotacion) <= 0)
@@ -130,16 +163,21 @@
                 mensaje = "Hay una votación en esta franja de tiempo, no se permiten votaciones concurrentes";
                 return;
             }
-
+            if (tipoUsado)
+            {
+                mensaje = "Ya hay una votación de este tipo registrada para este evento";
+                return;
+            }
 
             var dto = new CrearVotacionDTOs
             {
                 Id_evento = Id_evento,
                 FechaInicio = inicioVotacion,
                 FechaFin = finVotacion,
-                PermiteAutoVoto = permiteAutoVoto == 1
+                PermiteAutoVoto = permiteAutoVoto == 1,
+                TipoVotacion = tipoVotacion
             };
-            var response = await Http.PutAsJsonAsync($"api/Votacion/{votacion.Id}", dto);
+            var response = await Http.PutAsJsonAsync($"api/v1/votaciones/{votacion.Id}", dto);
 
             if (response.IsSuccessStatusCode)
             {

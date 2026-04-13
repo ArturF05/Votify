@@ -34,7 +34,7 @@ namespace Votify.Infrastructure.Repositorios
             votacionesEncontradas.Clear();
             foreach (var vot in votaciones)
             {
-                if (tipoVotacion!=null && (tipoVotacion == -1 || vot.Evento.TipoVotacion == (TipoVotacion)tipoVotacion) && Id_evento != null && (Id_evento == Guid.Empty || vot.Evento.Id == Id_evento) && (permiteAutoVoto == -1 || vot.PermiteAutoVoto == (permiteAutoVoto == 1)))
+                if (tipoVotacion!=null && (tipoVotacion == -1 || vot.TipoVotacion == (TipoVotacion)tipoVotacion) && Id_evento != null && (Id_evento == Guid.Empty || vot.Evento.Id == Id_evento) && (permiteAutoVoto == -1 || vot.PermiteAutoVoto == (permiteAutoVoto == 1)))
                 {
                     votacionesEncontradas.Add(vot);
                 }

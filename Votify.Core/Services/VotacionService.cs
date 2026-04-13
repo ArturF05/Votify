@@ -42,8 +42,8 @@ namespace Votify.Core.Services
             if (votacion == null)
                 throw new Exception("La votación no existe.");
 
-            var hoy = DateOnly.FromDateTime(DateTime.Now);
-            if (hoy < DateOnly.FromDateTime(votacion.FechaInicio) || hoy > DateOnly.FromDateTime(votacion.FechaFin))
+            var hoy = DateTime.Now;
+            if (hoy < votacion.FechaInicio || hoy > votacion.FechaFin)
                 throw new Exception("La votación no está activa.");
 
             bool yaVoto = await votoRepository.UsuarioYaVotoAsync(idVotacion, dto.IdVotante);
@@ -78,7 +78,7 @@ namespace Votify.Core.Services
             return await votacionRepository.BuscarPorNombreAsync(Id_evento, tipoVotacion, permiteAutoVoto, verFinalizadas);
         }
         
-            public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto)
+            public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion)
             {
                 if (Id_evento == Guid.Empty)
                     throw new Exception("El evento es obligatorio");
@@ -93,11 +93,12 @@ namespace Votify.Core.Services
                     FechaInicio = inicioVotacion.ToUniversalTime(),
                     FechaFin = finVotacion.ToUniversalTime(),
                     PermiteAutoVoto = permiteAutoVoto,
+                    TipoVotacion = tipoVotacion
                 };
 
                 await votacionRepository.CrearVotacionAsync(nuevaVotacion);
             }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto)
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion)
         {
             var votacion = await votacionRepository.ObtenerPorIdAsync(Id);
             if (votacion == null)
@@ -110,7 +111,7 @@ namespace Votify.Core.Services
             votacion.FechaInicio = inicioVotacion.ToUniversalTime();
             votacion.FechaFin = finVotacion.ToUniversalTime();
             votacion.PermiteAutoVoto = permiteAutoVoto;
-
+            votacion.TipoVotacion = tipoVotacion;
 
             await votacionRepository.EditarVotacionAsync(votacion);
         }

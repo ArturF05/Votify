@@ -73,7 +73,7 @@
                 {
                     <tr>
                         <td>@vot.Evento?.Nombre</td>
-                        <td>@vot.Evento?.TipoVotacion</td>
+                        <td>@vot.TipoVotacion</td>
                         <td>@vot.PermiteAutoVoto</td>
                         <td>@vot.FechaInicio.ToLocalTime()</td>
                         <td>@vot.FechaFin.ToLocalTime()</td>
@@ -126,7 +126,7 @@
         }
         else
         {
-            var url = $"api/Votacion/buscar?id_evento={Id_evento}&tipoVotacion={tipoVotacion}&permiteAutoVoto={permiteAutoVoto}&verFinalizadas={verFinalizadas}";
+            var url = $"api/v1/votaciones/buscar?id_evento={Id_evento}&tipoVotacion={tipoVotacion}&permiteAutoVoto={permiteAutoVoto}&verFinalizadas={verFinalizadas}";
             try
             {
 

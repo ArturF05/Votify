@@ -10,6 +10,7 @@ namespace Votify.Core.Entities;
 public class Votacion
 {
     public Guid Id { get; set; }
+    public TipoVotacion TipoVotacion { get; set;}
     public Boolean PermiteAutoVoto { get; set; }
     public Guid Id_evento { get; set; }
     public DateTime FechaInicio { get; set; }

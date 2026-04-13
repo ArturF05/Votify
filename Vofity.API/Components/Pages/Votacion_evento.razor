@@ -170,7 +170,7 @@
             mensaje = "No hay una votación activa para este evento, espera a que haya una para poder votar.";
             return;
         }
-        var tipoEvento = evento.TipoVotacion;
+        var tipoEvento = votacion.TipoVotacion;
         var rolUsuario = usuario.Rol.Nombre;
 
         if (tipoEvento == TipoVotacion.Publico)

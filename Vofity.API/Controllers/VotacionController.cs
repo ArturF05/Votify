@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Votify.API.DTOs;
 using Votify.Core.DTOs;
 using Votify.Core.Interfaces;
 using Votify.Core.Services;
+using Votify.Infrastructure.Data;
 
 namespace Votify.API.Controllers
 {
@@ -11,10 +13,13 @@ namespace Votify.API.Controllers
     public class VotacionController : ControllerBase
     {
         private readonly IVotacion votacionService;
+        private readonly AppDbContext context;
 
-        public VotacionController(IVotacion votacionService)
+
+        public VotacionController(IVotacion votacionService, AppDbContext context)
         {
             this.votacionService = votacionService;
+            this.context = context;
         }
 
         [HttpPost("{idVotacion}/votos")]
@@ -55,19 +60,22 @@ namespace Votify.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CrearVotacion([FromBody] CrearVotacionDTOs dto)
         {
+            using var transaccion = await context.Database.BeginTransactionAsync();
             try
             {
                 await votacionService.CrearVotacion(
                     dto.Id_evento,
                     dto.FechaInicio,
                     dto.FechaFin,
-                    dto.PermiteAutoVoto
+                    dto.PermiteAutoVoto,
+                    dto.TipoVotacion
                 );
-
+                await transaccion.CommitAsync();
                 return Ok(new { mensaje = "Votación creada correctamente" });
             }
             catch (Exception ex)
             {
+                await transaccion.RollbackAsync();
                 return BadRequest(new
                 {
                     mensaje = ex.Message,
@@ -87,7 +95,8 @@ namespace Votify.API.Controllers
                     dto.Id_evento,
                     dto.FechaInicio,
                     dto.FechaFin,
-                    dto.PermiteAutoVoto
+                    dto.PermiteAutoVoto,
+                    dto.TipoVotacion
                 );
 
                 return Ok(new { mensaje = "Evento editado correctamente" });

@@ -204,6 +204,26 @@
         background: #f28c28;
         color: white;
     }
+    .boton-votacion:disabled,
+    .boton-secundario:disabled,
+    .boton-principal:disabled {
+        background-color: #e5e7eb;
+        border-color: #d1d5db;
+        color: #9ca3af;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
+
+        .boton-votacion:disabled:hover,
+        .boton-secundario:disabled:hover,
+        .boton-principal:disabled:hover {
+            background-color: #e5e7eb;
+            border-color: #d1d5db;
+            color: #9ca3af;
+            transform: none;
+            box-shadow: none;
+        }
 
 @media (max-width: 900px) {
     .crear-evento-page {

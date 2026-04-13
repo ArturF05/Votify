@@ -84,7 +84,7 @@ namespace Votify.Core.Tests.Participantes
                 }
             );
 
-            var hoy = DateOnly.FromDateTime(DateTime.Now);
+            var hoy = DateTime.Now;
             var categoriaId = Guid.NewGuid();
 
             context.Categoria.Add(new Categoria
@@ -302,16 +302,15 @@ namespace Votify.Core.Tests.Participantes
             }
 
             var evento = await context.Evento.FirstOrDefaultAsync(e => e.Id == idEvento);
+            var votacion = await context.Votacion.Include(v => v.Id_evento).FirstOrDefaultAsync(v => v.Id_evento == idEvento);
 
             if (evento == null)
             {
                 return false;
             }
 
-            var tipoEvento = evento.TipoVotacion;
             var rolUsuario = usuario.Rol?.Nombre;
-
-            if (tipoEvento == TipoVotacion.Publico)
+            if (votacion.TipoVotacion == TipoVotacion.Publico)
             {
                 if (rolUsuario != "Publico")
                 {
@@ -319,7 +318,7 @@ namespace Votify.Core.Tests.Participantes
                 }
             }
 
-            if (tipoEvento == TipoVotacion.Jurado)
+            if (votacion.TipoVotacion == TipoVotacion.Jurado)
             {
                 var autorizacion = await context.EventoUsuarioRol.AnyAsync(eur =>
                     eur.EventoId == idEvento &&

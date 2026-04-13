@@ -22,10 +22,11 @@ namespace Votify.Infrastructure.Repositorios
         {
             this.contexto = contexto;
         }
-        public async Task CrearEventoAsync(Evento evento)
+        public async Task<Evento> CrearEventoAsync(Evento evento)
         {
             await contexto.Evento.AddAsync(evento);
             await contexto.SaveChangesAsync();
+            return evento;
         }
         public async Task<List<Evento>?> BuscarPorNombreAsync(string nombre, Guid Id_Categoria)
         {
@@ -33,7 +34,7 @@ namespace Votify.Infrastructure.Repositorios
             eventosEncontrados.Clear();
             foreach (var eve in eventos)
             {
-                if (eve.Nombre.ToLower().Contains(nombre.ToLower()) && (Id_Categoria == Guid.Empty || eve.Categoria.Id == Id_Categoria))
+                if ((string.IsNullOrEmpty(nombre) || eve.Nombre.ToLower().Contains(nombre.ToLower())) && (Id_Categoria == Guid.Empty || eve.Categoria.Id == Id_Categoria))
                 {
                     eventosEncontrados.Add(eve);
                 }

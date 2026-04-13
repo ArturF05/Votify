@@ -1,135 +1,213 @@
-﻿..form-evento {
-    background-color: white;
-    border: 1px solid #DADADA;
-    border-radius: 8px;
-    padding: 20px;
-}
+﻿.form-evento {
+    background: #ffffff;
+    border-radius: 1.25rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    border: 1px solid #f1ebe3;
 
-.form-evento h3 {
-    margin-top: 0;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap: 25px 60px;
-}
-
-.campo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-    .campo textarea {
-        width: 100%;
-        height: 90px;
-        flex: 1;
+    .form-evento h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #1a1a1a;
+        font-weight: 700;
     }
 
-.campo-derecha {
-    justify-content: flex-end;
-}
-
-.columna-derecha {
-    text-align: right;
-}
-
-.linea {
-    height: 3px;
-    background-color: #F28C2F;
-    border: none;
-    margin-bottom: 20px;
-}
-
-.campo input,
-.campo select {
-    height:35px;
-    margin-left: 10px;
-    border: 1px solid #DADADA;
-    border-radius: 6px;
-    padding: 6px;
-}
-.labels {
-    display: flex;
-    gap: 40px;
-    margin-left:40px;
-}
-textarea {
-    width: 100%;
-    height: 90px;
-    resize: vertical;
-}
-
-.botones {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-}
-
-.boton-principal {
-    background-color: #F28C2F;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-    .boton-principal:hover {
-        background-color: #E85A2A;
+    .linea {
+        height: 3px;
+        background: linear-gradient(90deg, #F5A623 0%, #FF8C00 100%);
+        border: none;
+        border-radius: 999px;
+        margin: 1.4rem 0 1.8rem;
     }
 
-.boton-secundario {
-    background-color: white;
-    border: 1px solid #DADADA;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-    .boton-secundario:hover {
-        background-color: #f5f5f5;
-        border-color: #F28C2F;
+    .campo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
     }
 
-.campo-tipo-votacion {
-    align-items: center;
-}
 
-.grupo-botones-votacion {
-    display: flex;
-    gap: 12px;
-    margin-left: 10px;
-    flex-wrap: wrap;
-}
 
-.boton-votacion {
-    background-color: #FFF7F0;
-    border: 1px solid #F2C9A5;
-    color: #7A4B21;
-    padding: 10px 18px;
-    border-radius: 999px;
-    cursor: pointer;
-    font-weight: 600;
-    min-width: 95px;
-    transition: all 0.2s ease;
-}
+        .campo input,
+        .campo select {
+            max-width: 100%;
+            background-color: #f3f4f6;
+            border: 2px solid transparent;
+            border-radius: 18px;
+            padding: 0.95rem 1rem;
+            font-size: 1rem;
+            color: #1f2937;
+            outline: none;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
 
-    .boton-votacion:hover {
-        background-color: #FFE8D1;
-        border-color: #F28C2F;
-        color: #C96A1B;
+            .campo input:hover,
+            .campo input:focus,
+            .campo select:hover,
+            .campo select:focus,
+            .campo textarea:hover,
+            .campo textarea:focus {
+                border-color: #f28c28;
+                background-color: #ffffff;
+            }
+
+            .campo input::placeholder {
+                color: #9ca3af;
+            }
+
+    .labels {
+        display: flex;
+        gap: 40px;
+        margin-left: 40px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
     }
 
-    .boton-votacion.activo {
-        background-color: #F28C2F;
+    .botones {
+        margin-top: 1.8rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .boton-principal {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #F5A623 0%, #FF8C00 100%);
         color: white;
-        border-color: #F28C2F;
-        box-shadow: 0 2px 6px rgba(242, 140, 47, 0.25);
+        border: none;
+        padding: 0.9rem 1.35rem;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 15px -3px rgba(245, 166, 35, 0.45);
     }
 
-    .boton-votacion:active {
-        transform: scale(0.97);
+        .boton-principal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px -5px rgba(245, 166, 35, 0.5);
+        }
+
+    .boton-secundario {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        border: 1px solid #f28c28;
+        color: #f28c28;
+        padding: 0.9rem 1.2rem;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+        .boton-secundario:hover {
+            background: #f28c28;
+            color: white;
+        }
+
+    .boton-peligro {
+        border-color: #ef4444;
+        color: #ef4444;
+    }
+
+        .boton-peligro:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+    .grupo-botones-votacion {
+        display: flex;
+        gap: 12px;
+        margin: 10px 0 15px 10px;
+        flex-wrap: wrap;
+    }
+
+    .boton-votacion {
+        background-color: #FFF7F0;
+        border: 1px solid #F2C9A5;
+        color: #7A4B21;
+        padding: 10px 18px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 600;
+        min-width: 95px;
+        transition: all 0.2s ease;
+    }
+
+        .boton-votacion:hover {
+            background-color: #FFE8D1;
+            border-color: #F28C2F;
+            color: #C96A1B;
+        }
+
+        .boton-votacion.activo {
+            background-color: #F28C2F;
+            color: white;
+            border-color: #F28C2F;
+            box-shadow: 0 2px 6px rgba(242, 140, 47, 0.25);
+        }
+
+        .boton-votacion:active {
+            transform: scale(0.97);
+        }
+
+    .errores {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .campo select:disabled {
+        background-color: #e5e7eb;
+        border-color: #d1d5db;
+        color: #9ca3af;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
+
+        .campo select:disabled:hover {
+            background-color: #e5e7eb;
+            border-color: #d1d5db;
+            color: #9ca3af;
+            transform: none;
+            box-shadow: none;
+        }
+
+    @media (max-width: 768px) {
+        .campo {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+            .campo label {
+                min-width: auto;
+            }
+
+        .labels {
+            margin-left: 0;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .botones {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .grupo-botones-votacion {
+            margin-left: 0;
+        }
     }

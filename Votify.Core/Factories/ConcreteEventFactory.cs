@@ -10,7 +10,7 @@ namespace Votify.Core.Factories
 {
     public class ConcreteEventFactory : EventoFactory
     {
-        public override Evento CreateEvento(string tipo,TipoVotacion tipoVotacion, string nombre, string descripcion, DateOnly fechaInicio, DateOnly fechaFin, Guid idCategoria)
+        public override Evento CreateEvento(string tipo,TipoVotacion tipoVotacion, string nombre, string descripcion, DateTime fechaInicio, DateTime fechaFin, Guid idCategoria)
         {
             switch (tipo)
             {
@@ -23,7 +23,6 @@ namespace Votify.Core.Factories
                         FechaInicio = fechaInicio,
                         FechaFin = fechaFin,
                         Id_categoria = idCategoria,
-                        TipoVotacion = tipoVotacion,
                         Archivado = false
                     };
 
@@ -36,7 +35,6 @@ namespace Votify.Core.Factories
                         FechaInicio = fechaInicio,
                         FechaFin = fechaFin,
                         Id_categoria = idCategoria,
-                        TipoVotacion = tipoVotacion,
                         Archivado = false
                     };
 

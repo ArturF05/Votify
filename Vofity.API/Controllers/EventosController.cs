@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Votify.API.DTOs;
 using Votify.Core.Entities;
 using Votify.Core.Interfaces;
+using Votify.Core.Services;
+using Votify.Infrastructure.Data;
 namespace Votify.API.Controllers
 {
     [ApiController]
@@ -9,18 +12,24 @@ namespace Votify.API.Controllers
     public class EventosController : ControllerBase
     {
         private readonly IEvento eventoService;
+        private readonly IVotacion votacionService;
+        private readonly AppDbContext context;
 
-        public EventosController(IEvento eventoService)
+        public EventosController(IEvento eventoService, IVotacion votacionService, AppDbContext context)
         {
             this.eventoService = eventoService;
+            this.votacionService = votacionService;
+            this.context = context;
         }
 
         [HttpPost]
         public async Task<IActionResult> CrearEvento([FromBody] CrearEventoDTOs dto)
         {
+            using var transaccion = await context.Database.BeginTransactionAsync();
+
             try
             {
-                await eventoService.CrearEvento(
+                var evento = await eventoService.CrearEvento(
                     dto.Nombre,
                     dto.Id_categoria,
                     dto.FechaInicio,
@@ -30,10 +39,17 @@ namespace Votify.API.Controllers
                     dto.TipoVotacion
                 );
 
-                return Ok(new { mensaje = "Evento creado correctamente" });
+                    for (int i = 0; i < dto.dTOsVotacion.Count; i++)
+                    {
+                        await votacionService.CrearVotacion(evento.Id, dto.dTOsVotacion[i].FechaInicio, dto.dTOsVotacion[i].FechaFin, dto.dTOsVotacion[i].PermiteAutoVoto, dto.dTOsVotacion[i].TipoVotacion);
+                    }
+                await transaccion.CommitAsync();
+
+                return Ok(evento);
             }
             catch (Exception ex)
             {
+                await transaccion.RollbackAsync();
                 return BadRequest(new
                 {
                     mensaje = ex.Message,
@@ -102,6 +118,7 @@ namespace Votify.API.Controllers
         {
             try
             {
+                nombre ??= "";
                 var categoria = idCategoria;
                 var eventos = await eventoService.BuscarEvento(nombre, idCategoria);
                 return Ok(eventos);

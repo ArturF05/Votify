@@ -18,17 +18,40 @@
         <label>Evento de la votación*: </label>
         <select @bind="Id_evento" @bind:event="oninput" @onclick='() => ponerTiempos()'>
             <option value="@Guid.Empty"></option>
-            @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateOnly.FromDateTime(DateTime.UtcNow))>=0))
+            @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateTime.Now)>=0))
             {
                 <option value="@evento.Id">@evento.Nombre</option>
             }
         </select>
     </div>
     <div class="labels">
-        <label>Inicio del evento: @inicioEvento    </label>
-        <label>Fin del evento: @finEvento</label>
+        @if(Id_evento != Guid.Empty)
+        {
+            <label>Inicio del evento: @inicioEvento    </label>
+            <label>Fin del evento: @finEvento</label>
+        }
     </div>
     <hr>
+    <label>Tipo de votación*:</label>
+    <div class="grupo-botones-votacion">
+        <button type="button"
+                class="boton-votacion @(tipoVotacion == TipoVotacion.Publico ? "activo" : "")"
+                @onclick='() => SeleccionarTipo(TipoVotacion.Publico)'>
+            Público
+        </button>
+
+        <button type="button"
+                class="boton-votacion @(tipoVotacion == TipoVotacion.Jurado ? "activo" : "")"
+                @onclick='() => SeleccionarTipo(TipoVotacion.Jurado)'>
+            Jurado
+        </button>
+
+        <button type="button"
+                class="boton-votacion @(tipoVotacion == TipoVotacion.Mixto ? "activo" : "")"
+                @onclick='() => SeleccionarTipo(TipoVotacion.Mixto)'>
+            Mixto
+        </button>
+    </div>
     <div class="campo">
         <label>Permitir Autovoto*:</label>
         <select @bind ="permiteAutoVoto">
@@ -65,9 +88,10 @@
     private int permiteAutoVoto = 1;
     private DateTime inicioVotacion = DateTime.Now;
     private DateTime finVotacion = DateTime.Now.AddHours(1);
-    private DateOnly inicioEvento = DateOnly.FromDateTime(DateTime.Now);
-    private DateOnly finEvento = DateOnly.FromDateTime(DateTime.Now).AddDays(1);
+    private DateTime inicioEvento = DateTime.Now;
+    private DateTime finEvento = DateTime.Now.AddDays(1);
     private Guid Id_evento = Guid.Empty;
+    private TipoVotacion tipoVotacion = TipoVotacion.Publico;
     private string mensaje = "";
     private string mensaje2 = "";
     List<Votify.Core.Entities.Evento> eventos = new();
@@ -91,6 +115,10 @@
     {
         nav.NavigateTo("/GestionarVotaciones");
     }
+    void SeleccionarTipo(TipoVotacion tipo)
+    {
+        tipoVotacion = tipo;
+    }
 
     private async Task GuardarVotacion()
     {
@@ -99,17 +127,27 @@
             votaciones = await contexto.Votacion.ToListAsync();
 
             bool franjaUsada = false;
+            bool tipoUsado = false;
             if (Id_evento == Guid.Empty)
             {
                 mensaje = "Selecciona un evento";
                 return;
             }
-
+            if (finEvento.CompareTo(DateTime.Now) <= 0)
+            {
+                mensaje = "no puedes añadir votaciones a eventos finalizados";
+                return;
+            }
             foreach (var vot in votaciones.Where(e=> e.Id_evento == Id_evento))
             {
                 if (inicioVotacion.CompareTo(vot.FechaInicio)>=0 && inicioVotacion.CompareTo(vot.FechaFin)<=0)
                 {
                     franjaUsada = true;
+                    break;
+                }
+                if (tipoVotacion == vot.TipoVotacion)
+                {
+                    tipoUsado = true;
                     break;
                 }
             }
@@ -118,21 +156,31 @@
                 mensaje2 = "El final de la votación debe ser posterior al inicio";
                 return;
             }
+            if(inicioVotacion.CompareTo(inicioEvento)<0 || finVotacion.CompareTo(finEvento) > 0)
+            {
+                mensaje = "La votación debe de realizarse durante el evento al que corresponde";
+                return;
+            }
             if (franjaUsada)
             {
                 mensaje = "Hay una votación en esta franja de tiempo, no se permiten votaciones concurrentes en un mismo evento";
                 return;
             }
-
+            if (tipoUsado)
+            {
+                mensaje = "Ya hay una votación de este tipo registrada para este evento";
+                return;
+            }
             evento = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == Id_evento);
             var dto = new CrearVotacionDTOs
             {
                 Id_evento = Id_evento,
                 FechaInicio = inicioVotacion,
                 FechaFin = finVotacion,
-                PermiteAutoVoto = permiteAutoVoto == 1
+                PermiteAutoVoto = permiteAutoVoto == 1,
+                TipoVotacion = tipoVotacion
             };
-            var response = await Http.PostAsJsonAsync("api/Votacion", dto);
+            var response = await Http.PostAsJsonAsync("api/v1/votaciones", dto);
 
             if (response.IsSuccessStatusCode)
             {
