@@ -12,11 +12,11 @@
 
     <div class="header">
         <h1>Home</h1>
-        <p>Gestiona tus eventos y descubre nuevos</p>
+        <p>Consulta los eventos en los que participas y apúntate a nuevos</p>
     </div>
 
     <div class="section">
-        <h2>Tus eventos</h2>
+        <h2>Eventos en los que participas</h2>
         <div class="participando-list">
             @foreach (var evento in eventosParticipando)
             {
@@ -29,7 +29,7 @@
     </div>
 
     <div class="section">
-        <h2>Eventos a los que unirte</h2>
+        <h2>Eventos a los que puedes unirte</h2>
 
         <div class="grid">
             @foreach (var evento in eventosDisponibles)
@@ -88,18 +88,26 @@
                 .Include(e => e.Categoria)
                 .ToListAsync();
 
-            var eventosUsuarioIds = await contexto.EventoUsuarioRol
-                .Where(eur => eur.UsuarioId == idUsuario)
-                .Select(eur => eur.EventoId)
-                .ToListAsync();
-
             eventosParticipando = eventos
-                .Where(e => eventosUsuarioIds.Contains(e.Id))
+                .Where(e => contexto.EventoUsuarioRol
+                    .Include(eur => eur.Rol)
+                    .Any(eur => eur.EventoId == e.Id
+                        && eur.UsuarioId == idUsuario
+                        && eur.Rol.Nombre != "Organizador"))
                 .ToList();
 
             eventosDisponibles = eventos
-                .Where(e => !eventosUsuarioIds.Contains(e.Id))
-                .ToList();
+                .Where(e =>
+                !contexto.EventoUsuarioRol
+                .Include(eur => eur.Rol)
+                .Any(eur => eur.EventoId == e.Id
+                     && eur.UsuarioId == idUsuario
+                     && eur.Rol.Nombre == "Organizador")
+                && !contexto.EventoUsuarioRol
+                .Any(eur => eur.EventoId == e.Id
+                     && eur.UsuarioId == idUsuario)
+    )
+    .ToList();
 
             StateHasChanged();
         }

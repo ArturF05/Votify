@@ -25,7 +25,7 @@ namespace Votify.Core.Services
         {
             return await eventoRepository.BuscarPorNombreAsync(nombre, Id_Categoria);
         }
-        public async Task CrearEvento(string titulo, Guid categoriaId, DateOnly fechaInicio, string descripcion, DateOnly fechaFin,string tipo,TipoVotacion tipoVotacion)
+        public async Task CrearEvento(string titulo, Guid categoriaId, DateOnly fechaInicio, string descripcion, DateOnly fechaFin,string tipo,TipoVotacion tipoVotacion, Guid usuarioId)
         {
             EventoFactory factory = new ConcreteEventFactory();
             if (string.IsNullOrWhiteSpace(titulo))
@@ -38,6 +38,7 @@ namespace Votify.Core.Services
 
 
             await eventoRepository.CrearEventoAsync(nuevoEvento);
+            await eventoRepository.AsignarOrganizadorAsync(nuevoEvento.Id, usuarioId);
         }
 
         public async Task EditarEvento(Guid eventoId, string titulo, Guid categoriaId, DateOnly fechaInicio, string descripcion, DateOnly fechaFin)

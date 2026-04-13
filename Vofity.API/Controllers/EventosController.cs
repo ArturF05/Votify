@@ -27,7 +27,8 @@ namespace Votify.API.Controllers
                     dto.Descripcion,
                     dto.FechaFin,
                     dto.Tipo,
-                    dto.TipoVotacion
+                    dto.TipoVotacion,
+                    dto.UsuarioCreadorId
                 );
 
                 return Ok(new { mensaje = "Evento creado correctamente" });

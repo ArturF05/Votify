@@ -4,9 +4,11 @@
 @using System.Net.Http.Json
 @using Votify.Core.Entities
 @using Votify.Infrastructure.Data
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject NavigationManager nav
 @inject AppDbContext contexto
 @inject HttpClient Http
+@inject ProtectedSessionStorage sessionStorage
 @rendermode InteractiveServer
 
 <PageTitle>Evento</PageTitle>
@@ -15,7 +17,7 @@
 <div class="titulo-y-archivados">
     <div>
         <h2 class="titulo">Eventos</h2>
-        <p class="subtitulo">Gestiona los eventos de los que eres administrador</p>
+        <p class="subtitulo">Gestiona tus propios eventos</p>
     </div>
 
     <button class="boton-archivados" @onclick="VerArchivados">
@@ -84,7 +86,25 @@
 
     protected override async Task OnInitializedAsync()
     {
-        eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
+        var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
+
+        if (!resultado.Success || resultado.Value == Guid.Empty)
+        {
+            nav.NavigateTo("/Login");
+            return;
+        }
+
+        var idUsuario = resultado.Value;
+
+        eventos = await contexto.Evento
+            .AsNoTracking()
+            .Include(e => e.Categoria)
+            .Where(e => contexto.EventoUsuarioRol
+                .Include(eur => eur.Rol)
+                .Any(eur => eur.EventoId == e.Id
+                         && eur.UsuarioId == idUsuario
+                         && eur.Rol.Nombre == "Organizador"))
+            .ToListAsync();
         categorias = await contexto.Categoria.ToListAsync();
         HayEventos();
     }
