@@ -214,6 +214,7 @@
                 FechaInicio = inicio,
                 Descripcion = descripcion,
                 FechaFin = fin,
+                Tipo = tipo
             };
 
             var response = await Http.PutAsJsonAsync($"api/eventos/{evento.Id}", dto);

@@ -83,6 +83,7 @@
     private string busqueda = "";
     private Guid Id_Categoria = Guid.Empty;
     private string noHayResultados = "";
+    private Guid idUsuario;
 
     protected override async Task OnInitializedAsync()
     {
@@ -94,7 +95,7 @@
             return;
         }
 
-        var idUsuario = resultado.Value;
+        idUsuario = resultado.Value;
 
         eventos = await contexto.Evento
             .AsNoTracking()
@@ -160,7 +161,16 @@
 
             if (response.IsSuccessStatusCode)
             {
-                eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
+                eventos = await contexto.Evento
+                .AsNoTracking()
+                .Include(e => e.Categoria)
+                .Where(e => contexto.EventoUsuarioRol
+                    .Include(eur => eur.Rol)
+                    .Any(eur => eur.EventoId == e.Id
+                        && eur.UsuarioId == idUsuario
+                        && eur.Rol.Nombre == "Organizador"))
+                .ToListAsync();
+
                 noHayResultados = "";
                 HayEventos();
                 StateHasChanged();
