@@ -144,11 +144,7 @@
             mensaje = "";
             mensaje2 = "";
 
-            eventos = await contexto.Evento
-                .Include(e => e.Categoria)
-                .Where(e => e.Archivado == false)
-                .ToListAsync();
-
+            eventos = await contexto.Evento.Include(e => e.Categoria).Where(e => e.Archivado == false).ToListAsync();
             bool nombreUsado = false;
             bool nombreVacio = string.IsNullOrWhiteSpace(nombre);
 
