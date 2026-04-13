@@ -92,7 +92,7 @@
                 await sessionStorage.SetAsync("IdUsuario", usuarioSesion.IdUsuario);
                 await sessionStorage.SetAsync("NombreUsuario", usuarioSesion.NombreUsuario);
                 await sessionStorage.SetAsync("Rol", usuarioSesion.Rol);
-                StateHasChanged(); // Forzar actualización antes del delay
+                StateHasChanged();
                 await Task.Delay(1500);
                 Navigation.NavigateTo("/Home");
             }

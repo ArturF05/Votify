@@ -9,9 +9,8 @@ using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+// Servicios
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -27,21 +26,20 @@ builder.Services.AddScoped<IVotoRepository, VotoRepository>();
 builder.Services.AddScoped<UsuarioSesion>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<UsuarioSesion>();
-builder.Services.AddControllers();
 
-// 1. Registro para el servicio de Login (Typed Client)
+// Login
 builder.Services.AddHttpClient<ILogin, LoginService>(client =>
 {
     client.BaseAddress = new Uri("https://localhost:7053");
 });
 
-// 2. Registro ÚNICO para el HttpClient genérico que usa el resto de la app
+// HttpClient
 builder.Services.AddScoped(sp =>
 {
     return new HttpClient { BaseAddress = new Uri("https://localhost:7053") }; // Your actual server port
 });
 
-
+// AppDbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -50,9 +48,6 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-
-
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
@@ -63,6 +58,5 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 app.MapControllers();
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 app.Run();

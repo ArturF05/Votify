@@ -36,7 +36,8 @@ namespace Votify.API.Controllers
                     dto.Descripcion,
                     dto.FechaFin,
                     dto.Tipo,
-                    dto.TipoVotacion
+                    dto.TipoVotacion,
+                    dto.UsuarioCreadorId
                 );
 
                     for (int i = 0; i < dto.dTOsVotacion.Count; i++)

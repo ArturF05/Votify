@@ -115,5 +115,23 @@ namespace Votify.Infrastructure.Repositorios
             return await contexto.Votacion
                 .FirstOrDefaultAsync(v => v.Id_evento == eventoId);
         }
+        public async Task AsignarOrganizadorAsync(Guid eventoId, Guid usuarioId)
+        {
+            var rolOrganizador = await contexto.Role
+                .FirstOrDefaultAsync(r => r.Nombre == "Organizador");
+
+            if (rolOrganizador == null)
+                throw new Exception("No existe el rol Organizador");
+
+            var relacion = new EventoUsuarioRol
+            {
+                EventoId = eventoId,
+                UsuarioId = usuarioId,
+                RolId = rolOrganizador.Id
+            };
+
+            await contexto.EventoUsuarioRol.AddAsync(relacion);
+            await contexto.SaveChangesAsync();
+        }
     }
 }

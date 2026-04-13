@@ -14,7 +14,7 @@ namespace Votify.Core.DTOs
         [Required(ErrorMessage = "El título es obligatorio")] 
         [MaxLength(50, ErrorMessage = "El título no puede superar 50 caracteres")]
 
-        [JsonPropertyName("titulo")] // Para mapear "titulo" del JSON al campo Titulo si no coincide el nombre
+        [JsonPropertyName("titulo")] 
         public string Titulo { get; set; } = "";
         public string Descripcion { get; set; } = "";
         public Guid? IdEvento { get; set; }
