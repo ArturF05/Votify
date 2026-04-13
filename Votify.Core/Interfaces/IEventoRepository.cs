@@ -20,5 +20,6 @@ namespace Votify.Core.Interfaces
         Task<List<Evento>> ObtenerTodos();
         Task<Evento?> ObtenerEventoDashboardAsync(Guid eventoId);
         Task<List<Voto>> ObtenerVotosDeEventoAsync(Guid eventoId);
+        Task<Votacion?> ObtenerVotacionPorEventoAsync(Guid eventoId);
     }
 }

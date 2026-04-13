@@ -77,7 +77,12 @@
         </div>
 
         <div class="acciones-derecha">
-            <button type="button" class="boton-secundario" @onclick='() => VerResultados()'>Ver Resultados</button>
+            @if (PuedeVerResultados())
+            {
+                <button type="button" class="boton-secundario" @onclick='() => VerResultados()'>
+                    Ver Resultados
+                </button>
+            }
             <button type="button" class="boton-principal" @onclick='() => EnviarVoto()'>Enviar Voto</button>
         </div>
     </div>
@@ -94,6 +99,7 @@
     public Guid id { get; set; }
     private List<Guid> proyectosSeleccionados = new();
     private Guid idVotacion;
+    private Votify.Core.Entities.Votacion? votacion;
     private Guid idVotante;
     private string mensaje = "";
     private Dictionary<Guid, string> comentariosPorProyecto = new();
@@ -101,8 +107,13 @@
     protected override async Task OnInitializedAsync()
     {
         evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
-        var votacion = await contexto.Votacion.Where(v=> v.FechaInicio.CompareTo(DateTime.UtcNow)<=0 && v.FechaFin.CompareTo(DateTime.UtcNow)>0).FirstOrDefaultAsync(v => v.Evento.Id == id);
-        if (votacion != null) { idVotacion = votacion.Id; }
+        votacion = await contexto.Votacion
+            .FirstOrDefaultAsync(v => v.Id_evento == id);
+
+        if (votacion != null)
+        {
+            idVotacion = votacion.Id;
+        }
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -234,5 +245,15 @@
     void VerResultados()
     {
         nav.NavigateTo($"/Dashboard/{evento.Id}");
+    }
+
+    private bool PuedeVerResultados()
+    {
+        if (votacion == null)
+            return false;
+
+        var hoy = DateTime.Now;
+
+        return votacion.FechaFin <= hoy;
     }
 }

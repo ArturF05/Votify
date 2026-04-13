@@ -108,5 +108,11 @@ namespace Votify.Infrastructure.Repositorios
                 .Where(v => idsProyectos.Contains(v.Id_proyecto))
                 .ToListAsync();
         }
+
+        public async Task<Votacion?> ObtenerVotacionPorEventoAsync(Guid eventoId)
+        {
+            return await contexto.Votacion
+                .FirstOrDefaultAsync(v => v.Id_evento == eventoId);
+        }
     }
 }

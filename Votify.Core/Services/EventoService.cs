@@ -107,10 +107,20 @@ namespace Votify.Core.Services
             if (evento == null)
                 throw new Exception("El evento no existe");
 
-            if (evento.Proyectos == null || evento.Proyectos.Count == 0)
-                throw new Exception("El evento no tiene proyectos");
+            var votacion = await eventoRepository.ObtenerVotacionPorEventoAsync(eventoId);
+
+            if (votacion == null)
+                throw new Exception("Este evento no tiene votación");
+
+            var hoy = DateTime.Now;
+
+            if (votacion.FechaFin > hoy)
+                throw new Exception("Todavía no se puede acceder al dashboard porque la votación no ha finalizado");
 
             var votos = await eventoRepository.ObtenerVotosDeEventoAsync(eventoId);
+
+            if (evento.Proyectos == null || evento.Proyectos.Count == 0)
+                throw new Exception("El evento no tiene proyectos");
 
             var proyectosDashboard = evento.Proyectos
                 .Select(p => new ProyectoDashboardDTO
