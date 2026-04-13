@@ -132,7 +132,7 @@
                 FechaFin = finVotacion,
                 PermiteAutoVoto = permiteAutoVoto == 1
             };
-            var response = await Http.PostAsJsonAsync("api/Votacion", dto);
+            var response = await Http.PostAsJsonAsync("api/v1/votaciones", dto);
 
             if (response.IsSuccessStatusCode)
             {
