@@ -1,0 +1,126 @@
+﻿@page "/Dashboard/{id:guid}"
+@rendermode InteractiveServer
+@using Votify.Core.DTOs
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<div class="dashboard-container">
+
+    @if (dashboard == null)
+    {
+        <p class="cargando">Cargando resultados...</p>
+    }
+    else
+    {
+        <!-- HEADER -->
+        <div class="topbar">
+            <div class="title">
+                <h1>Dashboard</h1>
+                <p>@dashboard.NombreEvento</p>
+            </div>
+
+            <button class="back-button" @onclick="Volver">← Volver</button>
+        </div>
+
+        <!-- GANADOR -->
+        <div class="winner-panel">
+            <div class="winner-text">
+                <h2>@dashboard.NombreProyectoGanador</h2>
+                <p>Proyecto ganador</p>
+            </div>
+
+            <div class="winner-card">
+                <div class="trophy">★</div>
+                <div><strong>@dashboard.PuntuacionProyectoGanador puntos</strong></div>
+            </div>
+        </div>
+
+        <div class="dashboard-ranking-box">
+            <h3 class="dashboard-ranking-title">Ranking</h3>
+
+            @{
+                var ranking = ObtenerRanking();
+            }
+
+            @for (int i = 0; i < ranking.Count; i++)
+            {
+                <div class="dashboard-ranking-row">
+                    <span class="dashboard-ranking-name">@(i + 1). @ranking[i].NombreProyecto</span>
+                    <span class="dashboard-ranking-score">@ranking[i].PuntuacionTotal puntos</span>
+                </div>
+            }
+        </div>
+
+        <!-- COMENTARIOS -->
+        <div class="comentarios">
+            <h3>Comentarios</h3>
+
+            <!-- SELECTOR PROYECTO -->
+            <div class="selector-row">
+                <select @bind="proyectoSeleccionadoId">
+                    @foreach (var proyecto in dashboard.Proyectos)
+                    {
+                        <option value="@proyecto.ProyectoId">
+                            @proyecto.NombreProyecto
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <!-- LISTA -->
+            <div class="lista-comentarios">
+                @foreach (var comentario in ObtenerComentarios())
+                {
+                    <div class="comentario-item">
+                        @comentario
+                    </div>
+                }
+
+                @if (!ObtenerComentarios().Any())
+                {
+                    <div class="sin-comentarios">
+                        No hay comentarios para este proyecto
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+</div>
+
+@code {
+    [Parameter]
+    public Guid id { get; set; }
+
+    private DashboardEventoDTO? dashboard;
+    private Guid proyectoSeleccionadoId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        dashboard = await Http.GetFromJsonAsync<DashboardEventoDTO>($"api/eventos/{id}/dashboard");
+
+        if (dashboard != null && dashboard.Proyectos.Any())
+            proyectoSeleccionadoId = dashboard.Proyectos.First().ProyectoId;
+    }
+
+    private List<ProyectoDashboardDTO> ObtenerRanking()
+    {
+        return dashboard?.Proyectos
+            .OrderByDescending(p => p.PuntuacionTotal)
+            .ToList()
+            ?? new List<ProyectoDashboardDTO>();
+    }
+
+    private List<string> ObtenerComentarios()
+    {
+        var proyecto = dashboard?.Proyectos
+            .FirstOrDefault(p => p.ProyectoId == proyectoSeleccionadoId);
+
+        return proyecto?.Comentarios ?? new List<string>();
+    }
+
+    private void Volver()
+    {
+        JS.InvokeVoidAsync("history.back");
+    }
+}

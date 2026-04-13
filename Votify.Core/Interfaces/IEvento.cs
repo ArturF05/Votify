@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Votify.Core.Entities;
+using Votify.Core.DTOs;
 
 namespace Votify.Core.Interfaces
 {
@@ -17,5 +18,6 @@ namespace Votify.Core.Interfaces
         Task ApuntarseAsync(Guid eventoId, Guid idUsuario, bool apuntar);
         Task<Evento?> ObtenerEventoPorIdAsync(Guid id);
         Task<List<Evento>> ObtenerTodos();
+        Task<DashboardEventoDTO> ObtenerDashboardEventoAsync(Guid id);
     }
 }

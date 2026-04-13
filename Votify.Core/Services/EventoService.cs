@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Votify.Core.Entities;
 using Votify.Core.Factories;
 using Votify.Core.Interfaces;
+using Votify.Core.DTOs;
 
 namespace Votify.Core.Services
 {
@@ -97,6 +98,47 @@ namespace Votify.Core.Services
         public async Task<List<Evento>> ObtenerTodos()
         {
             return await eventoRepository.ObtenerTodos();
+        }
+
+        public async Task<DashboardEventoDTO> ObtenerDashboardEventoAsync(Guid eventoId)
+        {
+            var evento = await eventoRepository.ObtenerEventoDashboardAsync(eventoId);
+
+            if (evento == null)
+                throw new Exception("El evento no existe");
+
+            if (evento.Proyectos == null || evento.Proyectos.Count == 0)
+                throw new Exception("El evento no tiene proyectos");
+
+            var votos = await eventoRepository.ObtenerVotosDeEventoAsync(eventoId);
+
+            var proyectosDashboard = evento.Proyectos
+                .Select(p => new ProyectoDashboardDTO
+                {
+                    ProyectoId = p.Id,
+                    NombreProyecto = p.Titulo,
+                    PuntuacionTotal = votos
+                        .Where(v => v.Id_proyecto == p.Id)
+                        .Sum(v => v.Puntuacion),
+                    Comentarios = votos
+                        .Where(v => v.Id_proyecto == p.Id && !string.IsNullOrWhiteSpace(v.Comentario))
+                        .Select(v => v.Comentario!)
+                        .ToList()
+                })
+                .OrderByDescending(p => p.PuntuacionTotal)
+                .ToList();
+
+            var ganador = proyectosDashboard.First();
+
+            return new DashboardEventoDTO
+            {
+                EventoId = evento.Id,
+                NombreEvento = evento.Nombre,
+                ProyectoGanadorId = ganador.ProyectoId,
+                NombreProyectoGanador = ganador.NombreProyecto,
+                PuntuacionProyectoGanador = ganador.PuntuacionTotal,
+                Proyectos = proyectosDashboard
+            };
         }
     }
 }

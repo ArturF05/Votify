@@ -149,5 +149,19 @@ namespace Votify.API.Controllers
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
+
+        [HttpGet("{id}/dashboard")]
+        public async Task<IActionResult> ObtenerDashboardEvento(Guid id)
+        {
+            try
+            {
+                var resultado = await eventoService.ObtenerDashboardEventoAsync(id);
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+        }
     }
 }
