@@ -35,8 +35,6 @@ public class AppDbContext : DbContext
         // Ignorar propiedades sin FK en la BD
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Evento>()
-            .Ignore(e => e.Votacion);
 
         modelBuilder.Entity<EventoUsuarioRol>(entity =>
         {

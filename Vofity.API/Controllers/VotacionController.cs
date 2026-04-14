@@ -70,6 +70,7 @@ namespace Votify.API.Controllers
                     dto.PermiteAutoVoto,
                     dto.TipoVotacion
                 );
+                await context.SaveChangesAsync();
                 await transaccion.CommitAsync();
                 return Ok(new { mensaje = "Votación creada correctamente" });
             }

@@ -25,7 +25,6 @@ namespace Votify.Infrastructure.Repositorios
         public async Task<Evento> CrearEventoAsync(Evento evento)
         {
             await contexto.Evento.AddAsync(evento);
-            await contexto.SaveChangesAsync();
             return evento;
         }
         public async Task<List<Evento>?> BuscarPorNombreAsync(string nombre, Guid Id_Categoria)
@@ -131,7 +130,6 @@ namespace Votify.Infrastructure.Repositorios
             };
 
             await contexto.EventoUsuarioRol.AddAsync(relacion);
-            await contexto.SaveChangesAsync();
         }
     }
 }

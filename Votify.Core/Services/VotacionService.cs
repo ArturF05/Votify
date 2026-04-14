@@ -90,8 +90,8 @@ namespace Votify.Core.Services
                 {
                     Id = Guid.NewGuid(),
                     Id_evento = Id_evento,
-                    FechaInicio = inicioVotacion.ToUniversalTime(),
-                    FechaFin = finVotacion.ToUniversalTime(),
+                    FechaInicio = inicioVotacion,
+                    FechaFin = finVotacion,
                     PermiteAutoVoto = permiteAutoVoto,
                     TipoVotacion = tipoVotacion
                 };

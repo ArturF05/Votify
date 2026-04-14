@@ -23,7 +23,7 @@ public class Evento
     public Categoria Categoria { get; set; }
    
     public ICollection<Proyecto> Proyectos { get; set; }
-    public Votacion Votacion { get; set; }
+    public List<Votacion> Votaciones { get; set; }
     public bool Archivado {  get; set; }
 
     public ICollection<EventoUsuarioRol> EventoUsuarioRoles { get; set; }

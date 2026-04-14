@@ -44,7 +44,7 @@ namespace Votify.Infrastructure.Repositorios
         public async Task CrearVotacionAsync(Votacion votacion)
         {
             await contexto.Votacion.AddAsync(votacion);
-            await contexto.SaveChangesAsync();
+
         }
         public async Task EditarVotacionAsync(Votacion votacion)
         {

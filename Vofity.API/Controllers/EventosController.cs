@@ -38,11 +38,13 @@ namespace Votify.API.Controllers
                     dto.Tipo,
                     dto.UsuarioCreadorId
                 );
-
-                    for (int i = 0; i < dto.dTOsVotacion.Count; i++)
+                await context.SaveChangesAsync();
+                for (int i = 0; i < dto.dTOsVotacion.Count; i++)
                     {
                         await votacionService.CrearVotacion(evento.Id, dto.dTOsVotacion[i].FechaInicio, dto.dTOsVotacion[i].FechaFin, dto.dTOsVotacion[i].PermiteAutoVoto, dto.dTOsVotacion[i].TipoVotacion);
-                    }
+                        await context.SaveChangesAsync();
+                }
+                await context.SaveChangesAsync();
                 await transaccion.CommitAsync();
 
                 return Ok(new
