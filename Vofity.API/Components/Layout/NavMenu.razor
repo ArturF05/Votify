@@ -1,4 +1,7 @@
-﻿﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@inject IJSRuntime JS
+@inject NavigationManager nav
+﻿
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Votify</a>
     </div>
@@ -9,9 +12,9 @@
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Cerrar Sesión
-            </NavLink>
+            <button class="nav-link btn btn-link" @onclick="ConfirmarLogout">
+                <img src="CerrarSesion.png" class="nav-icon" /> Cerrar Sesión
+            </button>
         </div>
 
         <div class="nav-item px-3">
@@ -42,3 +45,14 @@
         </div>
     </nav>
 </div>
+@code{
+    private async Task ConfirmarLogout()
+    {
+        bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Seguro que quieres cerrar sesión?");
+
+        if (confirmado)
+        {
+            nav.NavigateTo("");
+        }
+    }
+}

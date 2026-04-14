@@ -112,6 +112,14 @@
         background: #f28c28;
         color: white;
     }
+.boton-editar:disabled {
+    background-color: #e5e7eb;
+    border-color: #d1d5db;
+    color: #9ca3af;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
 
 .noHayResult {
     display: block;
@@ -137,7 +145,33 @@
         transform: translateY(-2px);
         box-shadow: 0 12px 30px -5px rgba(245, 166, 35, 0.5);
     }
+.tooltip-wrapper {
+    position: relative;
+    display: inline-block;
+}
 
+.tooltip-text {
+    visibility: hidden;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 6px 10px;
+    border-radius: 6px;
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+/* Mostrar tooltip al hacer hover */
+.tooltip-wrapper:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
 @media (max-width: 900px) {
     .barra-busqueda {
         flex-direction: column;

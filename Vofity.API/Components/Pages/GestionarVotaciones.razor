@@ -60,6 +60,8 @@
                 <th>Fecha Inicio</th>
                 <th>Fecha Fin</th>
                 <th hidden="@(verFinalizadas)">Editar</th>
+                <th hidden="@(!verFinalizadas)"></th>
+                <th hidden="@(!verFinalizadas)">Resultados del evento</th>
             </tr>
         </thead>
         <tbody>
@@ -78,6 +80,10 @@
                         <td>@vot.FechaInicio.ToLocalTime()</td>
                         <td>@vot.FechaFin.ToLocalTime()</td>
                         <td><button class="boton-editar" hidden="@(verFinalizadas)" @onclick='() => EditarVotacion(vot)'>Editar</button></td>
+                        <td><div class="tooltip-wrapper"><button class="boton-editar" hidden="@(!verFinalizadas)" @onclick='() => VerResultados(vot)' disabled="@(!puedeVerResultados(vot))">Resultados</button>@if(!puedeVerResultados(vot)){
+                                    <span class= "tooltip-text">Todavía hay votaciones activas para este evento</span>
+                                } 
+                        </div></td>
                     </tr>
                 }
             }
@@ -91,9 +97,9 @@
 <a href="/CrearVotacion" class="botonLink">Crear Votacion nueva</a>
 
 @code {
-    List<Votify.Core.Entities.Evento> eventos = new();
-    List<Votify.Core.Entities.Votacion> votaciones = new();
-    List<Votify.Core.Entities.Votacion> votacionesActuales = new();
+        List<Votify.Core.Entities.Evento> eventos = new();
+        List<Votify.Core.Entities.Votacion> votaciones = new();
+        List<Votify.Core.Entities.Votacion> votacionesActuales = new();
     private bool verFinalizadas = false;
     private string boton = "Mostrar votaciones finalizadas";
     private Guid Id_evento = Guid.Empty;
@@ -153,6 +159,15 @@
     private void EditarVotacion(Votify.Core.Entities.Votacion vot)
     {
         nav.NavigateTo($"/EditarVotacion/{vot.Id}");
+    }
+    private bool puedeVerResultados(Votify.Core.Entities.Votacion votacion)
+    {
+        var votacionesAux = votaciones.Where(vot => (vot.Id_evento == votacion.Id_evento));
+        return votacionesAux.All(v => v.FechaFin <= DateTime.UtcNow);
+    }
+    private void VerResultados(Votify.Core.Entities.Votacion vot)
+    {
+        nav.NavigateTo($"/Dashboard/{vot.Id_evento}");
     }
 
     private async Task VerFinalizadas()
