@@ -142,15 +142,15 @@
 
             foreach (var vot in votaciones.Where(v => v.Id != votacion.Id && v.Id_evento == Id_evento))
             {
-                if (inicioVotacion.CompareTo(vot.FechaInicio)>=0 && inicioVotacion.CompareTo(vot.FechaFin)<=0)
+                if (inicioVotacion.CompareTo(vot.FechaInicio) >= 0 && inicioVotacion.CompareTo(vot.FechaFin) <= 0)
                 {
                     franjaUsada = true;
                     break;
-                    if (tipoVotacion == vot.TipoVotacion)
-                    {
-                        tipoUsado = true;
-                        break;
-                    }
+                }
+                if (tipoVotacion == vot.TipoVotacion)
+                {
+                    tipoUsado = true;
+                    break;
                 }
             }
             if (finVotacion.CompareTo(inicioVotacion) <= 0)

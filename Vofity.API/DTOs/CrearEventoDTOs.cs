@@ -11,7 +11,7 @@ namespace Votify.API.DTOs
         public Guid Id_categoria { get; set; }
         public bool Archivado { get; set; }
         public string Tipo { get; set; }
-        public TipoVotacion TipoVotacion { get; set; }
         public List<CrearVotacionDTOs> dTOsVotacion { get; set; }
+        public Guid UsuarioCreadorId { get; set; }
     }
 }

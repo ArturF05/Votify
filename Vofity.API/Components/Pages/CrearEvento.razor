@@ -7,9 +7,12 @@
 @using Votify.Infrastructure.Repositorios
 @using Votify.API.DTOs
 @using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject NavigationManager nav
 @inject AppDbContext contexto
 @inject HttpClient Http
+@inject ProtectedSessionStorage sessionStorage
+
 
 <div class="crear-evento-page">
     <div class="page-header">
@@ -144,11 +147,24 @@
     private string tipo = "Hackathon";
     List<Categoria> categorias = new();
     List<Votify.Core.Entities.Evento> eventos = new();
-
+    private Guid idUsuario;
+    private Votify.Core.Entities.Usuario? usuarioActual;
 
     protected override async Task OnInitializedAsync()
     {
         categorias = await contexto.Categoria.ToListAsync();
+        var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
+
+        if (!resultado.Success || resultado.Value == Guid.Empty)
+        {
+            nav.NavigateTo("/Login");
+            return;
+        }
+        idUsuario = resultado.Value;
+
+        usuarioActual = await contexto.Usuario
+            .Include(u => u.Rol)
+            .FirstOrDefaultAsync(u => u.Id == idUsuario);
         otraVotacion();
     }
 
@@ -258,7 +274,8 @@
                     FechaInicio = votaciones[i].Inicio.ToUniversalTime(),
                     FechaFin = votaciones[i].Fin.ToUniversalTime(),
                     PermiteAutoVoto = votaciones[i].PermiteAutoVoto == 1,
-                    TipoVotacion = votaciones[i].Tipo
+                    TipoVotacion = votaciones[i].Tipo,
+                    
                 };
                 crearVotacionDTOs.Add(dtoVotacion);
             }
@@ -270,7 +287,8 @@
                 Descripcion = descripcion,
                 FechaFin = fin.ToUniversalTime(),
                 Tipo = tipo,
-                dTOsVotacion = crearVotacionDTOs
+                dTOsVotacion = crearVotacionDTOs,
+                UsuarioCreadorId = usuarioActual.Id
             };
 
             var responseEvento = await Http.PostAsJsonAsync("api/eventos", dto);
