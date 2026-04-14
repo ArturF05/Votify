@@ -214,7 +214,8 @@
                 FechaInicio = inicio,
                 Descripcion = descripcion,
                 FechaFin = fin,
-                Tipo = tipo
+                Tipo = tipo,
+                dTOsVotacion = new List<CrearVotacionDTOs>()
             };
 
             var response = await Http.PutAsJsonAsync($"api/eventos/{evento.Id}", dto);

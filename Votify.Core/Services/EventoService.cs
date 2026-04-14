@@ -58,8 +58,8 @@ namespace Votify.Core.Services
             evento.Nombre = titulo;
             evento.Id_categoria = categoriaId;
             evento.Descripcion = descripcion;
-            evento.FechaInicio = fechaInicio;
-            evento.FechaFin = fechaFin;
+            evento.FechaInicio = DateTime.SpecifyKind(fechaInicio, DateTimeKind.Utc);
+            evento.FechaFin = DateTime.SpecifyKind(fechaFin, DateTimeKind.Utc);
 
             await eventoRepository.EditarEventoAsync(evento);
         }
