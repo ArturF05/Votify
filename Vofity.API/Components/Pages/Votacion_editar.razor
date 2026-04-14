@@ -177,7 +177,7 @@
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion
             };
-            var response = await Http.PutAsJsonAsync($"api/v1/votaciones/{votacion.Id}", dto);
+            var response = await Http.PutAsJsonAsync($"api/v1/votaciones/{id}", dto);
 
             if (response.IsSuccessStatusCode)
             {
@@ -209,7 +209,7 @@
         if (votacion == null)
             return;
 
-        var response = await Http.DeleteAsync($"api/Votacion/{votacion.Id}");
+        var response = await Http.DeleteAsync($"api/v1/votaciones/{id}");
 
         if (response.IsSuccessStatusCode)
         {
