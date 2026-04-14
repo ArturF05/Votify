@@ -36,9 +36,10 @@ namespace Votify.Core.Services
 
             Evento nuevoEvento = eventoFactory.CreateEvento(tipo, titulo, descripcion, fechaInicio, fechaFin, categoriaId);
 
-
-            return await eventoRepository.CrearEventoAsync(nuevoEvento);
+            var aux = await eventoRepository.CrearEventoAsync(nuevoEvento);
             await eventoRepository.AsignarOrganizadorAsync(nuevoEvento.Id, usuarioId);
+            return aux;
+
 
         }
 

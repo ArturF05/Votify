@@ -45,7 +45,11 @@ namespace Votify.API.Controllers
                     }
                 await transaccion.CommitAsync();
 
-                return Ok(evento);
+                return Ok(new
+                {
+                    evento.Id,
+                    evento.Nombre
+                });
             }
             catch (Exception ex)
             {
