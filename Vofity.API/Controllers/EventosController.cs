@@ -36,7 +36,6 @@ namespace Votify.API.Controllers
                     dto.Descripcion,
                     dto.FechaFin,
                     dto.Tipo,
-                    dto.TipoVotacion,
                     dto.UsuarioCreadorId
                 );
 

@@ -67,7 +67,6 @@ namespace Votify.Core.Tests.Votacion
 
             var eventoPrincipal = factory.CreateEvento(
                 "Hackathon",
-                TipoVotacion.Publico,
                 "Evento test",
                 "Descripcion test",
                 hoy.AddDays(-1),
@@ -78,7 +77,6 @@ namespace Votify.Core.Tests.Votacion
 
             var otroEvento = factory.CreateEvento(
                 "Hackathon",
-                TipoVotacion.Publico,
                 "Otro evento",
                 "Descripcion otro evento",
                 hoy.AddDays(-1),
@@ -88,7 +86,6 @@ namespace Votify.Core.Tests.Votacion
 
             var otroEvento2 = factory.CreateEvento(
                 "Concurso",
-                TipoVotacion.Publico,
                 "Otro evento 2",
                 "Descripcion otro evento 2",
                 hoy.AddDays(-1),

@@ -25,7 +25,7 @@ namespace Votify.Core.Services
         {
             return await eventoRepository.BuscarPorNombreAsync(nombre, Id_Categoria);
         }
-        public async Task<Evento> CrearEvento(string titulo, Guid categoriaId, DateTime fechaInicio, string descripcion, DateTime fechaFin,string tipo,TipoVotacion tipoVotacion, Guid usuarioId)
+        public async Task<Evento> CrearEvento(string titulo, Guid categoriaId, DateTime fechaInicio, string descripcion, DateTime fechaFin,string tipo, Guid usuarioId)
         {
             EventoFactory factory = new ConcreteEventFactory();
             if (string.IsNullOrWhiteSpace(titulo))
@@ -34,7 +34,7 @@ namespace Votify.Core.Services
             if (fechaFin < fechaInicio)
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
 
-            Evento nuevoEvento = eventoFactory.CreateEvento(tipo,tipoVotacion, titulo, descripcion, fechaInicio, fechaFin, categoriaId);
+            Evento nuevoEvento = eventoFactory.CreateEvento(tipo, titulo, descripcion, fechaInicio, fechaFin, categoriaId);
 
 
             return await eventoRepository.CrearEventoAsync(nuevoEvento);

@@ -100,7 +100,6 @@ namespace Votify.Core.Tests.Participantes
 
             var eventoPublico = factory.CreateEvento(
                 "Hackathon",
-                TipoVotacion.Publico,
                 "Evento Publico",
                 "Evento publico test",
                 hoy.AddDays(-1),
@@ -111,7 +110,6 @@ namespace Votify.Core.Tests.Participantes
 
             var eventoJurado = factory.CreateEvento(
                 "Hackathon",
-                TipoVotacion.Jurado,
                 "Evento Jurado",
                 "Evento jurado test",
                 hoy.AddDays(-1),
@@ -122,7 +120,6 @@ namespace Votify.Core.Tests.Participantes
 
             var eventoMixto = factory.CreateEvento(
                 "Hackathon",
-                TipoVotacion.Mixto,
                 "Evento Mixto",
                 "Evento mixto test",
                 hoy.AddDays(-1),
@@ -133,7 +130,6 @@ namespace Votify.Core.Tests.Participantes
 
             var otroEventoJurado = factory.CreateEvento(
                 "Concurso",
-                TipoVotacion.Jurado,
                 "Otro Evento Jurado",
                 "Otro evento jurado test",
                 hoy.AddDays(-1),

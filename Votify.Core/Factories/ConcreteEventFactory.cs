@@ -10,7 +10,7 @@ namespace Votify.Core.Factories
 {
     public class ConcreteEventFactory : EventoFactory
     {
-        public override Evento CreateEvento(string tipo,TipoVotacion tipoVotacion, string nombre, string descripcion, DateTime fechaInicio, DateTime fechaFin, Guid idCategoria)
+        public override Evento CreateEvento(string tipo, string nombre, string descripcion, DateTime fechaInicio, DateTime fechaFin, Guid idCategoria)
         {
             switch (tipo)
             {

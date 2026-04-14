@@ -10,6 +10,6 @@ namespace Votify.Core.Factories
     //Fábrica parametrizada para crear diferentes tipos de eventos (Hackathon, Concurso, etc.) según el tipo especificado.
     public abstract class EventoFactory
     {
-        public abstract Evento CreateEvento(string tipo, TipoVotacion tipoVotacion, string nombre, string descripcion, DateTime fechaInicio, DateTime fechaFin, Guid idCategoria);
+        public abstract Evento CreateEvento(string tipo, string nombre, string descripcion, DateTime fechaInicio, DateTime fechaFin, Guid idCategoria);
     }
 }
