@@ -11,7 +11,7 @@ namespace Votify.Core.Interfaces
     public interface IEventoRepository
     {
         Task<Evento> CrearEventoAsync(Evento evento);
-        Task<List<Evento>?> BuscarPorNombreAsync(string nombre, Guid Id_Categoria);
+        Task<List<Evento>?> BuscarPorNombreAsync(string nombre, Guid Id_Categoria, Guid idUsuario);
         Task EditarEventoAsync(Evento evento);
         Task EliminarEventoAsync(Evento evento);
         Task ArchivoEventoAsync(Evento evento, bool archivar);

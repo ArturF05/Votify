@@ -63,7 +63,17 @@
 
         try
         {
-            var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
+            ProtectedBrowserStorageResult <Guid> resultado;
+            try
+            {
+                resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
+            }
+            catch (Exception e)
+            {
+                nav.NavigateTo("/Login");
+                return;
+            }
+
 
             if (!resultado.Success || resultado.Value == Guid.Empty)
             {

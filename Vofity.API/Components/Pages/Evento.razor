@@ -29,13 +29,13 @@
     <div class="barra-busqueda">
     <input @bind="busqueda" @bind:event="oninput" type="text" placeholder="Buscar eventos..." @onkeypress="EsEnter" />
     <label class="categoria-label">Categoria: </label>
-    <select @bind="Id_Categoria">
-        <option value="@Guid.Empty">Todas</option>
-        @foreach (var cat in categorias)
-        {
-            <option value="@cat.Id">@cat.Nombre</option>
-        }
-    </select>
+        <select @bind="Id_Categoria" @bind:event="oninput" @onchange="BuscarEventos">
+            <option value="@Guid.Empty">Todas</option>
+            @foreach (var cat in categorias)
+            {
+                <option value="@cat.Id">@cat.Nombre</option>
+            }
+        </select>
     <button @onclick="BuscarEventos">Buscar</button>
     </div>
 </div>
@@ -87,9 +87,17 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
-
-        if (!resultado.Success || resultado.Value == Guid.Empty)
+        ProtectedBrowserStorageResult<Guid> resultado;
+        try
+        {
+            resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
+            if (!resultado.Success || resultado.Value == Guid.Empty)
+            {
+                nav.NavigateTo("/Login");
+                return;
+            }
+        }
+        catch (Exception e)
         {
             nav.NavigateTo("/Login");
             return;
@@ -122,14 +130,22 @@
     {
         if (string.IsNullOrWhiteSpace(busqueda) && Id_Categoria == Guid.Empty)
         {
-            eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
+            eventos = await contexto.Evento
+            .AsNoTracking()
+            .Include(e => e.Categoria)
+            .Where(e => contexto.EventoUsuarioRol
+                .Include(eur => eur.Rol)
+                .Any(eur => eur.EventoId == e.Id
+                         && eur.UsuarioId == idUsuario
+                         && eur.Rol.Nombre == "Organizador"))
+            .ToListAsync();
             noHayResultados = "";
             HayEventos();
         }
         else
         {
-            var nombreBusqueda = busqueda ?? "";
-            var url = $"api/eventos/buscar?nombre={Uri.EscapeDataString(nombreBusqueda)}&idCategoria={Id_Categoria}";
+            string nombreBusqueda = busqueda ?? "";
+            var url = $"api/eventos/buscar?nombre={nombreBusqueda}&idCategoria={Id_Categoria}&idUsuario={idUsuario}";
 
             var resultado = await Http.GetFromJsonAsync<List<Votify.Core.Entities.Evento>>(url);
             eventos = resultado ?? new List<Votify.Core.Entities.Evento>();

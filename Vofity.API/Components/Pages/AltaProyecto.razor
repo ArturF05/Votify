@@ -118,12 +118,22 @@
 
     private async Task CargarEventosAsync()
     {
-        var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
-        if (!resultado.Success || resultado.Value == Guid.Empty)
+        ProtectedBrowserStorageResult<Guid> resultado;
+        try
+        {
+            resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
+            if (!resultado.Success || resultado.Value == Guid.Empty)
+            {
+                nav.NavigateTo("/Login");
+                return;
+            }
+        }
+        catch (Exception e)
         {
             nav.NavigateTo("/Login");
             return;
         }
+
 
         idUsuario = resultado.Value;
 
