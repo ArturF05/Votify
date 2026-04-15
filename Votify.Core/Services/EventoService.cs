@@ -21,9 +21,9 @@ namespace Votify.Core.Services
         {
             this.eventoRepository = eventoRepository;
         }
-        public async Task<List<Evento>?> BuscarEvento(string nombre, Guid Id_Categoria)
+        public async Task<List<Evento>?> BuscarEvento(string nombre, Guid Id_Categoria, Guid idUsuario)
         {
-            return await eventoRepository.BuscarPorNombreAsync(nombre, Id_Categoria);
+            return await eventoRepository.BuscarPorNombreAsync(nombre, Id_Categoria, idUsuario);
         }
         public async Task<Evento> CrearEvento(string titulo, Guid categoriaId, DateTime fechaInicio, string descripcion, DateTime fechaFin,string tipo, Guid usuarioId)
         {

@@ -27,9 +27,17 @@ namespace Votify.Infrastructure.Repositorios
             await contexto.Evento.AddAsync(evento);
             return evento;
         }
-        public async Task<List<Evento>?> BuscarPorNombreAsync(string nombre, Guid Id_Categoria)
+        public async Task<List<Evento>?> BuscarPorNombreAsync(string nombre, Guid Id_Categoria, Guid idUsuario)
         {
-            eventos = await contexto.Evento.Include(e => e.Categoria).Where(e => e.Archivado == false).ToListAsync();
+            eventos = await contexto.Evento
+            .AsNoTracking()
+            .Include(e => e.Categoria)
+            .Where(e => contexto.EventoUsuarioRol
+                .Include(eur => eur.Rol)
+                .Any(eur => eur.EventoId == e.Id
+                         && eur.UsuarioId == idUsuario
+                         && eur.Rol.Nombre == "Organizador"))
+            .ToListAsync();
             eventosEncontrados.Clear();
             foreach (var eve in eventos)
             {

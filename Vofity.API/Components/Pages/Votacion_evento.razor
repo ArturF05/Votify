@@ -302,16 +302,27 @@
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender) return;
+        ProtectedBrowserStorageResult<Guid> resultado;
+        try
         {
-            var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
-
+            resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
             if (resultado.Success)
             {
                 idVotante = resultado.Value;
                 usuarioSesion.IdUsuario = resultado.Value;
                 StateHasChanged();
             }
+            if (!resultado.Success || resultado.Value == Guid.Empty)
+            {
+                nav.NavigateTo("/Login");
+                return;
+            }
+        }
+        catch (Exception e)
+        {
+            nav.NavigateTo("/Login");
+            return;
         }
     }
     private void Favorito(Guid idProyecto)

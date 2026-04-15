@@ -120,13 +120,13 @@ namespace Votify.API.Controllers
         }
 
         [HttpGet("buscar")]
-        public async Task<IActionResult> BuscarEvento([FromQuery] string nombre, [FromQuery] Guid idCategoria)
+        public async Task<IActionResult> BuscarEvento([FromQuery] string? nombre, [FromQuery] Guid idCategoria, [FromQuery] Guid idUsuario)
         {
             try
             {
                 nombre ??= "";
                 var categoria = idCategoria;
-                var eventos = await eventoService.BuscarEvento(nombre, idCategoria);
+                var eventos = await eventoService.BuscarEvento(nombre, idCategoria, idUsuario);
                 return Ok(eventos);
             }
             catch (Exception ex)
