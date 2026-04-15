@@ -20,8 +20,8 @@ namespace Votify.Core.Factories
                         Id = Guid.NewGuid(),
                         PermiteAutoVoto = permiteAutoVoto,
                         Id_evento = Id_evento,
-                        FechaInicio = fechaInicio,
-                        FechaFin = fechaFin,
+                        FechaInicio = fechaInicio.ToUniversalTime(),
+                        FechaFin = fechaFin.ToUniversalTime(),
                     };
 
                 case TipoVotacion.Jurado:
@@ -30,8 +30,8 @@ namespace Votify.Core.Factories
                         Id = Guid.NewGuid(),
                         PermiteAutoVoto = permiteAutoVoto,
                         Id_evento = Id_evento,
-                        FechaInicio = fechaInicio,
-                        FechaFin = fechaFin,
+                        FechaInicio = fechaInicio.ToUniversalTime(),
+                        FechaFin = fechaFin.ToUniversalTime(),
                     };
 
                 case TipoVotacion.Mixto:
@@ -40,8 +40,8 @@ namespace Votify.Core.Factories
                         Id = Guid.NewGuid(),
                         PermiteAutoVoto = permiteAutoVoto,
                         Id_evento = Id_evento,
-                        FechaInicio = fechaInicio,
-                        FechaFin = fechaFin,
+                        FechaInicio = fechaInicio.ToUniversalTime(),
+                        FechaFin = fechaFin.ToUniversalTime(),
                     };
                 default:
                     throw new ArgumentException("Tipo de votación no reconocido");

@@ -160,31 +160,38 @@ namespace Votify.Core.Tests.Participantes
                 UsuarioId = idUsuarioNoAsignado,
                 RolId = idRolJurado
             });
+            context.EventoUsuarioRol.Add(new EventoUsuarioRol
+            {
+                Id = Guid.NewGuid(),
+                EventoId = idEventoMixto,
+                UsuarioId = idUsuarioJurado,
+                RolId = idRolJurado
+            });
 
             context.Votacion.AddRange(
-                new Votify.Core.Entities.Votacion
+                new VotacionPublico
                 {
                     Id = Guid.NewGuid(),
                     Id_evento = idEventoPublico,
-                    TipoVotacion = TipoVotacion.Publico,
-                    FechaInicio = hoy.AddDays(-1),
-                    FechaFin = hoy.AddDays(1)
+                    FechaInicio = hoy.AddDays(-1).ToUniversalTime(),
+                    FechaFin = hoy.AddDays(1).ToUniversalTime(),
+                    PermiteAutoVoto = false
                 },
-                new Votify.Core.Entities.Votacion
+                new VotacionJurado
                 {
                     Id = Guid.NewGuid(),
                     Id_evento = idEventoJurado,
-                    TipoVotacion = TipoVotacion.Jurado,
-                    FechaInicio = hoy.AddDays(-1),
-                    FechaFin = hoy.AddDays(1)
+                    FechaInicio = hoy.AddDays(-1).ToUniversalTime(),
+                    FechaFin = hoy.AddDays(1).ToUniversalTime(),
+                    PermiteAutoVoto = false
                 },
-                new Votify.Core.Entities.Votacion
+                new VotacionMixta
                 {
                     Id = Guid.NewGuid(),
                     Id_evento = idEventoMixto,
-                    TipoVotacion = TipoVotacion.Mixto,
-                    FechaInicio = hoy.AddDays(-1),
-                    FechaFin = hoy.AddDays(1)
+                    FechaInicio = hoy.AddDays(-1).ToUniversalTime(),
+                    FechaFin = hoy.AddDays(1).ToUniversalTime(),
+                    PermiteAutoVoto = false
                 }
             );
 

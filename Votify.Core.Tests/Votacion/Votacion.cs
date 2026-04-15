@@ -56,7 +56,7 @@ namespace Votify.Core.Tests.Votacion
             idProyecto3 = Guid.NewGuid();
             idProyectoOtroEvento = Guid.NewGuid();
 
-            var hoy = DateTime.Now;
+            var hoy = DateTime.UtcNow;
             var categoriaId = Guid.NewGuid();
 
             context.Categoria.Add(new Categoria
@@ -143,91 +143,120 @@ namespace Votify.Core.Tests.Votacion
         }
 
         [TestMethod]
-        public async Task RegistrarVotoDtoNull_ReturnsFalse()
+        public async Task RegistrarVotoDtoNull_LanzaExcepcion()
         {
-            var resultado = await votacionService.RegistrarVotoAsync(idVotacion, null);
+            var exception = await Assert.ThrowsExceptionAsync<Exception>(
+                () => votacionService.RegistrarVotoAsync(idVotacion, null)
+            );
 
-            Assert.IsFalse(resultado);
+            Assert.AreEqual("El DTO del voto es nulo.", exception.Message);
         }
 
         [TestMethod]
-        public async Task RegistrarVotoListaProyectosNull_ReturnsFalse()
+        public async Task RegistrarVotoListaProyectosNull_LanzaExcepcion()
         {
             var dto = new EmitirVotoDTO
             {
                 IdVotante = idVotante,
-                IdsProyectos = null
+                Votos = null
             };
 
-            var resultado = await votacionService.RegistrarVotoAsync(idVotacion, dto);
+            var exception = await Assert.ThrowsExceptionAsync<Exception>(
+                () => votacionService.RegistrarVotoAsync(idVotacion, dto)
+            );
 
-            Assert.IsFalse(resultado);
+            Assert.AreEqual("Debes votar exactamente 3 proyectos.", exception.Message);
         }
 
         [TestMethod]
-        public async Task RegistrarVotoMenosDe3Proyectos_ReturnsFalse()
+        public async Task RegistrarVotoMenosDe3Proyectos_LanzaExcepcion()
         {
             var dto = new EmitirVotoDTO
             {
                 IdVotante = idVotante,
-                IdsProyectos = new List<Guid> { idProyecto1, idProyecto2 }
-            };
-
-            var resultado = await votacionService.RegistrarVotoAsync(idVotacion, dto);
-
-            Assert.IsFalse(resultado);
-        }
-
-        [TestMethod]
-        public async Task RegistrarVotoMasDe3Proyectos_ReturnsFalse()
-        {
-            var dto = new EmitirVotoDTO
-            {
-                IdVotante = idVotante,
-                IdsProyectos = new List<Guid>
+                Votos = new List<VotoDetalleDTO>
                 {
-                    idProyecto1, idProyecto2, idProyecto3, Guid.NewGuid()
+                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2 }
                 }
             };
 
-            var resultado = await votacionService.RegistrarVotoAsync(idVotacion, dto);
+            var exception = await Assert.ThrowsExceptionAsync<Exception>(
+                () => votacionService.RegistrarVotoAsync(idVotacion, dto)
+            );
 
-            Assert.IsFalse(resultado);
+            Assert.AreEqual("Debes votar exactamente 3 proyectos.", exception.Message);
         }
 
         [TestMethod]
-        public async Task RegistrarVotoProyectosRepetidos_ReturnsFalse()
+        public async Task RegistrarVotoMasDe3Proyectos_LanzaExcepcion()
         {
             var dto = new EmitirVotoDTO
             {
                 IdVotante = idVotante,
-                IdsProyectos = new List<Guid> { idProyecto1, idProyecto1, idProyecto2 }
+                Votos = new List<VotoDetalleDTO>
+                {
+                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto3 },
+                    new VotoDetalleDTO { IdProyecto = Guid.NewGuid() }
+                }
             };
 
-            var resultado = await votacionService.RegistrarVotoAsync(idVotacion, dto);
+            var exception = await Assert.ThrowsExceptionAsync<Exception>(
+                () => votacionService.RegistrarVotoAsync(idVotacion, dto)
+            );
 
-            Assert.IsFalse(resultado);
+            Assert.AreEqual("Debes votar exactamente 3 proyectos.", exception.Message);
         }
 
         [TestMethod]
-        public async Task RegistrarVotoVotacionNoExiste_ReturnsFalse()
+        public async Task RegistrarVotoProyectosRepetidos_LanzaExcepcion()
         {
             var dto = new EmitirVotoDTO
             {
                 IdVotante = idVotante,
-                IdsProyectos = new List<Guid> { idProyecto1, idProyecto2, idProyecto3 }
+                Votos = new List<VotoDetalleDTO>
+                {
+                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2 }
+                }
             };
 
-            var resultado = await votacionService.RegistrarVotoAsync(Guid.NewGuid(), dto);
+            var exception = await Assert.ThrowsExceptionAsync<Exception>(
+                () => votacionService.RegistrarVotoAsync(idVotacion, dto)
+            );
 
-            Assert.IsFalse(resultado);
+            Assert.AreEqual("No puedes votar dos veces al mismo proyecto.", exception.Message);
         }
 
         [TestMethod]
-        public async Task RegistrarVotoFueraDeFecha_ReturnsFalse()
+        public async Task RegistrarVotoVotacionNoExiste_LanzaExcepcion()
+        {
+            var dto = new EmitirVotoDTO
+            {
+                IdVotante = idVotante,
+                Votos = new List<VotoDetalleDTO>
+                {
+                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto3 }
+                }
+            };
+
+            var exception = await Assert.ThrowsExceptionAsync<Exception>(
+                () => votacionService.RegistrarVotoAsync(Guid.NewGuid(), dto)
+            );
+
+            Assert.AreEqual("La votación no existe.", exception.Message);
+        }
+
+        [TestMethod]
+        public async Task RegistrarVotoFueraDeFecha_LanzaExcepcion()
         {
             var votacionFueraFechaId = Guid.NewGuid();
-            var hoy = DateTime.Now;
+            var hoy = DateTime.UtcNow;
 
             context.Votacion.Add(new VotacionPublico
             {
@@ -237,21 +266,28 @@ namespace Votify.Core.Tests.Votacion
                 FechaFin = hoy.AddDays(5),
                 PermiteAutoVoto = false
             });
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var dto = new EmitirVotoDTO
             {
                 IdVotante = Guid.NewGuid(),
-                IdsProyectos = new List<Guid> { idProyecto1, idProyecto2, idProyecto3 }
+                Votos = new List<VotoDetalleDTO>
+                {
+                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto3 }
+                }
             };
 
-            var resultado = await votacionService.RegistrarVotoAsync(votacionFueraFechaId, dto);
+            var exception = await Assert.ThrowsExceptionAsync<Exception>(
+                () => votacionService.RegistrarVotoAsync(votacionFueraFechaId, dto)
+            );
 
-            Assert.IsFalse(resultado);
+            Assert.AreEqual("La votación no está activa.", exception.Message);
         }
 
         [TestMethod]
-        public async Task RegistrarVotoUsuarioYaVoto_ReturnsFalse()
+        public async Task RegistrarVotoUsuarioYaVoto_LanzaExcepcion()
         {
             context.Voto.Add(new Voto
             {
@@ -260,48 +296,94 @@ namespace Votify.Core.Tests.Votacion
                 Id_proyecto = idProyecto1,
                 Id_votante = idVotante,
                 Puntuacion = 1,
-                Fecha_voto = DateTime.Now
+                Fecha_voto = DateTime.UtcNow
             });
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var dto = new EmitirVotoDTO
             {
                 IdVotante = idVotante,
-                IdsProyectos = new List<Guid> { idProyecto1, idProyecto2, idProyecto3 }
+                Votos = new List<VotoDetalleDTO>
+                {
+                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto3 }
+                }
             };
 
-            var resultado = await votacionService.RegistrarVotoAsync(idVotacion, dto);
+            var exception = await Assert.ThrowsExceptionAsync<Exception>(
+                () => votacionService.RegistrarVotoAsync(idVotacion, dto)
+            );
 
-            Assert.IsFalse(resultado);
+            Assert.AreEqual("Este usuario ya ha votado.", exception.Message);
         }
 
         [TestMethod]
-        public async Task RegistrarVotoProyectoNoExiste_ReturnsFalse()
+        public async Task RegistrarVotoProyectoNoExiste_LanzaExcepcion()
         {
             var dto = new EmitirVotoDTO
             {
                 IdVotante = Guid.NewGuid(),
-                IdsProyectos = new List<Guid> { idProyecto1, idProyecto2, Guid.NewGuid() }
+                Votos = new List<VotoDetalleDTO>
+                {
+                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2 },
+                    new VotoDetalleDTO { IdProyecto = Guid.NewGuid() }
+                }
             };
 
-            var resultado = await votacionService.RegistrarVotoAsync(idVotacion, dto);
+            var exception = await Assert.ThrowsExceptionAsync<Exception>(
+                () => votacionService.RegistrarVotoAsync(idVotacion, dto)
+            );
 
-            Assert.IsFalse(resultado);
+            Assert.AreEqual("No se han encontrado los 3 proyectos.", exception.Message);
         }
 
         [TestMethod]
-        public async Task RegistrarVotoProyectoDeOtroEvento_ReturnsFalse()
+        public async Task RegistrarVotoProyectoDeOtroEvento_LanzaExcepcion()
         {
             var dto = new EmitirVotoDTO
             {
                 IdVotante = Guid.NewGuid(),
-                IdsProyectos = new List<Guid> { idProyecto1, idProyecto2, idProyectoOtroEvento }
+                Votos = new List<VotoDetalleDTO>
+                {
+                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2 },
+                    new VotoDetalleDTO { IdProyecto = idProyectoOtroEvento }
+                }
+            };
+
+            var exception = await Assert.ThrowsExceptionAsync<Exception>(
+                () => votacionService.RegistrarVotoAsync(idVotacion, dto)
+            );
+
+            Assert.AreEqual("Algún proyecto no pertenece al evento.", exception.Message);
+        }
+
+        [TestMethod]
+        public async Task RegistrarVotoValid_ReturnsTrue_AndGuarda3Votos()
+        {
+            var dto = new EmitirVotoDTO
+            {
+                IdVotante = idVotante,
+                Votos = new List<VotoDetalleDTO>
+                {
+                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto3 }
+                }
             };
 
             var resultado = await votacionService.RegistrarVotoAsync(idVotacion, dto);
 
-            Assert.IsFalse(resultado);
+            Assert.IsTrue(resultado);
+
+            var votosGuardados = context.Voto
+                .Where(v => v.Id_votacion == idVotacion && v.Id_votante == idVotante)
+                .ToList();
+
+            Assert.AreEqual(3, votosGuardados.Count);
         }
 
         [TestMethod]
@@ -312,9 +394,9 @@ namespace Votify.Core.Tests.Votacion
                 IdVotante = idVotante,
                 Votos = new List<VotoDetalleDTO>
                 {
-                    new VotoDetalleDTO { IdProyecto = idProyecto1},
-                    new VotoDetalleDTO { IdProyecto = idProyecto2},
-                    new VotoDetalleDTO { IdProyecto = idProyecto3}
+                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2 },
+                    new VotoDetalleDTO { IdProyecto = idProyecto3 }
                 }
             };
 
@@ -323,10 +405,8 @@ namespace Votify.Core.Tests.Votacion
             var voto = await context.Voto.FirstOrDefaultAsync(v => v.Id_votante == idVotante);
 
             Assert.IsNotNull(voto);
-            Assert.AreEqual(DateTime.Today, voto.Fecha_voto.Date);
+            Assert.AreEqual(DateTime.UtcNow.Date, voto.Fecha_voto.Date);
         }
-
-
 
         [TestMethod]
         public async Task CrearVotacion_ValidData_CreaVotacionCorrectamente()
@@ -409,8 +489,9 @@ namespace Votify.Core.Tests.Votacion
             await votacionService.CrearVotacion(idEvento, inicioVotacion, finVotacion, true, TipoVotacion.Publico);
 
             var votacionCreada = await context.Votacion
-                .OrderByDescending(v => v.Id)
-                .FirstOrDefaultAsync(v => v.Id_evento == idEvento && v.Id != idVotacion);
+                .Where(v => v.Id_evento == idEvento && v.Id != idVotacion)
+                .OrderByDescending(v => v.FechaInicio)
+                .FirstOrDefaultAsync();
 
             Assert.IsNotNull(votacionCreada);
             Assert.AreEqual(inicioVotacion.ToUniversalTime(), votacionCreada.FechaInicio);
@@ -434,18 +515,18 @@ namespace Votify.Core.Tests.Votacion
             Assert.AreNotEqual(votaciones[0].Id, votaciones[1].Id);
         }
 
-
         [TestMethod]
         public async Task EditarVotacion_ValidData_ActualizaCorrectamente()
         {
             var nuevoEvento = Guid.NewGuid();
-            context.Evento.Add(new Evento
+            context.Evento.Add(new EventoHackathon
             {
                 Id = nuevoEvento,
                 Nombre = "Nuevo Evento",
                 Descripcion = "Descripcion nuevo evento",
                 FechaInicio = DateTime.Now.AddDays(-1),
-                FechaFin = DateTime.Now.AddDays(30)
+                FechaFin = DateTime.Now.AddDays(30),
+                Id_categoria = context.Categoria.First().Id
             });
             await context.SaveChangesAsync();
 
@@ -510,7 +591,7 @@ namespace Votify.Core.Tests.Votacion
             var inicioVotacion = DateTime.Now.AddDays(1);
             var finVotacion = DateTime.Now.AddDays(10);
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, inicioVotacion, finVotacion, !permisoOriginal,TipoVotacion.Publico);
+            await votacionService.EditarVotacion(idVotacion, idEvento, inicioVotacion, finVotacion, !permisoOriginal, TipoVotacion.Publico);
 
             var votacionActualizada = await context.Votacion.FindAsync(idVotacion);
 
@@ -545,8 +626,6 @@ namespace Votify.Core.Tests.Votacion
             Assert.AreEqual(idVotacion, votacionEditada.Id);
         }
 
-
-
         [TestMethod]
         public async Task EliminarVotacion_VotacionExiste_EliminaCorrectamente()
         {
@@ -575,11 +654,11 @@ namespace Votify.Core.Tests.Votacion
         public async Task EliminarVotacion_NoAfectaOtrasVotaciones()
         {
             var otraVotacionId = Guid.NewGuid();
-            var hoy = DateTime.Now;
+            var hoy = DateTime.UtcNow;
 
             context.Votacion.Add(new VotacionPublico
             {
-                Id = idVotacion,
+                Id = otraVotacionId,
                 Id_evento = idEvento,
                 FechaInicio = hoy.AddDays(-1),
                 FechaFin = hoy.AddDays(1),
@@ -640,7 +719,6 @@ namespace Votify.Core.Tests.Votacion
             Assert.IsNull(resultado);
         }
 
-
         [TestMethod]
         public async Task BuscarVotacion_ConEventoExistente_RetornaVotaciones()
         {
@@ -663,38 +741,41 @@ namespace Votify.Core.Tests.Votacion
         [TestMethod]
         public async Task BuscarVotacion_FiltroPermiteAutoVoto_FiltraCorrectamente()
         {
-            // Agregar votacion con PermiteAutoVoto = true
             var votacionConAutoVoto = Guid.NewGuid();
-            var hoy = DateTime.Now;
+            var hoy = DateTime.UtcNow;
+
+            context.ChangeTracker.Clear();
 
             context.Votacion.Add(new VotacionPublico
             {
-                Id = idVotacion,
+                Id = votacionConAutoVoto,
                 Id_evento = idEvento,
                 FechaInicio = hoy.AddDays(-1),
                 FechaFin = hoy.AddDays(1),
-                PermiteAutoVoto = false
+                PermiteAutoVoto = true
             });
             await context.SaveChangesAsync();
 
-            // El filtro 1 debería filtrar por PermiteAutoVoto = true (depende de la implementación del repo)
             var resultado = await votacionService.BuscarVotacion(idEvento, 0, 1, false);
 
             Assert.IsNotNull(resultado);
+            Assert.IsTrue(resultado.All(v => v.PermiteAutoVoto));
         }
 
         [TestMethod]
         public async Task BuscarVotacion_VerFinalizadasTrue_IncluyeFinalizadas()
         {
             var votacionFinalizada = Guid.NewGuid();
-            var hoy = DateTime.Now;
+            var hoy = DateTime.UtcNow;
+
+            context.ChangeTracker.Clear();
 
             context.Votacion.Add(new VotacionPublico
             {
-                Id = idVotacion,
+                Id = votacionFinalizada,
                 Id_evento = idEvento,
-                FechaInicio = hoy.AddDays(-1),
-                FechaFin = hoy.AddDays(1),
+                FechaInicio = hoy.AddDays(-10),
+                FechaFin = hoy.AddDays(-5),
                 PermiteAutoVoto = false
             });
             await context.SaveChangesAsync();
@@ -702,6 +783,7 @@ namespace Votify.Core.Tests.Votacion
             var resultado = await votacionService.BuscarVotacion(idEvento, 0, 0, true);
 
             Assert.IsNotNull(resultado);
+            Assert.IsTrue(resultado.Any(v => v.Id == votacionFinalizada));
         }
 
         [TestMethod]
@@ -710,8 +792,7 @@ namespace Votify.Core.Tests.Votacion
             var resultado = await votacionService.BuscarVotacion(idEvento, 0, 0, false);
 
             Assert.IsNotNull(resultado);
+            Assert.IsTrue(resultado.All(v => v.FechaFin > DateTime.UtcNow));
         }
-
-
     }
 }
