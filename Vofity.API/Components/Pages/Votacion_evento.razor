@@ -407,19 +407,11 @@
             }).ToList()
         };
 
-         try
-        {
             var resultado = await VotacionService.RegistrarVotoAsync(idVotacion, votoDto);
 
             mensaje = resultado
                 ? "Voto enviado correctamente."
                 : "Error al registrar el voto. Verifica que no hayas votado antes y que la votación esté activa.";
-        }
-        catch (Exception ex)
-        {
-            mensaje = $"HTTP Error: {ex.Message}";
-            Console.WriteLine($"[DEBUG] Full exception: {ex}");
-        }
     }
 
     void Volver()

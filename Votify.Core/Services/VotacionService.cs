@@ -25,37 +25,36 @@ namespace Votify.Core.Services
         public async Task<bool> RegistrarVotoAsync(Guid idVotacion, EmitirVotoDTO dto)
         {
             if (dto == null)
-                throw new Exception("El DTO del voto es nulo.");
-
+                return false;
             if (dto.IdVotante == Guid.Empty)
-                throw new Exception("El id del votante está vacío.");
+                return false;
 
             if (dto.Votos == null || dto.Votos.Count != 3)
-                throw new Exception("Debes votar exactamente 3 proyectos.");
+                return false;
 
             var idsProyectos = dto.Votos.Select(v => v.IdProyecto).ToList();
 
             if (idsProyectos.Distinct().Count() != 3)
-                throw new Exception("No puedes votar dos veces al mismo proyecto.");
+                return false;
 
             var votacion = await votacionRepository.ObtenerPorIdAsync(idVotacion);
             if (votacion == null)
-                throw new Exception("La votación no existe.");
+                return false;
 
             var hoy = DateTime.Now;
             if (hoy < votacion.FechaInicio || hoy > votacion.FechaFin)
-                throw new Exception("La votación no está activa.");
+                return false;
 
             bool yaVoto = await votoRepository.UsuarioYaVotoAsync(idVotacion, dto.IdVotante);
             if (yaVoto)
-                throw new Exception("Este usuario ya ha votado.");
+                return false;
 
             var proyectos = await proyectoRepository.ObtenerPorIdAsync(idsProyectos);
             if (proyectos.Count != 3)
-                throw new Exception("No se han encontrado los 3 proyectos.");
+                return false;
 
             if (proyectos.Any(p => p.Id_evento != votacion.Id_evento))
-                throw new Exception("Algún proyecto no pertenece al evento.");
+                return false;
 
             var votos = dto.Votos.Select(v => new Voto
             {
@@ -90,8 +89,8 @@ namespace Votify.Core.Services
                 {
                     Id = Guid.NewGuid(),
                     Id_evento = Id_evento,
-                    FechaInicio = inicioVotacion,
-                    FechaFin = finVotacion,
+                    FechaInicio = inicioVotacion.ToUniversalTime(),
+                    FechaFin = finVotacion.ToUniversalTime(),
                     PermiteAutoVoto = permiteAutoVoto,
                     TipoVotacion = tipoVotacion
                 };

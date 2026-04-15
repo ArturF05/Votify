@@ -161,6 +161,33 @@ namespace Votify.Core.Tests.Participantes
                 RolId = idRolJurado
             });
 
+            context.Votacion.AddRange(
+                new Votify.Core.Entities.Votacion
+                {
+                    Id = Guid.NewGuid(),
+                    Id_evento = idEventoPublico,
+                    TipoVotacion = TipoVotacion.Publico,
+                    FechaInicio = hoy.AddDays(-1),
+                    FechaFin = hoy.AddDays(1)
+                },
+                new Votify.Core.Entities.Votacion
+                {
+                    Id = Guid.NewGuid(),
+                    Id_evento = idEventoJurado,
+                    TipoVotacion = TipoVotacion.Jurado,
+                    FechaInicio = hoy.AddDays(-1),
+                    FechaFin = hoy.AddDays(1)
+                },
+                new Votify.Core.Entities.Votacion
+                {
+                    Id = Guid.NewGuid(),
+                    Id_evento = idEventoMixto,
+                    TipoVotacion = TipoVotacion.Mixto,
+                    FechaInicio = hoy.AddDays(-1),
+                    FechaFin = hoy.AddDays(1)
+                }
+            );
+
             context.SaveChanges();
         }
 
@@ -298,7 +325,7 @@ namespace Votify.Core.Tests.Participantes
             }
 
             var evento = await context.Evento.FirstOrDefaultAsync(e => e.Id == idEvento);
-            var votacion = await context.Votacion.Include(v => v.Id_evento).FirstOrDefaultAsync(v => v.Id_evento == idEvento);
+            var votacion = await context.Votacion.Include(v => v.Evento).FirstOrDefaultAsync(v => v.Id_evento == idEvento);
 
             if (evento == null)
             {

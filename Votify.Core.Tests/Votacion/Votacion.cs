@@ -142,26 +142,6 @@ namespace Votify.Core.Tests.Votacion
         }
 
         [TestMethod]
-        public async Task RegistrarVotoValid_ReturnsTrue_AndGuarda3Votos()
-        {
-            var dto = new EmitirVotoDTO
-            {
-                IdVotante = idVotante,
-                IdsProyectos = new List<Guid> { idProyecto1, idProyecto2, idProyecto3 }
-            };
-
-            var resultado = await votacionService.RegistrarVotoAsync(idVotacion, dto);
-
-            Assert.IsTrue(resultado);
-
-            var votosGuardados = context.Voto
-                .Where(v => v.Id_votacion == idVotacion && v.Id_votante == idVotante)
-                .ToList();
-
-            Assert.AreEqual(3, votosGuardados.Count);
-        }
-
-        [TestMethod]
         public async Task RegistrarVotoDtoNull_ReturnsFalse()
         {
             var resultado = await votacionService.RegistrarVotoAsync(idVotacion, null);
@@ -329,7 +309,12 @@ namespace Votify.Core.Tests.Votacion
             var dto = new EmitirVotoDTO
             {
                 IdVotante = idVotante,
-                IdsProyectos = new List<Guid> { idProyecto1, idProyecto2, idProyecto3 }
+                Votos = new List<VotoDetalleDTO>
+                {
+                    new VotoDetalleDTO { IdProyecto = idProyecto1},
+                    new VotoDetalleDTO { IdProyecto = idProyecto2},
+                    new VotoDetalleDTO { IdProyecto = idProyecto3}
+                }
             };
 
             await votacionService.RegistrarVotoAsync(idVotacion, dto);

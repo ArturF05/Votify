@@ -9,13 +9,13 @@ using Votify.Core.Services;
 
 namespace Votify.Core.Tests.LoginRegisterUser
 {
-   /* [TestClass]
+    [TestClass]
     public class LoginServiceTests
     {
         private LoginService loginService;
 
         [TestMethod]
-        public async Task LoginValid()
+        public async Task UsuarioPuedeIniciarSesion()
         {
             var jsonRespuesta = """
             {
@@ -38,7 +38,7 @@ namespace Votify.Core.Tests.LoginRegisterUser
         }
 
         [TestMethod]
-        public async Task LoginIncorrectPass()
+        public async Task ContraseñaIncorrectaNoIniciaSesion()
         {
             var jsonRespuesta = """
             {
@@ -57,7 +57,7 @@ namespace Votify.Core.Tests.LoginRegisterUser
         }
 
         [TestMethod]
-        public async Task LoginUserNotExists()
+        public async Task UsuarioIncorrectoNoIniciaSesion()
         {
             var jsonRespuesta = """
             {
@@ -76,7 +76,7 @@ namespace Votify.Core.Tests.LoginRegisterUser
         }
 
         [TestMethod]
-        public async Task LoginUserNull()
+        public async Task UsuarioNullNoIniciaSesion()
         {
             var jsonRespuesta = """
             {
@@ -95,7 +95,7 @@ namespace Votify.Core.Tests.LoginRegisterUser
         }
 
         [TestMethod]
-        public async Task LoginPassNull()
+        public async Task ContraseñaNullNoIniciaSesion()
         {
             var jsonRespuesta = """
             {
@@ -146,5 +146,5 @@ namespace Votify.Core.Tests.LoginRegisterUser
 
             return Task.FromResult(response);
         }
-    }*/
+    }
 }
