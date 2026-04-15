@@ -24,17 +24,13 @@ public class AppDbContext : DbContext
     public DbSet<Categoria> Categoria { get; set; }
     public DbSet<DimensionesDeValor> DimensionesDeValor { get; set; }
     public DbSet<EventoUsuarioRol> EventoUsuarioRol { get; set; }
-      
-    protected override void OnModelCreating(ModelBuilder modelBuilder) //Si no se pone da problemas raros
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<EventoHackathon>().HasBaseType<Evento>();
         modelBuilder.Entity<EventoConcurso>().HasBaseType<Evento>();
-
-        // Ignorar propiedades sin FK en la BD
-        base.OnModelCreating(modelBuilder);
-
 
         modelBuilder.Entity<EventoUsuarioRol>(entity =>
         {
@@ -42,5 +38,38 @@ public class AppDbContext : DbContext
             entity.Ignore(e => e.Id);
             entity.HasKey(e => new { e.EventoId, e.UsuarioId, e.RolId });
         });
+
+        modelBuilder.Entity<Votacion>(entity =>
+        {
+            entity.ToTable("Votacion");
+
+            entity.HasKey(v => v.Id);
+
+            entity.Property(v => v.Id_evento)
+                .HasColumnName("Id_evento");
+
+            entity.Property(v => v.FechaInicio)
+                .HasColumnName("FechaInicio");
+
+            entity.Property(v => v.FechaFin)
+                .HasColumnName("FechaFin");
+
+            entity.Ignore(v => v.Tipo);
+
+            entity.HasOne<Evento>()
+                .WithMany(e => e.Votaciones)
+                .HasForeignKey(v => v.Id_evento)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<VotacionJurado>().HasBaseType<Votacion>();
+        modelBuilder.Entity<VotacionPublico>().HasBaseType<Votacion>();
+        modelBuilder.Entity<VotacionMixta>().HasBaseType<Votacion>();
+
+        modelBuilder.Entity<Votacion>()
+            .HasDiscriminator<int>("TipoVotacion")
+            .HasValue<VotacionPublico>(0)
+            .HasValue<VotacionJurado>(1)
+            .HasValue<VotacionMixta>(2);
     }
 }

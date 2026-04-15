@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Votify.Core.DTOs;
 using Votify.Core.Entities;
 using Votify.Core.Interfaces;
+using Votify.Core.Factories;
 
 namespace Votify.Core.Services
 {
@@ -14,12 +15,14 @@ namespace Votify.Core.Services
         private readonly IVotacionRepository votacionRepository;
         private readonly IVotoRepository votoRepository;
         private readonly IProyectoRepository proyectoRepository;
+        private readonly VotacionFactory votacionFactory;
 
         public VotacionService(IVotacionRepository votacionRepository, IVotoRepository votoRepository, IProyectoRepository proyectoRepository)
         {
             this.votacionRepository = votacionRepository;
             this.votoRepository = votoRepository;
             this.proyectoRepository = proyectoRepository;
+            this.votacionFactory = new ConcreteVotacionFactory();
         }
 
         public async Task<bool> RegistrarVotoAsync(Guid idVotacion, EmitirVotoDTO dto)
@@ -76,43 +79,57 @@ namespace Votify.Core.Services
         {
             return await votacionRepository.BuscarPorNombreAsync(Id_evento, tipoVotacion, permiteAutoVoto, verFinalizadas);
         }
-        
-            public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion)
-            {
-                if (Id_evento == Guid.Empty)
-                    throw new Exception("El evento es obligatorio");
 
-                if (finVotacion < inicioVotacion)
-                    throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
-
-                var nuevaVotacion = new Votacion
-                {
-                    Id = Guid.NewGuid(),
-                    Id_evento = Id_evento,
-                    FechaInicio = inicioVotacion.ToUniversalTime(),
-                    FechaFin = finVotacion.ToUniversalTime(),
-                    PermiteAutoVoto = permiteAutoVoto,
-                    TipoVotacion = tipoVotacion
-                };
-
-                await votacionRepository.CrearVotacionAsync(nuevaVotacion);
-            }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion)
+        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion)
         {
-            var votacion = await votacionRepository.ObtenerPorIdAsync(Id);
-            if (votacion == null)
-                throw new Exception("La votación no existe");
             if (Id_evento == Guid.Empty)
                 throw new Exception("El evento es obligatorio");
+
             if (finVotacion < inicioVotacion)
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
-            votacion.Id_evento = Id_evento;
-            votacion.FechaInicio = inicioVotacion.ToUniversalTime();
-            votacion.FechaFin = finVotacion.ToUniversalTime();
-            votacion.PermiteAutoVoto = permiteAutoVoto;
-            votacion.TipoVotacion = tipoVotacion;
 
-            await votacionRepository.EditarVotacionAsync(votacion);
+            var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion);
+
+            await votacionRepository.CrearVotacionAsync(nuevaVotacion);
+        }
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion)
+        {
+            var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);
+
+            if (votacionActual == null)
+                throw new Exception("La votación no existe");
+            System.Diagnostics.Debug.WriteLine($"Tipo actual real: {votacionActual.GetType().Name}");
+            System.Diagnostics.Debug.WriteLine($"Tipo actual enum: {votacionActual.Tipo}");
+            System.Diagnostics.Debug.WriteLine($"Tipo recibido: {tipoVotacion}");
+
+            if (Id_evento == Guid.Empty)
+                throw new Exception("El evento es obligatorio");
+
+            if (finVotacion < inicioVotacion)
+                throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
+
+            if (votacionActual.Tipo == tipoVotacion)
+            {
+                votacionActual.Id_evento = Id_evento;
+                votacionActual.FechaInicio = DateTime.SpecifyKind(inicioVotacion, DateTimeKind.Local).ToUniversalTime();
+                votacionActual.FechaFin = DateTime.SpecifyKind(finVotacion, DateTimeKind.Local).ToUniversalTime();
+                votacionActual.PermiteAutoVoto = permiteAutoVoto;
+
+                await votacionRepository.EditarVotacionAsync(votacionActual);
+                return;
+            }
+
+            var nuevaVotacion = votacionFactory.CrearVotacion(
+                inicioVotacion,
+                finVotacion,
+                permiteAutoVoto,
+                Id_evento,
+                tipoVotacion
+            );
+
+            nuevaVotacion.Id = votacionActual.Id;
+
+            await votacionRepository.ReemplazarVotacionAsync(votacionActual, nuevaVotacion);
         }
 
         public async Task EliminarVotacion(Guid Id)
@@ -128,6 +145,14 @@ namespace Votify.Core.Services
         public async Task<Votacion?> ObtenerPorIdAsync(Guid id)
         {
             return await votacionRepository.ObtenerPorIdAsync(id);
+        }
+        private static TipoVotacion ObtenerTipo(Votacion votacion)
+        {
+            if (votacion is VotacionPublico) return TipoVotacion.Publico;
+            if (votacion is VotacionJurado) return TipoVotacion.Jurado;
+            if (votacion is VotacionMixta) return TipoVotacion.Mixto;
+
+            throw new Exception("Tipo de votación desconocido");
         }
 
 

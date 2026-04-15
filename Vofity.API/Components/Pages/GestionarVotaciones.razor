@@ -74,8 +74,8 @@
                 @foreach (var vot in votaciones.Where(vot => (vot.FechaFin.CompareTo(DateTime.UtcNow) > 0 && !verFinalizadas) || (vot.FechaFin.CompareTo(DateTime.UtcNow)<= 0 && verFinalizadas)))
                 {
                     <tr>
-                        <td>@vot.Evento?.Nombre</td>
-                        <td>@vot.TipoVotacion</td>
+                        <td>@eventos.FirstOrDefault(e => e.Id == vot.Id_evento)?.Nombre</td>
+                        <td>@ObtenerTipoVotacion(vot)</td>
                         <td>@vot.PermiteAutoVoto</td>
                         <td>@vot.FechaInicio.ToLocalTime()</td>
                         <td>@vot.FechaFin.ToLocalTime()</td>
@@ -110,7 +110,7 @@
     protected override async Task OnInitializedAsync()
     {
         eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
-        votaciones = await contexto.Votacion.Include(v => v.Evento).ToListAsync();
+        votaciones = await contexto.Votacion.ToListAsync();
         HayVotaciones();
     }
 
@@ -127,7 +127,7 @@
         noHayResultados = "";
         if (tipoVotacion == -1 && Id_evento == Guid.Empty && permiteAutoVoto==-1)
         {
-            votaciones = await contexto.Votacion.Include(v => v.Evento).ToListAsync();
+            votaciones = await contexto.Votacion.ToListAsync();
             HayVotaciones();
         }
         else
@@ -185,5 +185,12 @@
             else noHayResultados = "No hay votaciones finalizadas";
         else if (string.IsNullOrEmpty(noHayResultados) || noHayResultados == "No hay votaciones que no hayan finalizado")
             noHayResultados = "";
+    }
+    private string ObtenerTipoVotacion(Votify.Core.Entities.Votacion vot)
+    {
+        if (vot is VotacionPublico) return "Público";
+        if (vot is VotacionJurado) return "Jurado";
+        if (vot is VotacionMixta) return "Mixta";
+        return "Desconocido";
     }
 }

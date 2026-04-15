@@ -98,12 +98,13 @@ namespace Votify.Core.Tests.Votacion
             context.Evento.Add(otroEvento);
             context.Evento.Add(otroEvento2);
 
-            context.Votacion.Add(new Votify.Core.Entities.Votacion
+            context.Votacion.Add(new VotacionPublico
             {
                 Id = idVotacion,
                 Id_evento = idEvento,
                 FechaInicio = hoy.AddDays(-1),
-                FechaFin = hoy.AddDays(1)
+                FechaFin = hoy.AddDays(1),
+                PermiteAutoVoto = false
             });
 
             context.Proyecto.Add(new Proyecto
@@ -228,14 +229,14 @@ namespace Votify.Core.Tests.Votacion
             var votacionFueraFechaId = Guid.NewGuid();
             var hoy = DateTime.Now;
 
-            context.Votacion.Add(new Votify.Core.Entities.Votacion
+            context.Votacion.Add(new VotacionPublico
             {
                 Id = votacionFueraFechaId,
                 Id_evento = idEvento,
                 FechaInicio = hoy.AddDays(2),
                 FechaFin = hoy.AddDays(5),
+                PermiteAutoVoto = false
             });
-
             context.SaveChanges();
 
             var dto = new EmitirVotoDTO
@@ -576,12 +577,13 @@ namespace Votify.Core.Tests.Votacion
             var otraVotacionId = Guid.NewGuid();
             var hoy = DateTime.Now;
 
-            context.Votacion.Add(new Votify.Core.Entities.Votacion
+            context.Votacion.Add(new VotacionPublico
             {
-                Id = otraVotacionId,
+                Id = idVotacion,
                 Id_evento = idEvento,
                 FechaInicio = hoy.AddDays(-1),
-                FechaFin = hoy.AddDays(1)
+                FechaFin = hoy.AddDays(1),
+                PermiteAutoVoto = false
             });
             await context.SaveChangesAsync();
 
@@ -665,13 +667,13 @@ namespace Votify.Core.Tests.Votacion
             var votacionConAutoVoto = Guid.NewGuid();
             var hoy = DateTime.Now;
 
-            context.Votacion.Add(new Votify.Core.Entities.Votacion
+            context.Votacion.Add(new VotacionPublico
             {
-                Id = votacionConAutoVoto,
+                Id = idVotacion,
                 Id_evento = idEvento,
                 FechaInicio = hoy.AddDays(-1),
                 FechaFin = hoy.AddDays(1),
-                PermiteAutoVoto = true
+                PermiteAutoVoto = false
             });
             await context.SaveChangesAsync();
 
@@ -687,12 +689,13 @@ namespace Votify.Core.Tests.Votacion
             var votacionFinalizada = Guid.NewGuid();
             var hoy = DateTime.Now;
 
-            context.Votacion.Add(new Votify.Core.Entities.Votacion
+            context.Votacion.Add(new VotacionPublico
             {
-                Id = votacionFinalizada,
+                Id = idVotacion,
                 Id_evento = idEvento,
-                FechaInicio = hoy.AddDays(-10),
-                FechaFin = hoy.AddDays(-5)
+                FechaInicio = hoy.AddDays(-1),
+                FechaFin = hoy.AddDays(1),
+                PermiteAutoVoto = false
             });
             await context.SaveChangesAsync();
 

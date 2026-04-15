@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Votify.Core.Entities;
 using Votify.Core.Interfaces;
 using Votify.Infrastructure.Data;
@@ -13,9 +8,6 @@ namespace Votify.Infrastructure.Repositorios
     public class VotacionRepository : IVotacionRepository
     {
         private readonly AppDbContext contexto;
-        List<Votify.Core.Entities.Votacion> votaciones = new();
-        List<Votify.Core.Entities.Votacion> votacionesEncontradas = new();
-
 
         public VotacionRepository(AppDbContext contexto)
         {
@@ -29,31 +21,73 @@ namespace Votify.Infrastructure.Repositorios
 
         public async Task<List<Votacion>?> BuscarPorNombreAsync(Guid Id_evento, int tipoVotacion, int permiteAutoVoto, bool verFinalizadas)
         {
-            votaciones = await contexto.Votacion.Include(v => v.Evento).ToListAsync();
-            votaciones = votaciones.Where(vot => (vot.FechaFin > DateTime.UtcNow && !verFinalizadas)|| (vot.FechaFin <= DateTime.UtcNow && verFinalizadas)).ToList();
-            votacionesEncontradas.Clear();
-            foreach (var vot in votaciones)
+            IQueryable<Votacion> query = contexto.Votacion;
+
+            query = query.Where(v =>
+                (v.FechaFin > DateTime.UtcNow && !verFinalizadas) ||
+                (v.FechaFin <= DateTime.UtcNow && verFinalizadas));
+
+            if (Id_evento != Guid.Empty)
+                query = query.Where(v => v.Id_evento == Id_evento);
+
+            if (permiteAutoVoto != -1)
             {
-                if (tipoVotacion!=null && (tipoVotacion == -1 || vot.TipoVotacion == (TipoVotacion)tipoVotacion) && Id_evento != null && (Id_evento == Guid.Empty || vot.Evento.Id == Id_evento) && (permiteAutoVoto == -1 || vot.PermiteAutoVoto == (permiteAutoVoto == 1)))
-                {
-                    votacionesEncontradas.Add(vot);
-                }
+                bool permite = permiteAutoVoto == 1;
+                query = query.Where(v => v.PermiteAutoVoto == permite);
             }
-            return votacionesEncontradas;
+
+            if (tipoVotacion != -1)
+            {
+                var tipo = (TipoVotacion)tipoVotacion;
+
+                query = tipo switch
+                {
+                    TipoVotacion.Publico => query.Where(v => v is VotacionPublico),
+                    TipoVotacion.Jurado => query.Where(v => v is VotacionJurado),
+                    TipoVotacion.Mixto => query.Where(v => v is VotacionMixta),
+                    _ => query
+                };
+            }
+
+            return await query.ToListAsync();
         }
+
         public async Task CrearVotacionAsync(Votacion votacion)
         {
             await contexto.Votacion.AddAsync(votacion);
             await contexto.SaveChangesAsync();
         }
+
         public async Task EditarVotacionAsync(Votacion votacion)
         {
-            contexto.Update(votacion);
+            contexto.Votacion.Update(votacion);
             await contexto.SaveChangesAsync();
         }
+
+        public async Task ReemplazarVotacionAsync(Votacion original, Votacion nuevaVotacion)
+        {
+            int tipo = nuevaVotacion.Tipo switch
+            {
+                TipoVotacion.Publico => 0,
+                TipoVotacion.Jurado => 1,
+                TipoVotacion.Mixto => 2,
+                _ => throw new Exception("Tipo de votación no válido")
+            };
+
+            await contexto.Database.ExecuteSqlInterpolatedAsync($@"
+        UPDATE ""Votacion""
+        SET ""FechaInicio"" = {nuevaVotacion.FechaInicio},
+            ""FechaFin"" = {nuevaVotacion.FechaFin},
+            ""Id_evento"" = {nuevaVotacion.Id_evento},
+            ""PermiteAutoVoto"" = {nuevaVotacion.PermiteAutoVoto},
+            ""TipoVotacion"" = {tipo}
+        WHERE ""Id"" = {nuevaVotacion.Id}
+    ");
+        }
+
         public async Task EliminarVotacionAsync(Votacion votacion)
         {
-            contexto.Remove(votacion);
+            contexto.Votacion.Remove(votacion);
             await contexto.SaveChangesAsync();
         }
     }

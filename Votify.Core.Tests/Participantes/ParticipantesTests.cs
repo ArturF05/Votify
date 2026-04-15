@@ -325,23 +325,23 @@ namespace Votify.Core.Tests.Participantes
             }
 
             var evento = await context.Evento.FirstOrDefaultAsync(e => e.Id == idEvento);
-            var votacion = await context.Votacion.Include(v => v.Evento).FirstOrDefaultAsync(v => v.Id_evento == idEvento);
+            var votacion = await context.Votacion.FirstOrDefaultAsync(v => v.Id_evento == idEvento);
 
-            if (evento == null)
+            if (evento == null || votacion == null)
             {
                 return false;
             }
 
             var rolUsuario = usuario.Rol?.Nombre;
-            if (votacion.TipoVotacion == TipoVotacion.Publico)
+
+            if (votacion is VotacionPublico)
             {
                 if (rolUsuario != "Publico")
                 {
                     return false;
                 }
             }
-
-            if (votacion.TipoVotacion == TipoVotacion.Jurado)
+            else if (votacion is VotacionJurado)
             {
                 var autorizacion = await context.EventoUsuarioRol.AnyAsync(eur =>
                     eur.EventoId == idEvento &&
@@ -349,6 +349,20 @@ namespace Votify.Core.Tests.Participantes
                     eur.RolId == idRolJurado);
 
                 if (!autorizacion)
+                {
+                    return false;
+                }
+            }
+            else if (votacion is VotacionMixta)
+            {
+                bool esPublico = rolUsuario == "Publico";
+
+                bool esJuradoAsignado = await context.EventoUsuarioRol.AnyAsync(eur =>
+                    eur.EventoId == idEvento &&
+                    eur.UsuarioId == usuario.Id &&
+                    eur.RolId == idRolJurado);
+
+                if (!esPublico && !esJuradoAsignado)
                 {
                     return false;
                 }
