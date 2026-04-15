@@ -279,7 +279,7 @@
 </div>
 
 @code{
-    private Votify.Core.Entities.Evento evento;
+    private Votify.Core.Entities.Evento? evento;
     [Parameter]
     public Guid id { get; set; }
     private List<Guid> proyectosSeleccionados = new();
@@ -298,6 +298,11 @@
         if (votacion != null)
         {
             idVotacion = votacion.Id;
+        }
+        if (evento == null)
+        {
+            mensaje = "No se ha encontrado el evento.";
+            return;
         }
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -366,10 +371,9 @@
             mensaje = "No hay una votación activa para este evento, espera a que haya una para poder votar.";
             return;
         }
-        var tipoEvento = votacion.TipoVotacion;
         var rolUsuario = usuario.Rol.Nombre;
 
-        if (tipoEvento == TipoVotacion.Publico)
+        if (votacion is VotacionPublico)
         {
             if (rolUsuario != "Publico")
             {
@@ -377,15 +381,29 @@
                 return;
             }
         }
-        if (tipoEvento == TipoVotacion.Jurado)
+        else if (votacion is VotacionJurado)
         {
-            var atorizacion = await contexto.EventoUsuarioRol
+            var autorizacion = await contexto.EventoUsuarioRol
                 .Where(eur => eur.EventoId == id && eur.UsuarioId == usuario.Id)
                 .AnyAsync();
 
-            if (!atorizacion)
+            if (!autorizacion)
             {
                 mensaje = "Solo el jurado asignado puede votar.";
+                return;
+            }
+        }
+        else if (votacion is VotacionMixta)
+        {
+            bool esPublico = rolUsuario == "Publico";
+
+            bool esJuradoAsignado = await contexto.EventoUsuarioRol
+                .Where(eur => eur.EventoId == id && eur.UsuarioId == usuario.Id)
+                .AnyAsync();
+
+            if (!esPublico && !esJuradoAsignado)
+            {
+                mensaje = "Solo usuarios públicos o jurado asignado pueden votar en este evento.";
                 return;
             }
         }

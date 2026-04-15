@@ -7,17 +7,15 @@ using System.Threading.Tasks;
 
 namespace Votify.Core.Entities;
 
-public class Votacion
+public abstract class Votacion
 {
     public Guid Id { get; set; }
-    public TipoVotacion TipoVotacion { get; set;}
+    public abstract TipoVotacion Tipo { get; }
     public Boolean PermiteAutoVoto { get; set; }
     public Guid Id_evento { get; set; }
     public DateTime FechaInicio { get; set; }
     public DateTime FechaFin { get; set; }
     public DimensionesDeValor? DimensionesDeValores { get; set; }
     public Resultado? Resultados { get; set; }
-    [ForeignKey("Id_evento")]
-    public Evento Evento { get; set; }
    
 }

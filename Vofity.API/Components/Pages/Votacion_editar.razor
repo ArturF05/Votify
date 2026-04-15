@@ -103,7 +103,7 @@
     protected override async Task OnInitializedAsync()
     {
         eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
-        votacion = await contexto.Votacion.Include(e => e.Evento).FirstOrDefaultAsync(e => e.Id == id);
+        votacion = await contexto.Votacion.FirstOrDefaultAsync(e => e.Id == id);
         if (votacion == null) throw new Exception("No existe la votación");
         await SetVotacion(votacion);
     }
@@ -112,7 +112,12 @@
         Id_evento = votacion.Id_evento;
         inicioVotacion = votacion.FechaInicio.ToLocalTime();
         finVotacion = votacion.FechaFin.ToLocalTime();
-        tipoVotacion = votacion.TipoVotacion;
+        if (votacion is VotacionPublico)
+            tipoVotacion = TipoVotacion.Publico;
+        else if (votacion is VotacionJurado)
+            tipoVotacion = TipoVotacion.Jurado;
+        else if (votacion is VotacionMixta)
+            tipoVotacion = TipoVotacion.Mixto;
         if (votacion.PermiteAutoVoto) permiteAutoVoto = 1;
         else permiteAutoVoto = 0;
         evento = await contexto.Evento.Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == Id_evento);
@@ -147,7 +152,11 @@
                     franjaUsada = true;
                     break;
                 }
-                if (tipoVotacion == vot.TipoVotacion)
+                if (
+                     (tipoVotacion == TipoVotacion.Publico && vot is VotacionPublico) ||
+                     (tipoVotacion == TipoVotacion.Jurado && vot is VotacionJurado) ||
+                     (tipoVotacion == TipoVotacion.Mixto && vot is VotacionMixta)
+                 )
                 {
                     tipoUsado = true;
                     break;
@@ -172,8 +181,8 @@
             var dto = new CrearVotacionDTOs
             {
                 Id_evento = Id_evento,
-                FechaInicio = inicioVotacion,
-                FechaFin = finVotacion,
+                FechaInicio = inicioVotacion.ToUniversalTime(),
+                FechaFin = finVotacion.ToUniversalTime(),
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion
             };

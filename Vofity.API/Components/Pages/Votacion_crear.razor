@@ -145,7 +145,11 @@
                     franjaUsada = true;
                     break;
                 }
-                if (tipoVotacion == vot.TipoVotacion)
+                if (
+                    (tipoVotacion == TipoVotacion.Publico && vot is VotacionPublico) ||
+                    (tipoVotacion == TipoVotacion.Jurado && vot is VotacionJurado) ||
+                    (tipoVotacion == TipoVotacion.Mixto && vot is VotacionMixta)
+                )
                 {
                     tipoUsado = true;
                     break;
@@ -175,8 +179,8 @@
             var dto = new CrearVotacionDTOs
             {
                 Id_evento = Id_evento,
-                FechaInicio = inicioVotacion,
-                FechaFin = finVotacion,
+                FechaInicio = inicioVotacion.ToUniversalTime(),
+                FechaFin = finVotacion.ToUniversalTime(),
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion
             };

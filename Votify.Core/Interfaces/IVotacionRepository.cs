@@ -14,5 +14,6 @@ namespace Votify.Core.Interfaces
         Task CrearVotacionAsync(Votacion votacion);
         Task EditarVotacionAsync(Votacion votacion);
         Task EliminarVotacionAsync(Votacion votacion);
+        Task ReemplazarVotacionAsync(Votacion original, Votacion nuevaVotacion);
     }
 }

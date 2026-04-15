@@ -12,9 +12,9 @@ namespace Votify.Core.Services
 {
     public class EventoService : IEvento
     {
-        private Rol aux = new Rol();
+        /*private Rol aux = new Rol();
         private List<Proyecto> aux2 = new List<Proyecto>();
-        private Votify.Core.Entities.Votacion aux3 = new Votify.Core.Entities.Votacion();
+        private Votify.Core.Entities.Votacion aux3 = new Votify.Core.Entities.Votacion();*/
         private readonly IEventoRepository eventoRepository;
         private readonly EventoFactory eventoFactory = new ConcreteEventFactory();
         public EventoService(IEventoRepository eventoRepository)
@@ -27,7 +27,6 @@ namespace Votify.Core.Services
         }
         public async Task<Evento> CrearEvento(string titulo, Guid categoriaId, DateTime fechaInicio, string descripcion, DateTime fechaFin,string tipo, Guid usuarioId)
         {
-            EventoFactory factory = new ConcreteEventFactory();
             if (string.IsNullOrWhiteSpace(titulo))
                 throw new Exception("El título es obligatorio");
 
