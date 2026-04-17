@@ -3,10 +3,13 @@
 @using Microsoft.EntityFrameworkCore
 @using System.Net.Http.Json
 @using Votify.Core.Entities
+@using Votify.Core.Interfaces
+@using Votify.Core.Services
 @using Votify.Infrastructure.Data
 @inject NavigationManager nav
 @inject AppDbContext contexto
 @inject HttpClient Http
+@inject IEvento eventoService
 @rendermode InteractiveServer
 
 <div class="titulo-y-finalizadas">
@@ -81,7 +84,7 @@
                         <td>@vot.FechaFin.ToLocalTime()</td>
                         <td><button class="boton-editar" hidden="@(verFinalizadas)" @onclick='() => EditarVotacion(vot)'>Editar</button></td>
                         <td><div class="tooltip-wrapper"><button class="boton-editar" hidden="@(!verFinalizadas)" @onclick='() => VerResultados(vot)' disabled="@(!puedeVerResultados(vot))">Resultados</button>@if(!puedeVerResultados(vot)){
-                                    <span class= "tooltip-text">Todavía hay votaciones activas para este evento</span>
+                                <span class="tooltip-text">@ObtenerMotivoBloqueo(vot)</span>
                                 } 
                         </div></td>
                     </tr>
@@ -97,9 +100,9 @@
 <a href="/CrearVotacion" class="botonLink">Crear Votacion nueva</a>
 
 @code {
-        List<Votify.Core.Entities.Evento> eventos = new();
-        List<Votify.Core.Entities.Votacion> votaciones = new();
-        List<Votify.Core.Entities.Votacion> votacionesActuales = new();
+    List<Votify.Core.Entities.Evento> eventos = new();
+    List<Votify.Core.Entities.Votacion> votaciones = new();
+    List<Votify.Core.Entities.Votacion> votacionesActuales = new();
     private bool verFinalizadas = false;
     private string boton = "Mostrar votaciones finalizadas";
     private Guid Id_evento = Guid.Empty;
@@ -109,7 +112,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
+        eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).Include(e => e.Proyectos).ToListAsync();
         votaciones = await contexto.Votacion.ToListAsync();
         HayVotaciones();
     }
@@ -162,8 +165,20 @@
     }
     private bool puedeVerResultados(Votify.Core.Entities.Votacion votacion)
     {
+        return ObtenerMotivoBloqueo(votacion) == null;
+    }
+
+    private string? ObtenerMotivoBloqueo(Votify.Core.Entities.Votacion votacion)
+    {
         var votacionesAux = votaciones.Where(vot => (vot.Id_evento == votacion.Id_evento));
-        return votacionesAux.All(v => v.FechaFin <= DateTime.UtcNow);
+        var evento = eventos.FirstOrDefault(e => e.Id == votacion.Id_evento);
+        if (evento == null)
+            return "El evento no existe";
+        if (evento.Proyectos == null || evento.Proyectos.Count == 0)
+            return "No se han presentado proyectos para este evento";
+        if (!votacionesAux.All(v => v.FechaFin <= DateTime.UtcNow))
+            return "Todavía hay votaciones activas para este evento";
+        return null;
     }
     private void VerResultados(Votify.Core.Entities.Votacion vot)
     {
