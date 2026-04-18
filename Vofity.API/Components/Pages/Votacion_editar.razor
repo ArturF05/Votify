@@ -33,20 +33,20 @@
     <label>Tipo de votación*:</label>
     <div class="grupo-botones-votacion">
         <button type="button"
-                class="boton-votacion @(tipoVotacion == TipoVotacion.Publico ? "activo" : "")"
-                @onclick='() => SeleccionarTipo(TipoVotacion.Publico)'>
+        class="boton-votacion @(tipoVotacion == TipoVotacion.Publico ? "activo" : "")"
+        @onclick='() => SeleccionarTipo(TipoVotacion.Publico)'>
             Público
         </button>
 
         <button type="button"
-                class="boton-votacion @(tipoVotacion == TipoVotacion.Jurado ? "activo" : "")"
-                @onclick='() => SeleccionarTipo(TipoVotacion.Jurado)'>
+        class="boton-votacion @(tipoVotacion == TipoVotacion.Jurado ? "activo" : "")"
+        @onclick='() => SeleccionarTipo(TipoVotacion.Jurado)'>
             Jurado
         </button>
 
         <button type="button"
-                class="boton-votacion @(tipoVotacion == TipoVotacion.Mixto ? "activo" : "")"
-                @onclick='() => SeleccionarTipo(TipoVotacion.Mixto)'>
+        class="boton-votacion @(tipoVotacion == TipoVotacion.Mixto ? "activo" : "")"
+        @onclick='() => SeleccionarTipo(TipoVotacion.Mixto)'>
             Mixto
         </button>
     </div>
@@ -71,6 +71,42 @@
         <div><label style="color:red">@mensaje</label></div>
         <div><label style="color:red">@mensaje2</label></div>
     </div>
+
+    <div class="separador-criterios"></div>
+
+    <section class="bloque-criterios">
+        <h3 class="titulo-criterios">Criterios</h3>
+
+        <div class="lista-criterios">
+            @foreach (var c in criterios)
+            {
+                <div class="criterio-item">
+                    <div class="criterio-texto">
+                        <span class="criterio-nombre">@c.Nombre</span>
+                        <span class="criterio-descripcion">@c.Descripcion</span>
+                    </div>
+
+                    <div class="criterio-acciones">
+                        <!--<span class="criterio-peso">0.3</span>-->
+                        <button type="button" class="boton-secundario" @onclick='() => QuitarCriterio(c.Id)'>Quitar</button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div><label style="color:black">@mensajeNoCriterio</label></div>
+
+        <div class="criterio-formulario">
+            <input type="text" placeholder="Nombre" @bind="nombreCriterio" class="input-criterio" />
+            <input type="text" placeholder="Descripción" @bind="descripcionCriterio" class="input-criterio" />
+            <button type="button" class="boton-principal" @onclick="GuardarCriterio" >Añadir</button>
+        </div>
+
+        <div>
+            <div><label style="color:red">@mensajeErrorCriterio</label></div>
+        </div>
+
+    </section>
 
     <div class="botones">
         <div>
@@ -97,13 +133,20 @@
     private TipoVotacion tipoVotacion = TipoVotacion.Publico;
     private string mensaje = "";
     private string mensaje2 = "";
+    private string mensajeErrorCriterio = "";
+    private string mensajeNoCriterio = "";
+    private string nombreCriterio = "";
+    private string descripcionCriterio = "";
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Votify.Core.Entities.Votacion> votaciones = new();
+    List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
     private Votify.Core.Entities.Evento? evento;
     protected override async Task OnInitializedAsync()
     {
         eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
         votacion = await contexto.Votacion.FirstOrDefaultAsync(e => e.Id == id);
+        criterios = await contexto.DimensionesDeValor.Where(d => d.Id_votacion == votacion.Id).ToListAsync();
+        if (!criterios.Any()) { mensajeNoCriterio = "Esta votación no tiene criterios"; return; }
         if (votacion == null) throw new Exception("No existe la votación");
         await SetVotacion(votacion);
     }
@@ -184,7 +227,14 @@
                 FechaInicio = inicioVotacion.ToUniversalTime(),
                 FechaFin = finVotacion.ToUniversalTime(),
                 PermiteAutoVoto = permiteAutoVoto == 1,
-                TipoVotacion = tipoVotacion
+                TipoVotacion = tipoVotacion,
+                Criterios = criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
+                {
+                    Id = c.Id,
+                    Nombre = c.Nombre,
+                    Descripcion = c.Descripcion,
+                    Peso = c.Peso
+                }).ToList()
             };
             var response = await Http.PutAsJsonAsync($"api/v1/votaciones/{id}", dto);
 
@@ -229,5 +279,33 @@
             var error = await response.Content.ReadAsStringAsync();
             mensaje = $"No se pudo eliminar la votación: {error}";
         }
+    }
+
+    private void GuardarCriterio()
+    {
+        if(nombreCriterio == "")
+        {
+            mensajeErrorCriterio = "No se puede añadir el criterio: Debes asignar un nombre al criterio";
+            return;
+        }
+
+        criterios.Add(new DimensionesDeValor
+        {
+            Id = Guid.NewGuid(),
+            Id_votacion = votacion.Id,
+            Nombre = nombreCriterio,
+            Descripcion = descripcionCriterio,
+            Peso = 0
+        });
+
+        nombreCriterio = "";
+        descripcionCriterio = "";
+        mensajeErrorCriterio = "";
+        mensajeNoCriterio = "";
+    }
+
+    private void QuitarCriterio(Guid idCriterio)
+    {
+        criterios.RemoveAll(c => c.Id == idCriterio);
     }
 }

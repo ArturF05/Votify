@@ -15,13 +15,15 @@ namespace Votify.Core.Services
         private readonly IVotacionRepository votacionRepository;
         private readonly IVotoRepository votoRepository;
         private readonly IProyectoRepository proyectoRepository;
+        private readonly IDimensionRepository dimensionRepository;
         private readonly VotacionFactory votacionFactory;
 
-        public VotacionService(IVotacionRepository votacionRepository, IVotoRepository votoRepository, IProyectoRepository proyectoRepository)
+        public VotacionService(IVotacionRepository votacionRepository, IVotoRepository votoRepository, IProyectoRepository proyectoRepository, IDimensionRepository dimensionRepository)
         {
             this.votacionRepository = votacionRepository;
             this.votoRepository = votoRepository;
             this.proyectoRepository = proyectoRepository;
+            this.dimensionRepository = dimensionRepository;
             this.votacionFactory = new ConcreteVotacionFactory();
         }
 
@@ -93,7 +95,7 @@ namespace Votify.Core.Services
 
             await votacionRepository.CrearVotacionAsync(nuevaVotacion);
         }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion)
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios)
         {
             var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);
 
@@ -117,20 +119,53 @@ namespace Votify.Core.Services
                 votacionActual.PermiteAutoVoto = permiteAutoVoto;
 
                 await votacionRepository.EditarVotacionAsync(votacionActual);
-                return;
+            }
+            else
+            {
+                var nuevaVotacion = votacionFactory.CrearVotacion(
+                    inicioVotacion,
+                    finVotacion,
+                    permiteAutoVoto,
+                    Id_evento,
+                    tipoVotacion
+                );
+
+                nuevaVotacion.Id = votacionActual.Id;
+
+                await votacionRepository.ReemplazarVotacionAsync(votacionActual, nuevaVotacion);
             }
 
-            var nuevaVotacion = votacionFactory.CrearVotacion(
-                inicioVotacion,
-                finVotacion,
-                permiteAutoVoto,
-                Id_evento,
-                tipoVotacion
-            );
+            var criteriosExistentes = await dimensionRepository.ObtenerCriterioPorVotacionAsync(Id);
 
-            nuevaVotacion.Id = votacionActual.Id;
+            foreach (var criterioDto in criterios)
+            {
+                bool yaExiste = criteriosExistentes.Any(c => c.Id == criterioDto.Id);
 
-            await votacionRepository.ReemplazarVotacionAsync(votacionActual, nuevaVotacion);
+                if (!yaExiste)
+                {
+                    var nuevoCriterio = new DimensionesDeValor
+                    {
+                        Id = criterioDto.Id == Guid.Empty ? Guid.NewGuid() : criterioDto.Id,
+                        Id_votacion = Id,
+                        Nombre = criterioDto.Nombre,
+                        Descripcion = criterioDto.Descripcion,
+                        Peso = criterioDto.Peso
+                    };
+
+                    await dimensionRepository.CrearCriterioAsync(nuevoCriterio);
+                }
+            }
+
+            var idsEnListaActual = criterios.Select(c => c.Id).ToHashSet();
+
+            var criteriosABorrar = criteriosExistentes
+                .Where(c => !idsEnListaActual.Contains(c.Id))
+                .ToList();
+
+            foreach (var criterio in criteriosABorrar)
+            {
+                await dimensionRepository.EliminarCriterioAsync(criterio);
+            }
         }
 
         public async Task EliminarVotacion(Guid Id)

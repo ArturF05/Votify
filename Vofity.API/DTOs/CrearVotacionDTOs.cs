@@ -10,5 +10,6 @@ namespace Votify.API.DTOs
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
         public TipoVotacion TipoVotacion { get; set; }
+        public List<Votify.Core.DTOs.CrearCriterioDTO> Criterios { get; set; } = new();
     }
 }

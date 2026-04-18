@@ -97,7 +97,8 @@ namespace Votify.API.Controllers
                     dto.FechaInicio,
                     dto.FechaFin,
                     dto.PermiteAutoVoto,
-                    dto.TipoVotacion
+                    dto.TipoVotacion,
+                    dto.Criterios
                 );
 
                 return Ok(new { mensaje = "Evento editado correctamente" });
@@ -107,6 +108,7 @@ namespace Votify.API.Controllers
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> EliminarVotacion(Guid id)
         {

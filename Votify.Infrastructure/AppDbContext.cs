@@ -71,5 +71,9 @@ public class AppDbContext : DbContext
             .HasValue<VotacionPublico>(0)
             .HasValue<VotacionJurado>(1)
             .HasValue<VotacionMixta>(2);
+        modelBuilder.Entity<DimensionesDeValor>()
+            .HasOne(d => d.Votacion)
+            .WithMany(v => v.DimensionesDeValores)
+            .HasForeignKey(d => d.Id_votacion);
     }
 }

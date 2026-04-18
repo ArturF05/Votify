@@ -15,7 +15,7 @@ public abstract class Votacion
     public Guid Id_evento { get; set; }
     public DateTime FechaInicio { get; set; }
     public DateTime FechaFin { get; set; }
-    public DimensionesDeValor? DimensionesDeValores { get; set; }
+    public List<DimensionesDeValor> DimensionesDeValores { get; set; } = new();
     public Resultado? Resultados { get; set; }
    
 }
