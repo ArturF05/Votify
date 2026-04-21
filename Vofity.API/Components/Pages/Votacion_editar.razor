@@ -289,6 +289,18 @@
             return;
         }
 
+        if (descripcionCriterio == "")
+        {
+            mensajeErrorCriterio = "No se puede añadir el criterio: Debes asignar una descripción al criterio";
+            return;
+        }
+
+        if (criterios.Any(c => c.Nombre == nombreCriterio))
+        {
+            mensajeErrorCriterio = "No se puede añadir el criterio: Ya existe un criterio con ese nombre";
+            return;
+        }
+
         criterios.Add(new DimensionesDeValor
         {
             Id = Guid.NewGuid(),
