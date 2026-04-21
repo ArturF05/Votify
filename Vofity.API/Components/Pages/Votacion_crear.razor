@@ -91,6 +91,7 @@
     private DateTime inicioEvento = DateTime.Now;
     private DateTime finEvento = DateTime.Now.AddDays(1);
     private Guid Id_evento = Guid.Empty;
+    private int numProy = 0;
     private TipoVotacion tipoVotacion = TipoVotacion.Publico;
     private string mensaje = "";
     private string mensaje2 = "";
@@ -182,7 +183,8 @@
                 FechaInicio = inicioVotacion.ToUniversalTime(),
                 FechaFin = finVotacion.ToUniversalTime(),
                 PermiteAutoVoto = permiteAutoVoto == 1,
-                TipoVotacion = tipoVotacion
+                TipoVotacion = tipoVotacion,
+                Num_Proy=numProy
             };
             var response = await Http.PostAsJsonAsync("api/v1/votaciones", dto);
 
