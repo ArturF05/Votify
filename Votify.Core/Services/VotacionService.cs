@@ -62,15 +62,31 @@ namespace Votify.Core.Services
             if (proyectos.Any(p => p.Id_evento != votacion.Id_evento))
                 throw new Exception("Algún proyecto no pertenece al evento.");
 
-            var votos = dto.Votos.Select(v => new Voto
+            var criterios = await dimensionRepository.ObtenerCriterioPorVotacionAsync(idVotacion);
+
+            if (criterios == null || criterios.Count == 0)
+                throw new Exception("La votación no tiene criterios definidos.");
+
+            var votos = dto.Votos.Select(v =>
             {
-                Id = Guid.NewGuid(),
-                Id_votacion = idVotacion,
-                Id_proyecto = v.IdProyecto,
-                Id_votante = dto.IdVotante,
-                Comentario = string.IsNullOrWhiteSpace(v.Comentario) ? null : v.Comentario.Trim(),
-                Puntuacion = 1,
-                Fecha_voto = DateTime.UtcNow
+                decimal puntuacionTotal = 0m;
+
+                foreach (var criterio in criterios)
+                {
+                    var puntuacion = v.Puntuaciones.First(p => p.IdCriterio == criterio.Id);
+                    puntuacionTotal += puntuacion.Nota * (criterio.Peso / 100m);
+                }
+
+                return new Voto
+                {
+                    Id = Guid.NewGuid(),
+                    Id_votacion = idVotacion,
+                    Id_proyecto = v.IdProyecto,
+                    Id_votante = dto.IdVotante,
+                    Comentario = string.IsNullOrWhiteSpace(v.Comentario) ? null : v.Comentario.Trim(),
+                    Puntuacion = puntuacionTotal,
+                    Fecha_voto = DateTime.UtcNow
+                };
             }).ToList();
 
             await votoRepository.GuardarVotosAsync(votos);
@@ -139,9 +155,9 @@ namespace Votify.Core.Services
 
             foreach (var criterioDto in criterios)
             {
-                bool yaExiste = criteriosExistentes.Any(c => c.Id == criterioDto.Id);
+                var existente = criteriosExistentes.FirstOrDefault(c => c.Id == criterioDto.Id);
 
-                if (!yaExiste)
+                if (existente == null)
                 {
                     var nuevoCriterio = new DimensionesDeValor
                     {
@@ -154,12 +170,15 @@ namespace Votify.Core.Services
 
                     await dimensionRepository.CrearCriterioAsync(nuevoCriterio);
                 }
+                else
+                {
+                    existente.Peso = criterioDto.Peso;
+                    await dimensionRepository.EditarCriterioAsync(existente);
+                }
             }
 
-            var idsEnListaActual = criterios.Select(c => c.Id).ToHashSet();
-
             var criteriosABorrar = criteriosExistentes
-                .Where(c => !idsEnListaActual.Contains(c.Id))
+                .Where(c => !criterios.Any(dto => dto.Id == c.Id))
                 .ToList();
 
             foreach (var criterio in criteriosABorrar)

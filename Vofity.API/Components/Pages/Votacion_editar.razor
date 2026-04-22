@@ -87,7 +87,8 @@
                     </div>
 
                     <div class="criterio-acciones">
-                        <!--<span class="criterio-peso">0.3</span>-->
+                        <span class="criterio-descripcion">Peso (%):</span>
+                        <input type="text" class="criterio-peso" @bind="c.Peso" />
                         <button type="button" class="boton-secundario" @onclick='() => QuitarCriterio(c.Id)'>Quitar</button>
                     </div>
                 </div>
@@ -137,6 +138,7 @@
     private string mensajeNoCriterio = "";
     private string nombreCriterio = "";
     private string descripcionCriterio = "";
+    private int pesoCriterio = 0;
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Votify.Core.Entities.Votacion> votaciones = new();
     List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
@@ -218,6 +220,12 @@
             if (tipoUsado)
             {
                 mensaje = "Ya hay una votación de este tipo registrada para este evento";
+                return;
+            }
+
+            if (criterios.Sum(c => c.Peso) != 100)
+            {
+                mensajeErrorCriterio = "La suma de los pesos debe ser 100";
                 return;
             }
 
@@ -314,6 +322,7 @@
         descripcionCriterio = "";
         mensajeErrorCriterio = "";
         mensajeNoCriterio = "";
+        pesoCriterio = 0;
     }
 
     private void QuitarCriterio(Guid idCriterio)
