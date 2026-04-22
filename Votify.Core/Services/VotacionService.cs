@@ -95,9 +95,11 @@ namespace Votify.Core.Services
 
             await votacionRepository.CrearVotacionAsync(nuevaVotacion);
         }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios)
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios,int NumProy)
         {
             var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);
+
+
 
             if (votacionActual == null)
                 throw new Exception("La votación no existe");
@@ -127,7 +129,8 @@ namespace Votify.Core.Services
                     finVotacion,
                     permiteAutoVoto,
                     Id_evento,
-                    tipoVotacion
+                    tipoVotacion,
+                    NumProy
                 );
 
                 nuevaVotacion.Id = votacionActual.Id;

@@ -13,7 +13,7 @@ namespace Votify.Core.Interfaces
         Task<bool> RegistrarVotoAsync(Guid idVotacion, EmitirVotoDTO dto);
         Task<List<Votacion>> BuscarVotacion(Guid Id_evento, int tipoVotacion, int permiteAutoVoto, bool verFinalizadas);
         Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy);
-        Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipovotacion, List<CrearCriterioDTO> criterios);
+        Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipovotacion, List<CrearCriterioDTO> criterios,int NumProy);
         Task EliminarVotacion(Guid Id);
         Task<Votacion?> ObtenerPorIdAsync(Guid id);
     }

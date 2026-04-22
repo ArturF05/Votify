@@ -17,6 +17,6 @@ public abstract class Votacion
     public DateTime FechaFin { get; set; }
     public List<DimensionesDeValor> DimensionesDeValores { get; set; } = new();
     public Resultado? Resultados { get; set; }
-    public int NumProy { get; set; }
+    public int? NumProy { get; set; }
    
 }

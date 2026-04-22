@@ -81,6 +81,7 @@ namespace Votify.Infrastructure.Repositorios
             ""Id_evento"" = {nuevaVotacion.Id_evento},
             ""PermiteAutoVoto"" = {nuevaVotacion.PermiteAutoVoto},
             ""TipoVotacion"" = {tipo}
+            ""NumProy""= {nuevaVotacion.NumProy}
         WHERE ""Id"" = {nuevaVotacion.Id}
     ");
         }

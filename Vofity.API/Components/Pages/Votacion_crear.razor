@@ -59,7 +59,10 @@
             <option value="0">No</option>
         </select>
     </div>
-
+    <div class="campo">
+        <label>Número de proyectos*:</label>
+        <input type="number" @bind="numProy" min="0" />
+    </div>
     <div class="campo">
         <label>Inicio de la votación*:</label>
         <input type="datetime-local" @bind="inicioVotacion" />
@@ -174,6 +177,11 @@
             if (tipoUsado)
             {
                 mensaje = "Ya hay una votación de este tipo registrada para este evento";
+                return;
+            }
+            if(numProy<=0)
+            {
+                mensaje = "Se tiene que poder votar mínimo 1 proyecto";
                 return;
             }
             evento = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == Id_evento);
