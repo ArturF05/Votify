@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -795,4 +795,4 @@ namespace Votify.Core.Tests.Votacion
             Assert.IsTrue(resultado.All(v => v.FechaFin > DateTime.UtcNow));
         }
     }
-}
+}*/

@@ -9,5 +9,6 @@ namespace Votify.Core.Entities
     public class VotacionJurado : Votacion
     {
         public override TipoVotacion Tipo => TipoVotacion.Jurado;
+      
     }
 }
