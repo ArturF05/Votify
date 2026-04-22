@@ -15,7 +15,8 @@ namespace Votify.Core.Interfaces
         Task<bool> CrearProyecto(
             string nombre,
             string descripcion,
-            Guid IdEvento
+            Guid IdEvento,
+            Guid idCreador
         );
     }
 }

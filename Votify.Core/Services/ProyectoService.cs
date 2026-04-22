@@ -13,7 +13,7 @@ namespace Votify.Core.Services
             _eventoRepository = eventoRepository;
         }
 
-        public async Task<bool> CrearProyecto(string nombre, string descripcion, Guid idEvento){
+        public async Task<bool> CrearProyecto(string nombre, string descripcion, Guid idEvento, Guid idCreador){
             nombre = nombre?.Trim() ?? string.Empty;
             descripcion = descripcion?.Trim() ?? string.Empty;
 
@@ -34,21 +34,20 @@ namespace Votify.Core.Services
                 throw new Exception("Debe seleccionar un evento válido");
             }
 
-            var proyecto = new Proyecto
+            Proyecto proyecto =  new Proyecto
             {
                 Id = Guid.NewGuid(),
                 Titulo = nombre,
                 Descripcion = descripcion,
                 Id_evento = idEvento,
-                Evento = evento
+                Id_creador = idCreador,
+                ProyectoParticipantes = new List<ProyectoParticipantes>()
             };
-
-            if (evento.Proyectos == null)
+            proyecto.ProyectoParticipantes.Add(new ProyectoParticipantes
             {
-                evento.Proyectos = new List<Proyecto>();
-            }
-
-            evento.Proyectos.Add(proyecto);
+                Id_proyecto = proyecto.Id,
+                Id_usuario = idCreador
+            });
 
             return await _proyectoRepository.CrearProyectoAsync(proyecto);
         }

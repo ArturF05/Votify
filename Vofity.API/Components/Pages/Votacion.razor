@@ -105,9 +105,14 @@
     .Where(eur => eur.EventoId == evento.Id && eur.UsuarioId == usuario.Id && eur.Rol.Nombre=="Jurado")
     .AnyAsync();
 
+        bool aux = await contexto.EventoUsuarioRol
+    .Where(eur => eur.EventoId == evento.Id && eur.UsuarioId == usuario.Id && (eur.Rol.Nombre=="Publico" || eur.Rol.Nombre=="Participante"))
+    .AnyAsync();
+        bool esPublico = rolUsuario == "Publico" || aux;
+
         if (votacion is VotacionPublico)
         {
-            if (rolUsuario != "Publico")
+            if (!esPublico)
             {
                 puedeVotar[indice] = "Solo usuarios públicos pueden votar";
                 deshabilitar[indice] = true;
@@ -125,7 +130,6 @@
         }
         else if (votacion is VotacionMixta)
         {
-            bool esPublico = rolUsuario == "Publico";
 
             if (!esPublico && !esJuradoAsignado)
             {

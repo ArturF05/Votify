@@ -15,4 +15,7 @@ public class Proyecto
     public Guid Id_evento { get; set; }
     public Evento Evento { get; set; }
     public String Descripcion { get; set; }
+    public Guid Id_creador { get; set; }
+    public List<ProyectoParticipantes> ProyectoParticipantes { get; set; }
+
 }

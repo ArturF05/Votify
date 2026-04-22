@@ -19,11 +19,8 @@ namespace Votify.Infrastructure.Repositorios
         }
         public async Task<bool> CrearProyectoAsync(Proyecto proyecto)
         {
-            
-
             await contexto.Proyecto.AddAsync(proyecto);
-           await contexto.SaveChangesAsync();
-
+            await contexto.SaveChangesAsync();
             return true;
         }
 

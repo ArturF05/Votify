@@ -21,5 +21,5 @@ public class Usuario
 
 
     public ICollection<EventoUsuarioRol> EventoUsuarioRoles { get; set; }
+    public List<ProyectoParticipantes> ProyectoParticipantes { get; set; }
 }
-    
