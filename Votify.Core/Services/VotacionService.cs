@@ -61,7 +61,8 @@ namespace Votify.Core.Services
 
             if (proyectos.Any(p => p.Id_evento != votacion.Id_evento))
                 throw new Exception("Algún proyecto no pertenece al evento.");
-
+            if (dto.Votos.Count > votacion.NumProy)
+                throw new Exception("No puedes votar más proyectos que el máximo permitido.");
             var votos = dto.Votos.Select(v => new Voto
             {
                 Id = Guid.NewGuid(),
@@ -90,7 +91,8 @@ namespace Votify.Core.Services
 
             if (finVotacion < inicioVotacion)
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
-
+            if (NumProy < 1)
+                throw new Exception("Se tiene que poder votar mínimo 1 proyecto");
             var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion,NumProy);
 
             await votacionRepository.CrearVotacionAsync(nuevaVotacion);
