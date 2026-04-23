@@ -15,14 +15,26 @@ namespace Votify.Core.Services
         private readonly IVotacionRepository votacionRepository;
         private readonly IVotoRepository votoRepository;
         private readonly IProyectoRepository proyectoRepository;
+        private readonly IUsuarioRepository usuarioRepository;
+        private readonly IEventoUsuarioRolRepository eventoUsuarioRolRepository;
         private readonly VotacionFactory votacionFactory;
 
-        public VotacionService(IVotacionRepository votacionRepository, IVotoRepository votoRepository, IProyectoRepository proyectoRepository)
+        public VotacionService(IVotacionRepository votacionRepository, IVotoRepository votoRepository, IProyectoRepository proyectoRepository, IUsuarioRepository usuarioRepository , IEventoUsuarioRolRepository eventoUsuarioRolRepository)
         {
             this.votacionRepository = votacionRepository;
             this.votoRepository = votoRepository;
             this.proyectoRepository = proyectoRepository;
+            this.usuarioRepository = usuarioRepository;
+            this.eventoUsuarioRolRepository = eventoUsuarioRolRepository;
             this.votacionFactory = new ConcreteVotacionFactory();
+        }
+        public async Task<bool> YaVotoAsync(Guid idVotacion, Guid idVotante)
+        {
+            return await votacionRepository.YaVotoAsync(idVotacion, idVotante);
+        }
+        public async Task<List<Voto>> ObtenerVotosUsuarioAsync(Guid votacionId, Guid usuarioId)
+        {
+            return await votacionRepository.ObtenerPorVotacionYUsuarioAsync(votacionId, usuarioId);
         }
 
         public async Task<bool> RegistrarVotoAsync(Guid idVotacion, EmitirVotoDTO dto)
@@ -48,10 +60,8 @@ namespace Votify.Core.Services
             var ahoraUtc = DateTime.UtcNow;
             if (ahoraUtc < votacion.FechaInicio || ahoraUtc > votacion.FechaFin)
                 throw new Exception("La votación no está activa.");
-
-            bool yaVoto = await votoRepository.UsuarioYaVotoAsync(idVotacion, dto.IdVotante);
-            if (yaVoto)
-                throw new Exception("Este usuario ya ha votado.");
+            if (await YaVotoAsync(idVotacion, dto.IdVotante))
+                throw new Exception("Ya has votado en esta votación.");
 
             var proyectos = await proyectoRepository.ObtenerPorIdAsync(idsProyectos);
             if (proyectos.Count != 3)
@@ -59,6 +69,43 @@ namespace Votify.Core.Services
 
             if (proyectos.Any(p => p.Id_evento != votacion.Id_evento))
                 throw new Exception("Algún proyecto no pertenece al evento.");
+            bool esPropio = proyectos.Any(p =>
+                p.ProyectoParticipantes.Any(pp => pp.Id_usuario == dto.IdVotante)
+            );
+            if (!votacion.PermiteAutoVoto && esPropio)
+                throw new Exception("No se permite el autovoto en esta votación.");
+
+
+            Usuario usuario = await usuarioRepository.ObtenerPorIdAsync(dto.IdVotante);
+            string? rolUsuario = usuario.Rol.Nombre;
+            List<EventoUsuarioRol> eur = await eventoUsuarioRolRepository.ObtenerPorEventoYUsuario(dto.IdEvento, dto.IdVotante);
+
+            bool esPublico = usuario.Rol.Nombre == "Publico" ||
+                eur.Any(e => e.Rol.Nombre == "Publico" || e.Rol.Nombre == "Participante");
+
+            bool esJuradoAsignado = eur.Any(e => e.Rol.Nombre == "Jurado");
+            if (votacion is VotacionPublico)
+            {
+                if (!esPublico)
+                {
+                    throw new Exception("Solo usuarios públicos pueden votar en este evento.");
+                }
+            }
+            else if (votacion is VotacionJurado)
+            {
+
+                if (!esJuradoAsignado)
+                {
+                    throw new Exception("Solo el jurado asignado puede votar.");
+                }
+            }
+            else if (votacion is VotacionMixta)
+            {
+                if (!esPublico && !esJuradoAsignado)
+                {
+                    throw new Exception("Solo usuarios públicos, participantes o jurado asignado pueden votar en este evento.");
+                }
+            }
 
             var votos = dto.Votos.Select(v => new Voto
             {

@@ -11,6 +11,9 @@ namespace Votify.Core.Interfaces
     public interface IVotacion
     {
         Task<bool> RegistrarVotoAsync(Guid idVotacion, EmitirVotoDTO dto);
+        Task<bool> YaVotoAsync(Guid votacionId, Guid usuarioId);
+
+        Task<List<Voto>> ObtenerVotosUsuarioAsync(Guid votacionId, Guid usuarioId);
         Task<List<Votacion>> BuscarVotacion(Guid Id_evento, int tipoVotacion, int permiteAutoVoto, bool verFinalizadas);
         Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion);
         Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipovotacion);

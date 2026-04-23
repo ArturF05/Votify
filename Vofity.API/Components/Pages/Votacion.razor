@@ -16,7 +16,11 @@
         <h2 class="titulo">Elija un evento sobre el que votar</h2>
     </div>
     <div class="evento-container">
-        @if(puedeVotar.Count<eventos.Count || deshabilitar.Count < eventos.Count)
+        @if (eventos.Count == 0)
+        {
+            <div>No estás participando en ningún evento</div>
+        }
+        else if(puedeVotar.Count<eventos.Count || deshabilitar.Count < eventos.Count)
         {
             <div>Cargando...</div>
         }

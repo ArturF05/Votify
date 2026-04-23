@@ -26,7 +26,7 @@ namespace Votify.Infrastructure.Repositorios
 
         public async Task<List<Proyecto>> ObtenerPorIdAsync(List<Guid> idsProyectos)
         {
-            return await contexto.Proyecto.Where(p => idsProyectos.Contains(p.Id)).ToListAsync();
+            return await contexto.Proyecto.Include(p => p.ProyectoParticipantes).Where(p => idsProyectos.Contains(p.Id)).ToListAsync();
         }
     }
 }

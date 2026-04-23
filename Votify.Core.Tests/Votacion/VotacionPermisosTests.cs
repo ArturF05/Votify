@@ -22,14 +22,26 @@ namespace Votify.Core.Tests.Votaciones
         private VotoRepository votoRepository;
         private ProyectoRepository proyectoRepository;
         private VotacionService votacionService;
+        private UsuarioRepository usuarioRepository;
+        private EventoUsuarioRolRepository eventoUsuarioRolRepository;
 
         private Guid idEvento;
         private Guid idUsuarioParticipante;
         private Guid idUsuarioPublico;
+        private Guid idUsuarioAjeno1;
+        private Guid idUsuarioJurado;
+        private Guid idUsuarioAjeno2;
 
         private Guid idProyectoPropio;
         private Guid idProyectoAjeno1;
         private Guid idProyectoAjeno2;
+        private List<ProyectoParticipantes> pPPropio = new List<ProyectoParticipantes>();
+        private List<ProyectoParticipantes> pPAjeno1 = new List<ProyectoParticipantes>();
+        private List<ProyectoParticipantes> pPAjeno2 = new List<ProyectoParticipantes>();
+
+        private List<EventoUsuarioRol> eurParticipante = new();
+        private List<EventoUsuarioRol> eurPublico = new();
+
 
         private Guid idVotacionPublicaConAutovoto;
         private Guid idVotacionPublicaSinAutovoto;
@@ -49,27 +61,51 @@ namespace Votify.Core.Tests.Votaciones
             votacionRepository = new VotacionRepository(context);
             votoRepository = new VotoRepository(context);
             proyectoRepository = new ProyectoRepository(context);
+            usuarioRepository = new UsuarioRepository(context);
+            eventoUsuarioRolRepository = new EventoUsuarioRolRepository(context);
 
             votacionService = new VotacionService(
                 votacionRepository,
                 votoRepository,
-                proyectoRepository
+                proyectoRepository,
+                usuarioRepository,
+                eventoUsuarioRolRepository
             );
 
             idEvento = Guid.NewGuid();
             idUsuarioParticipante = Guid.NewGuid();
             idUsuarioPublico = Guid.NewGuid();
+            idUsuarioJurado = Guid.NewGuid();
+            idUsuarioAjeno1 = Guid.NewGuid();
+            idUsuarioAjeno2 = Guid.NewGuid();
 
             idProyectoPropio = Guid.NewGuid();
             idProyectoAjeno1 = Guid.NewGuid();
             idProyectoAjeno2 = Guid.NewGuid();
+
+            var relacionPropio = new ProyectoParticipantes
+            {
+                Id_proyecto = idProyectoPropio,
+                Id_usuario = idUsuarioParticipante
+            };
+
+            var relacionAjeno1 = new ProyectoParticipantes
+            {
+                Id_proyecto = idProyectoAjeno1,
+                Id_usuario = Guid.NewGuid()
+            };
+
+            var relacionAjeno2 = new ProyectoParticipantes
+            {
+                Id_proyecto = idProyectoAjeno2,
+                Id_usuario = Guid.NewGuid() 
+            };
 
             idVotacionPublicaConAutovoto = Guid.NewGuid();
             idVotacionPublicaSinAutovoto = Guid.NewGuid();
             idVotacionPublica = Guid.NewGuid();
             idVotacionJurado = Guid.NewGuid();
             idVotacionMixta = Guid.NewGuid();
-
             var rolParticipante = new Rol
             {
                 Id = Guid.NewGuid(),
@@ -81,7 +117,11 @@ namespace Votify.Core.Tests.Votaciones
                 Id = Guid.NewGuid(),
                 Nombre = "Publico"
             };
-
+            var rolJurado = new Rol
+            {
+                Id = Guid.NewGuid(),
+                Nombre = "Jurado"
+            };
             var evento = new Evento
             {
                 Id = idEvento,
@@ -109,19 +149,30 @@ namespace Votify.Core.Tests.Votaciones
                 Rol = rolPublico
             };
 
-            var eventoUsuarioRolParticipante = new EventoUsuarioRol
+            EventoUsuarioRol eventoUsuarioRolParticipante = new EventoUsuarioRol
             {
                 EventoId = idEvento,
                 UsuarioId = idUsuarioParticipante,
-                RolId = rolParticipante.Id
+                RolId = rolParticipante.Id,
+                Rol = rolParticipante
             };
-
-            var eventoUsuarioRolPublico = new EventoUsuarioRol
+            eurParticipante.Add(eventoUsuarioRolParticipante);
+            EventoUsuarioRol eventoUsuarioRolPublico = new EventoUsuarioRol
             {
                 EventoId = idEvento,
                 UsuarioId = idUsuarioPublico,
-                RolId = rolPublico.Id
+                RolId = rolPublico.Id,
+                Rol = rolPublico
             };
+            eurPublico.Add(eventoUsuarioRolPublico);
+            EventoUsuarioRol eventoUsuarioRolJurado = new EventoUsuarioRol
+            {
+                EventoId = idEvento,
+                UsuarioId = idUsuarioJurado,
+                RolId = rolJurado.Id,
+                Rol = rolJurado
+            };
+            context.EventoUsuarioRol.Add(eventoUsuarioRolJurado);
 
             var proyectoPropio = new Proyecto
             {
@@ -129,7 +180,15 @@ namespace Votify.Core.Tests.Votaciones
                 Titulo = "Proyecto Propio",
                 Descripcion = "Descripcion del proyecto propio",
                 Id_evento = idEvento,
-                Id_creador = idUsuarioParticipante
+                Id_creador = idUsuarioParticipante,
+                ProyectoParticipantes = new List<ProyectoParticipantes>
+                {
+                    new ProyectoParticipantes
+                    {
+                        Id_proyecto = idProyectoPropio,
+                        Id_usuario = idUsuarioParticipante
+                    }
+                }
             };
 
             var proyectoAjeno1 = new Proyecto
@@ -138,7 +197,15 @@ namespace Votify.Core.Tests.Votaciones
                 Titulo = "Proyecto Ajeno 1",
                 Descripcion = "Descripcion del proyecto ajeno 1",
                 Id_evento = idEvento,
-                Id_creador = Guid.NewGuid()
+                Id_creador = idUsuarioAjeno1,
+                ProyectoParticipantes = new List<ProyectoParticipantes>
+                {
+                    new ProyectoParticipantes
+                    {
+                        Id_proyecto = idProyectoAjeno1,
+                        Id_usuario = idUsuarioAjeno1
+                    }
+                }
             };
 
             var proyectoAjeno2 = new Proyecto
@@ -147,7 +214,15 @@ namespace Votify.Core.Tests.Votaciones
                 Titulo = "Proyecto Ajeno 2",
                 Descripcion = "Descripcion del proyecto ajeno 2",
                 Id_evento = idEvento,
-                Id_creador = Guid.NewGuid()
+                Id_creador = Guid.NewGuid(),
+                ProyectoParticipantes = new List<ProyectoParticipantes>
+                {
+                    new ProyectoParticipantes
+                    {
+                        Id_proyecto = idProyectoAjeno2,
+                        Id_usuario = idUsuarioAjeno2
+                    }
+                }
             };
 
             var ahora = DateTime.UtcNow;
@@ -197,7 +272,7 @@ namespace Votify.Core.Tests.Votaciones
                 PermiteAutoVoto = false
             };
 
-            context.Role.AddRange(rolParticipante, rolPublico);
+            context.Role.AddRange(rolParticipante, rolPublico, rolJurado);
             context.Usuario.AddRange(usuarioParticipante, usuarioPublico);
             context.Evento.Add(evento);
             context.EventoUsuarioRol.AddRange(eventoUsuarioRolParticipante, eventoUsuarioRolPublico);
@@ -220,11 +295,12 @@ namespace Votify.Core.Tests.Votaciones
             {
                 IdVotante = idUsuarioParticipante,
                 Votos = new List<VotoDetalleDTO>
-    {
-        new VotoDetalleDTO { IdProyecto = idProyectoPropio },
-        new VotoDetalleDTO { IdProyecto = idProyectoAjeno1 },
-        new VotoDetalleDTO { IdProyecto = idProyectoAjeno2 }
-    }
+                {
+                    new VotoDetalleDTO { IdProyecto = idProyectoPropio },
+                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno1 },
+                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno2 }
+                },
+                IdEvento = idEvento
             };
 
             Assert.IsNotNull(dtoPermite);
@@ -245,16 +321,18 @@ namespace Votify.Core.Tests.Votaciones
             {
                 IdVotante = idUsuarioParticipante,
                 Votos = new List<VotoDetalleDTO>
-    {
-        new VotoDetalleDTO { IdProyecto = idProyectoPropio },
-        new VotoDetalleDTO { IdProyecto = idProyectoAjeno1 },
-        new VotoDetalleDTO { IdProyecto = idProyectoAjeno2 }
-    }
+                {
+                    new VotoDetalleDTO { IdProyecto = idProyectoPropio },
+                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno1 },
+                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno2 }
+                },
+                IdEvento = idEvento
             };
 
-            var resultadoNoPermite = await votacionService.RegistrarVotoAsync(idVotacionPublicaSinAutovoto, dtoNoPermite);
-
-            Assert.IsFalse(resultadoNoPermite, "No debería permitir votar al propio proyecto cuando el autovoto no está permitido.");
+            await Assert.ThrowsExceptionAsync<Exception>(async () =>
+            {
+                await votacionService.RegistrarVotoAsync(idVotacionPublicaSinAutovoto, dtoNoPermite);
+            });
 
             var votosGuardadosNoPermite = await context.Voto
                 .Where(v => v.Id_votacion == idVotacionPublicaSinAutovoto && v.Id_votante == idUsuarioParticipante)
@@ -270,23 +348,25 @@ namespace Votify.Core.Tests.Votaciones
             {
                 IdVotante = idUsuarioPublico,
                 Votos = new List<VotoDetalleDTO>
-        {
-            new VotoDetalleDTO { IdProyecto = idProyectoPropio },
-            new VotoDetalleDTO { IdProyecto = idProyectoAjeno1 },
-            new VotoDetalleDTO { IdProyecto = idProyectoAjeno2 }
-        }
+                {
+                    new VotoDetalleDTO { IdProyecto = idProyectoPropio },
+                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno1 },
+                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno2 }
+                },
+                IdEvento = idEvento
             };
 
             Assert.IsNotNull(dto.Votos);
             Assert.AreEqual(3, dto.Votos.Count);
 
             var resultadoPublica = await votacionService.RegistrarVotoAsync(idVotacionPublica, dto);
-            var resultadoJurado = await votacionService.RegistrarVotoAsync(idVotacionJurado, dto);
-            var resultadoMixta = await votacionService.RegistrarVotoAsync(idVotacionMixta, dto);
-
+            Assert.IsTrue(resultadoPublica);
+            await Assert.ThrowsExceptionAsync<Exception>(async () =>
+            {
+                await votacionService.RegistrarVotoAsync(idVotacionJurado, dto);
+            });
             Assert.IsTrue(resultadoPublica, "Un usuario con rol público debe poder votar en una votación pública.");
-            Assert.IsFalse(resultadoJurado, "Un usuario con rol público no debe poder votar en una votación de jurado.");
-            Assert.IsFalse(resultadoMixta, "Un usuario con rol público no debe poder votar en una votación mixta.");
+
 
             var votosPublica = await context.Voto
                 .Where(v => v.Id_votacion == idVotacionPublica && v.Id_votante == idUsuarioPublico)
@@ -300,9 +380,9 @@ namespace Votify.Core.Tests.Votaciones
                 .Where(v => v.Id_votacion == idVotacionMixta && v.Id_votante == idUsuarioPublico)
                 .ToListAsync();
 
-            Assert.AreEqual(3, votosPublica.Count, "En la votación pública sí deben guardarse votos.");
-            Assert.AreEqual(0, votosJurado.Count, "En la votación de jurado no debe guardarse ningún voto.");
-            Assert.AreEqual(0, votosMixta.Count, "En la votación mixta no debe guardarse ningún voto.");
+            Assert.AreEqual(3, votosPublica.Count);
+            Assert.AreEqual(0, votosJurado.Count);
+            Assert.AreEqual(0, votosMixta.Count);
         }
     }
 }

@@ -63,13 +63,6 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<Votacion>()
-        .HasDiscriminator<string>("Discriminator")
-        .HasValue<Votacion>("Base")
-        .HasValue<VotacionPublico>("Publico")
-        .HasValue<VotacionJurado>("Jurado")
-        .HasValue<VotacionMixta>("Mixto");
-
         modelBuilder.Entity<VotacionJurado>().HasBaseType<Votacion>();
         modelBuilder.Entity<VotacionPublico>().HasBaseType<Votacion>();
         modelBuilder.Entity<VotacionMixta>().HasBaseType<Votacion>();

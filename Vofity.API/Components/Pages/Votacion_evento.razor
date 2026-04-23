@@ -336,13 +336,12 @@
                 idVotante = resultado.Value;
                 usuarioSesion.IdUsuario = resultado.Value;
                 usuario = await contexto.Usuario.Include(u => u.Rol).Include(u => u.ProyectoParticipantes).FirstOrDefaultAsync(u => u.Id == idVotante);
-                yaVoto = await contexto.Voto
-                    .AnyAsync(v => v.Id_votante == usuario.Id && v.Id_votacion == idVotacion);
+                yaVoto = await VotacionService.YaVotoAsync(idVotacion, idVotante);
 
                 if (yaVoto)
                 {
                     mensaje = "Ya has votado en este evento.";
-                    List<Voto> votos = await contexto.Voto.Where(v => v.Id_votante == usuario.Id && v.Id_votacion == idVotacion).ToListAsync();
+                    List<Voto> votos = await VotacionService.ObtenerVotosUsuarioAsync(idVotacion, idVotante);
                     foreach (var voto in votos)
                     {
                         proyectosSeleccionados.Add(voto.Id_proyecto);
@@ -405,70 +404,10 @@
             mensaje = "No hay una votación activa para este evento, espera a que haya una para poder votar.";
             return;
         }
-        string? rolUsuario = usuario.Rol.Nombre;
-        bool aux = await contexto.EventoUsuarioRol
-            .Where(eur => eur.EventoId == evento.Id && eur.UsuarioId == usuario.Id && (eur.Rol.Nombre == "Publico" || eur.Rol.Nombre == "Participante"))
-            .AnyAsync();
-        bool esJuradoAsignado = await contexto.EventoUsuarioRol
-            .Where(eur => eur.EventoId == evento.Id && eur.UsuarioId == usuario.Id && eur.Rol.Nombre == "Jurado")
-            .AnyAsync();
-
-        bool esPublico = rolUsuario == "Publico" || aux;
-        if (votacion is VotacionPublico)
-        {
-            if (!esPublico)
-            {
-                mensaje = "Solo usuarios públicos pueden votar en este evento.";
-                return;
-            }
-        }
-        else if (votacion is VotacionJurado)
-        {
-
-            if (!esJuradoAsignado)
-            {
-                mensaje = "Solo el jurado asignado puede votar.";
-                return;
-            }
-        }
-        else if (votacion is VotacionMixta)
-        {
-            if (!esPublico && !esJuradoAsignado)
-            {
-                mensaje = "Solo usuarios públicos, participantes o jurado asignado pueden votar en este evento.";
-                return;
-            }
-        }
-
-
         if (proyectosSeleccionados.Count != 3)
         {
             mensaje = "Debes seleccionar exactamente 3 proyectos para votar.";
             return;
-        }
-
-        // evitar votos duplicados  
-        yaVoto = await contexto.Voto
-            .AnyAsync(v => v.Id_votante == usuario.Id && v.Id_votacion == idVotacion);
-
-        if (yaVoto)
-        {
-            mensaje = "Ya has votado en este evento.";
-            return;
-        }
-        foreach(var select in proyectosSeleccionados)
-        {
-            foreach(var proyUsuario in usuario.ProyectoParticipantes)
-            {
-                if(proyUsuario.Id_proyecto == select)
-                {
-                    if (!votacion.PermiteAutoVoto)
-                    {
-                        mensaje = "No se permite el auto voto en esta votación";
-                        return;
-                    }
-                }
-            }
         }
         var votoDto = new EmitirVotoDTO
         {
@@ -479,14 +418,20 @@
                 Comentario = comentariosPorProyecto.ContainsKey(idProyecto)
                     ? comentariosPorProyecto[idProyecto]
                     : string.Empty
-            }).ToList()
+            }).ToList(),
+            IdEvento = evento.Id
         };
 
-            var resultado = await VotacionService.RegistrarVotoAsync(idVotacion, votoDto);
-
-            mensaje = resultado
-                ? "Voto enviado correctamente."
-                : "Error al registrar el voto. Verifica que no hayas votado antes y que la votación esté activa.";
+        try
+        {
+            await VotacionService.RegistrarVotoAsync(idVotacion, votoDto);
+            mensaje = "Voto enviado correctamente.";
+            yaVoto = true;
+        }
+        catch (Exception ex)
+        {
+            mensaje = ex.Message; 
+        }
     }
 
     void Volver()
@@ -504,7 +449,7 @@
         if (votacion == null)
             return false;
 
-        var hoy = DateTime.Now;
+        DateTime hoy = DateTime.UtcNow;
 
         return votacion.FechaFin <= hoy;
     }
