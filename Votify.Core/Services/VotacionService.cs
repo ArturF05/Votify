@@ -121,6 +121,7 @@ namespace Votify.Core.Services
                 votacionActual.FechaInicio = DateTime.SpecifyKind(inicioVotacion, DateTimeKind.Local).ToUniversalTime();
                 votacionActual.FechaFin = DateTime.SpecifyKind(finVotacion, DateTimeKind.Local).ToUniversalTime();
                 votacionActual.PermiteAutoVoto = permiteAutoVoto;
+                votacionActual.NumProy = NumProy;
 
                 await votacionRepository.EditarVotacionAsync(votacionActual);
             }
