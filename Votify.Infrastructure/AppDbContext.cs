@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
     public DbSet<Categoria> Categoria { get; set; }
     public DbSet<DimensionesDeValor> DimensionesDeValor { get; set; }
     public DbSet<EventoUsuarioRol> EventoUsuarioRol { get; set; }
+    public DbSet<Material> Material { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

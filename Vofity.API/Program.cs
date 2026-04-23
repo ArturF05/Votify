@@ -27,7 +27,7 @@ builder.Services.AddScoped<IDimensionRepository,DimensionRepository>();
 builder.Services.AddScoped<UsuarioSesion>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<UsuarioSesion>();
-
+builder.Services.AddScoped<IAzureStorage, AzureStorageService>();
 // Login
 builder.Services.AddHttpClient<ILogin, LoginService>(client =>
 {
@@ -44,6 +44,15 @@ builder.Services.AddScoped(sp =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddSignalR(options =>
+{
+    options.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
+});
+builder.Services.AddServerSideBlazor()
+    .AddCircuitOptions(o =>
+    {
+        o.DetailedErrors = true;
+    });
 builder.Services.AddControllers();
 var app = builder.Build();
 app.UseSwagger();
