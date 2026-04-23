@@ -251,7 +251,7 @@
                 .Any(e => e.EventoId == p.Id_evento && e.UsuarioId == idUsuario))
             .ToListAsync();
 
-        materialesPorProyecto.Clear(); // 🔥 importante
+        materialesPorProyecto.Clear(); 
 
         foreach (var p in proyectos)
         {
@@ -304,21 +304,41 @@
 
         archivoBytes = ms.ToArray();
     }
-
+    private bool EsUrlValida(string url)
+    {
+        return Uri.TryCreate(url, UriKind.Absolute, out var uri)
+               && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+    }
     private void AgregarMaterial()
     {
         mensajeError = "";
-
         if (string.IsNullOrWhiteSpace(nuevoNombre))
         {
-            mensajeError = "Nombre obligatorio";
+            mensajeError = "El nombre es obligatorio";
             return;
         }
 
-        if (nuevoTipo == "Imagen" && archivoBytes == null)
+        if (nuevoTipo == "Imagen")
         {
-            mensajeError = "Selecciona una imagen";
-            return;
+            if (archivoBytes == null)
+            {
+                mensajeError = "Debes seleccionar una imagen";
+                return;
+            }
+        }
+        else // Enlace o Video
+        {
+            if (string.IsNullOrWhiteSpace(nuevoValor))
+            {
+                mensajeError = "Debes introducir una URL";
+                return;
+            }
+
+            if (!EsUrlValida(nuevoValor))
+            {
+                mensajeError = "La URL no es válida";
+                return;
+            }
         }
 
         materialesPorProyecto[proyectoSeleccionado!.Id].Add(new MaterialViewModel
@@ -354,13 +374,13 @@
 
         if (material == null) return;
 
-        // 🔥 borrar de Azure si es imagen
+        //  borrar de Azure si es imagen
         if (material.Tipo == "Imagen" && !string.IsNullOrEmpty(material.Valor))
         {
             await AzureService.EliminarArchivoAsync(material.Valor);
         }
 
-        // 🔥 borrar de BD
+        //  borrar de BD
         var materialDb = await contexto.Material.FindAsync(id);
         if (materialDb != null)
         {
@@ -368,7 +388,7 @@
             await contexto.SaveChangesAsync();
         }
 
-        // 🔥 borrar de UI
+        //  borrar de UI
         lista.Remove(material);
     }
 
