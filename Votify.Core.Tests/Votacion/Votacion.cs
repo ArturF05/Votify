@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Votify.Core.DTOs;
 using Votify.Core.Entities;
 using Votify.Core.Factories;
+using Votify.Core.Interfaces;
 using Votify.Core.Services;
 using Votify.Infrastructure.Data;
 using Votify.Infrastructure.Repositorios;
@@ -41,11 +42,13 @@ namespace Votify.Core.Tests.Votacion
             var votacionRepository = new VotacionRepository(context);
             var votoRepository = new VotoRepository(context);
             var proyectoRepository = new ProyectoRepository(context);
+            var dimensionRepository = new DimensionRepository(context);
 
             votacionService = new VotacionService(
                 votacionRepository,
                 votoRepository,
-                proyectoRepository
+                proyectoRepository,
+                dimensionRepository
             );
 
             idVotacion = Guid.NewGuid();
@@ -618,7 +621,7 @@ namespace Votify.Core.Tests.Votacion
             var nuevaFechaInicio = DateTime.Now.AddDays(5);
             var nuevaFechaFin = DateTime.Now.AddDays(15);
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, nuevaFechaInicio, nuevaFechaFin, true, TipoVotacion.Publico);
+            await votacionService.EditarVotacion(idVotacion, idEvento, nuevaFechaInicio, nuevaFechaFin, true, TipoVotacion.Publico, criteriosDto);
 
             var votacionEditada = await context.Votacion.FindAsync(idVotacion);
 
@@ -794,5 +797,6 @@ namespace Votify.Core.Tests.Votacion
             Assert.IsNotNull(resultado);
             Assert.IsTrue(resultado.All(v => v.FechaFin > DateTime.UtcNow));
         }
+
     }
 }
