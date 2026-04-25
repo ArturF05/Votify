@@ -51,7 +51,7 @@
                         <h2 class="proyecto-nombre">@proyectoSeleccionado.Titulo</h2>
                         <p class="proyecto-evento">Evento: @proyectoSeleccionado.Evento?.Nombre</p>
                     </div>
-                    <button class="btn-anadir" @onclick="() => mostrarFormulario = !mostrarFormulario">
+                    <button class="btn-anadir" @onclick="() => MostrarFormulario()">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
@@ -108,7 +108,7 @@
                 }
 
                 <div class="materiales-lista">
-                    @if (!MaterialesActuales.Any())
+                    @if (!MaterialesActuales.Any() || subiendoMaterial)
                     {
                         <div class="materiales-vacios">
                             <p>Sin materiales aún. Haz clic en "Añadir Material" para comenzar.</p>
@@ -157,7 +157,7 @@
     }
 
     <div class="footer-acciones">
-        <button class="btn-cancelar" @onclick='() => nav.NavigateTo("/Home")'>Cancelar</button>
+        <button class="btn-cancelar" @onclick='() => nav.NavigateTo("/Home")'>Volver</button>
         <button class="btn-guardar" @onclick="GuardarCambios" disabled="@guardando">
             @if (guardando)
             {
@@ -204,6 +204,7 @@
     private string mensajeError = "";
     private string mensajeExito = "";
     private Guid idUsuario;
+    private bool subiendoMaterial = false;
 
     private List<Votify.Core.Entities.Proyecto> proyectos = new();
     private Votify.Core.Entities.Proyecto? proyectoSeleccionado;
@@ -270,7 +271,7 @@
             }).ToList();
         }
 
-        if (proyectos.Any())
+        if (proyectos.Any() && proyectoSeleccionado == null)
             proyectoSeleccionado = proyectos.First();
 
         cargando = false;
@@ -281,6 +282,8 @@
         proyectoSeleccionado = proyecto;
         mostrarFormulario = false;
         mensajeError = "";
+        mensajeExito = "";
+        subiendoMaterial = false;
     }
 
     private async Task OnArchivoSeleccionado(InputFileChangeEventArgs e)
@@ -330,13 +333,13 @@
         {
             if (string.IsNullOrWhiteSpace(nuevoValor))
             {
-                mensajeError = "Debes introducir una URL";
+                mensajeError = "Debes introducir una URL de tipo http o https";
                 return;
             }
 
             if (!EsUrlValida(nuevoValor))
             {
-                mensajeError = "La URL no es válida";
+                mensajeError = "La URL no es válida, asegurate de que sea http o https";
                 return;
             }
         }
@@ -352,7 +355,11 @@
 
         CancelarFormulario();
     }
-
+    private void MostrarFormulario()
+    {
+        mostrarFormulario = true;
+        subiendoMaterial = true;
+    }
     private void CancelarFormulario()
     {
         mostrarFormulario = false;
@@ -363,6 +370,7 @@
 
         archivoBytes = null;
         nombreArchivo = null;
+        subiendoMaterial = false;
     }
 
     private async Task EliminarMaterial(Guid id)
@@ -433,10 +441,7 @@
         }
         catch (Exception ex)
         {
-            // 🔥 AQUÍ ves el error real
             mensajeError = "Error al guardar: " + ex.Message;
-
-            // opcional (muy útil en debug)
             Console.WriteLine(ex.ToString());
         }
         finally

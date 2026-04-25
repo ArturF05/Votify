@@ -37,7 +37,7 @@ builder.Services.AddHttpClient<ILogin, LoginService>(client =>
 // HttpClient
 builder.Services.AddScoped(sp =>
 {
-    return new HttpClient { BaseAddress = new Uri("https://localhost:7053") }; // Your actual server port
+    return new HttpClient { BaseAddress = new Uri("https://localhost:7053") }; // El puerto del servidor que se usa
 });
 
 // AppDbContext

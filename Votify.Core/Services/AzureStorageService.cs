@@ -21,7 +21,7 @@ namespace Votify.Core.Services
         {
             await _containerClient.CreateIfNotExistsAsync();
 
-            // 🔥 nombre único para evitar conflictos
+            // nombre único para evitar conflictos
             var nombreSeguro = $"{Guid.NewGuid()}_{nombreArchivo}";
 
             var blobClient = _containerClient.GetBlobClient(nombreSeguro);
@@ -38,7 +38,7 @@ namespace Votify.Core.Services
 
             var uri = new Uri(url);
 
-            // 🔥 obtiene solo el nombre del archivo
+            // obtiene solo el nombre del archivo
             var blobName = Path.GetFileName(uri.LocalPath);
 
             var blobClient = _containerClient.GetBlobClient(blobName);
