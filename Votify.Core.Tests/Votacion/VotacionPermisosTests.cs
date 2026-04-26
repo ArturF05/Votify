@@ -274,7 +274,34 @@ namespace Votify.Core.Tests.Votaciones
                 FechaFin = ahora.AddHours(2),
                 PermiteAutoVoto = false
             };
+            var criterio = new DimensionesDeValor
+            {
+                Id = Guid.NewGuid(),
+                Id_votacion = idVotacionPublicaConAutovoto,
+                Nombre = "Calidad",
+                Descripcion = "Criterio de prueba",
+                Peso = 100
+            };
 
+            var criterio2 = new DimensionesDeValor
+            {
+                Id = Guid.NewGuid(),
+                Id_votacion = idVotacionPublicaSinAutovoto,
+                Nombre = "Calidad",
+                Descripcion = "Criterio de prueba",
+                Peso = 100
+            };
+
+            var criterio3 = new DimensionesDeValor
+            {
+                Id = Guid.NewGuid(),
+                Id_votacion = idVotacionPublica,
+                Nombre = "Calidad",
+                Descripcion = "Criterio de prueba",
+                Peso = 100
+            };
+
+            context.DimensionesDeValor.AddRange(criterio, criterio2, criterio3);
             context.Role.AddRange(rolParticipante, rolPublico, rolJurado);
             context.Usuario.AddRange(usuarioParticipante, usuarioPublico);
             context.Evento.Add(evento);

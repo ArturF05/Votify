@@ -344,7 +344,7 @@ namespace Votify.Core.Tests.Votacion
                 () => votacionService.RegistrarVotoAsync(idVotacion, dto)
             );
 
-            Assert.AreEqual("Este usuario ya ha votado.", exception.Message);
+            Assert.AreEqual("Ya has votado en esta votación.", exception.Message);
         }
 
         [TestMethod]
