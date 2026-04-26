@@ -452,7 +452,7 @@
                     puntuacionesPorProyecto[proyecto.Id][criterio.Id] = 0;
             }
         }
-    }
+
         ProtectedBrowserStorageResult<Guid> resultado;
         try
         {
@@ -580,8 +580,8 @@
                     IdCriterio = c.Id,
                     Nota = puntuacionesPorProyecto[idProyecto][c.Id]
                 }).ToList()
-            }).ToList()
-              IdEvento = evento.Id
+            }).ToList(),
+            IdEvento = evento.Id
         };
 
         try
