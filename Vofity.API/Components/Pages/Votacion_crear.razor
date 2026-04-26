@@ -59,7 +59,10 @@
             <option value="0">No</option>
         </select>
     </div>
-
+    <div class="campo">
+        <label>Número de proyectos*:</label>
+        <input type="number" @bind="numProy" min="0" />
+    </div>
     <div class="campo">
         <label>Inicio de la votación*:</label>
         <input type="datetime-local" @bind="inicioVotacion" />
@@ -91,6 +94,7 @@
     private DateTime inicioEvento = DateTime.Now;
     private DateTime finEvento = DateTime.Now.AddDays(1);
     private Guid Id_evento = Guid.Empty;
+    private int numProy = 0;
     private TipoVotacion tipoVotacion = TipoVotacion.Publico;
     private string mensaje = "";
     private string mensaje2 = "";
@@ -175,6 +179,11 @@
                 mensaje = "Ya hay una votación de este tipo registrada para este evento";
                 return;
             }
+            if(numProy<=0)
+            {
+                mensaje = "Se tiene que poder votar mínimo 1 proyecto";
+                return;
+            }
             evento = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == Id_evento);
             var dto = new CrearVotacionDTOs
             {
@@ -182,7 +191,8 @@
                 FechaInicio = inicioVotacion.ToUniversalTime(),
                 FechaFin = finVotacion.ToUniversalTime(),
                 PermiteAutoVoto = permiteAutoVoto == 1,
-                TipoVotacion = tipoVotacion
+                TipoVotacion = tipoVotacion,
+                Num_Proy=numProy
             };
             var response = await Http.PostAsJsonAsync("api/v1/votaciones", dto);
 

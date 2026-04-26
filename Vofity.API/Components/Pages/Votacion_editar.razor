@@ -57,7 +57,6 @@
             <option value="0">No</option>
         </select>
     </div>
-
     <div class="campo">
         <label>Inicio de la votación*:</label>
         <input type="datetime-local" @bind-value="inicioVotacion" @bind-value:event="onchange" />
@@ -66,7 +65,10 @@
         <label>Fin de la votación*:</label>
         <input type="datetime-local" @bind-value="finVotacion" @bind-value:event="onchange" />
     </div>
-
+    <div class="campo campo-columna">
+        <label>Número de proyectos votables*:</label>
+        <input type="number" @bind-value="NumProy" min=0 />
+    </div>
     <div class="errores">
         <div><label style="color:red">@mensaje</label></div>
         <div><label style="color:red">@mensaje2</label></div>
@@ -124,7 +126,7 @@
     [Parameter]
     public Guid id { get; set; }
     private Votify.Core.Entities.Votacion votacion;
-
+    private int? NumProy = 0;
     private int permiteAutoVoto = 1;
     private DateTime inicioVotacion = DateTime.Now;
     private DateTime finVotacion = DateTime.Now.AddHours(1);
@@ -146,10 +148,19 @@
     protected override async Task OnInitializedAsync()
     {
         eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
+
         votacion = await contexto.Votacion.FirstOrDefaultAsync(e => e.Id == id);
-        criterios = await contexto.DimensionesDeValor.Where(d => d.Id_votacion == votacion.Id).ToListAsync();
-        if (!criterios.Any()) { mensajeNoCriterio = "Esta votación no tiene criterios"; return; }
-        if (votacion == null) throw new Exception("No existe la votación");
+
+        if (votacion == null)
+            throw new Exception("No existe la votación");
+
+        criterios = await contexto.DimensionesDeValor
+            .Where(d => d.Id_votacion == votacion.Id)
+            .ToListAsync();
+
+        if (!criterios.Any())
+            mensajeNoCriterio = "Esta votación no tiene criterios";
+
         await SetVotacion(votacion);
     }
     public async Task SetVotacion(Votify.Core.Entities.Votacion votacion)
@@ -157,19 +168,25 @@
         Id_evento = votacion.Id_evento;
         inicioVotacion = votacion.FechaInicio.ToLocalTime();
         finVotacion = votacion.FechaFin.ToLocalTime();
+        NumProy = votacion.NumProy;
+
         if (votacion is VotacionPublico)
             tipoVotacion = TipoVotacion.Publico;
         else if (votacion is VotacionJurado)
             tipoVotacion = TipoVotacion.Jurado;
         else if (votacion is VotacionMixta)
             tipoVotacion = TipoVotacion.Mixto;
-        if (votacion.PermiteAutoVoto) permiteAutoVoto = 1;
-        else permiteAutoVoto = 0;
-        evento = await contexto.Evento.Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == Id_evento);
+
+        permiteAutoVoto = votacion.PermiteAutoVoto ? 1 : 0;
+
+        evento = await contexto.Evento
+            .Include(e => e.Categoria)
+            .FirstOrDefaultAsync(e => e.Id == Id_evento);
+
         if (evento == null) return;
+
         inicioEvento = evento.FechaInicio;
         finEvento = evento.FechaFin;
-
     }
 
     void SeleccionarTipo(TipoVotacion tipo)
@@ -222,6 +239,11 @@
                 mensaje = "Ya hay una votación de este tipo registrada para este evento";
                 return;
             }
+            if (NumProy <= 0)
+            {
+                mensaje = "Se tiene que poder votar mínimo 1 proyecto";
+                return;
+            }
 
             if (criterios.Sum(c => c.Peso) != 100)
             {
@@ -236,6 +258,7 @@
                 FechaFin = finVotacion.ToUniversalTime(),
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion,
+                Num_Proy = NumProy ?? 0,
                 Criterios = criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
                 {
                     Id = c.Id,

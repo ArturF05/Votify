@@ -138,9 +138,12 @@
                 return;
             }
 
-            var respuesta = await Http.PatchAsync(
-                $"api/eventos/{eventoId}/apuntarse?usuarioId={idUsuario}&apuntar=true",
-                new StringContent(""));
+            var url = $"api/eventos/{eventoId}/apuntarse?usuarioId={idUsuario}&apuntar=true";
+            mensaje = $"Llamando a: {url}";
+
+            var respuesta = await Http.PatchAsync(url, new StringContent(""));
+
+            var detalle = await respuesta.Content.ReadAsStringAsync();
 
             if (respuesta.IsSuccessStatusCode)
             {
@@ -152,16 +155,17 @@
                     eventosParticipando.Add(evento);
                 }
 
+                mensaje = $"Inscripción correcta. Respuesta API: {detalle}";
                 StateHasChanged();
             }
             else
             {
-                mensaje = "No se pudo realizar la inscripción en el evento.";
+                mensaje = $"Error HTTP {(int)respuesta.StatusCode} - {respuesta.ReasonPhrase}. Detalle: {detalle}";
             }
         }
         catch (Exception ex)
         {
-            mensaje = $"Error al apuntarse: {ex.Message}";
+            mensaje = $"Error al apuntarse: {ex.Message} | Inner: {ex.InnerException?.Message}";
         }
     }
 

@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
     public DbSet<Categoria> Categoria { get; set; }
     public DbSet<DimensionesDeValor> DimensionesDeValor { get; set; }
     public DbSet<EventoUsuarioRol> EventoUsuarioRol { get; set; }
+    public DbSet<Material> Material { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -60,6 +61,8 @@ public class AppDbContext : DbContext
                 .WithMany(e => e.Votaciones)
                 .HasForeignKey(v => v.Id_evento)
                 .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(v => v.NumProy)
+                .HasColumnName("NumProy");
         });
 
         modelBuilder.Entity<VotacionJurado>().HasBaseType<Votacion>();

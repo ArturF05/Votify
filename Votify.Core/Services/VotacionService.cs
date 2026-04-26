@@ -35,17 +35,25 @@ namespace Votify.Core.Services
             if (dto.IdVotante == Guid.Empty)
                 throw new Exception("El id del votante está vacío.");
 
-            if (dto.Votos == null || dto.Votos.Count != 3)
-                throw new Exception("Debes votar exactamente 3 proyectos.");
-
-            var idsProyectos = dto.Votos.Select(v => v.IdProyecto).ToList();
-
-            if (idsProyectos.Distinct().Count() != 3)
-                throw new Exception("No puedes votar dos veces al mismo proyecto.");
-
             var votacion = await votacionRepository.ObtenerPorIdAsync(idVotacion);
             if (votacion == null)
                 throw new Exception("La votación no existe.");
+
+            int numProy = votacion.NumProy ?? 3;
+
+            if (dto.Votos == null)
+                throw new Exception($"Debes votar exactamente {numProy} proyectos.");
+
+            if (dto.Votos.Count > numProy)
+                throw new Exception("No puedes votar más proyectos que el máximo permitido.");
+
+            if (dto.Votos.Count < numProy)
+                throw new Exception($"Debes votar exactamente {numProy} proyectos.");
+
+            var idsProyectos = dto.Votos.Select(v => v.IdProyecto).ToList();
+
+            if (idsProyectos.Distinct().Count() != idsProyectos.Count)
+                throw new Exception("No puedes votar dos veces al mismo proyecto.");
 
             var ahoraUtc = DateTime.UtcNow;
             if (ahoraUtc < votacion.FechaInicio || ahoraUtc > votacion.FechaFin)
@@ -56,8 +64,9 @@ namespace Votify.Core.Services
                 throw new Exception("Este usuario ya ha votado.");
 
             var proyectos = await proyectoRepository.ObtenerPorIdAsync(idsProyectos);
-            if (proyectos.Count != 3)
-                throw new Exception("No se han encontrado los 3 proyectos.");
+
+            if (proyectos.Count != idsProyectos.Count)
+                throw new Exception($"No se han encontrado los {numProy} proyectos que debías votar.");
 
             if (proyectos.Any(p => p.Id_evento != votacion.Id_evento))
                 throw new Exception("Algún proyecto no pertenece al evento.");
@@ -99,21 +108,24 @@ namespace Votify.Core.Services
             return await votacionRepository.BuscarPorNombreAsync(Id_evento, tipoVotacion, permiteAutoVoto, verFinalizadas);
         }
 
-        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion)
+        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy)
         {
             if (Id_evento == Guid.Empty)
                 throw new Exception("El evento es obligatorio");
 
             if (finVotacion < inicioVotacion)
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
-
-            var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion);
+            if (NumProy < 1)
+                throw new Exception("Se tiene que poder votar mínimo 1 proyecto");
+            var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion,NumProy);
 
             await votacionRepository.CrearVotacionAsync(nuevaVotacion);
         }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios)
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios,int NumProy)
         {
             var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);
+
+
 
             if (votacionActual == null)
                 throw new Exception("La votación no existe");
@@ -133,6 +145,7 @@ namespace Votify.Core.Services
                 votacionActual.FechaInicio = DateTime.SpecifyKind(inicioVotacion, DateTimeKind.Local).ToUniversalTime();
                 votacionActual.FechaFin = DateTime.SpecifyKind(finVotacion, DateTimeKind.Local).ToUniversalTime();
                 votacionActual.PermiteAutoVoto = permiteAutoVoto;
+                votacionActual.NumProy = NumProy;
 
                 await votacionRepository.EditarVotacionAsync(votacionActual);
             }
@@ -143,7 +156,8 @@ namespace Votify.Core.Services
                     finVotacion,
                     permiteAutoVoto,
                     Id_evento,
-                    tipoVotacion
+                    tipoVotacion,
+                    NumProy
                 );
 
                 nuevaVotacion.Id = votacionActual.Id;
