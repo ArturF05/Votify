@@ -100,7 +100,31 @@ namespace Votify.Core.Tests.Votacion
                 categoriaId
             );
             var idOtroEvento = otroEvento2.Id;
+            var rolPublico = new Rol
+            {
+                Id = Guid.NewGuid(),
+                Nombre = "Publico"
+            };
 
+            var usuario = new Usuario
+            {
+                Id = idVotante,
+                Nombre = "usuarioTest",
+                Password = "1234",
+                Id_rol = rolPublico.Id,
+                Rol = rolPublico
+            };
+            context.EventoUsuarioRol.Add(new EventoUsuarioRol
+            {
+                EventoId = idEvento,
+                UsuarioId = idVotante,
+                RolId = rolPublico.Id,
+                Rol = rolPublico
+            });
+            context.Role.Add(rolPublico);
+            context.Usuario.Add(usuario);
+            context.Role.Add(rolPublico);
+            context.Usuario.Add(usuario);
             context.Evento.Add(eventoPrincipal);
             context.Evento.Add(otroEvento);
             context.Evento.Add(otroEvento2);
@@ -206,7 +230,8 @@ namespace Votify.Core.Tests.Votacion
                 {
                     new VotoDetalleDTO { IdProyecto = idProyecto1 },
                     new VotoDetalleDTO { IdProyecto = idProyecto2 }
-                }
+                },
+                IdEvento = idEvento
             };
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
@@ -228,7 +253,8 @@ namespace Votify.Core.Tests.Votacion
                     new VotoDetalleDTO { IdProyecto = idProyecto2 },
                     new VotoDetalleDTO { IdProyecto = idProyecto3 },
                     new VotoDetalleDTO { IdProyecto = Guid.NewGuid() }
-                }
+                },
+                IdEvento = idEvento
             };
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
@@ -249,7 +275,8 @@ namespace Votify.Core.Tests.Votacion
                     new VotoDetalleDTO { IdProyecto = idProyecto1 },
                     new VotoDetalleDTO { IdProyecto = idProyecto1 },
                     new VotoDetalleDTO { IdProyecto = idProyecto2 }
-                }
+                },
+                IdEvento = idEvento
             };
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
@@ -270,7 +297,8 @@ namespace Votify.Core.Tests.Votacion
                     new VotoDetalleDTO { IdProyecto = idProyecto1 },
                     new VotoDetalleDTO { IdProyecto = idProyecto2 },
                     new VotoDetalleDTO { IdProyecto = idProyecto3 }
-                }
+                },
+                IdEvento = idEvento
             };
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
@@ -304,7 +332,8 @@ namespace Votify.Core.Tests.Votacion
                     new VotoDetalleDTO { IdProyecto = idProyecto1 },
                     new VotoDetalleDTO { IdProyecto = idProyecto2 },
                     new VotoDetalleDTO { IdProyecto = idProyecto3 }
-                }
+                },
+                IdEvento = idEvento
             };
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
@@ -337,7 +366,8 @@ namespace Votify.Core.Tests.Votacion
                     new VotoDetalleDTO { IdProyecto = idProyecto1 },
                     new VotoDetalleDTO { IdProyecto = idProyecto2 },
                     new VotoDetalleDTO { IdProyecto = idProyecto3 }
-                }
+                },
+                IdEvento = idEvento
             };
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
@@ -358,7 +388,8 @@ namespace Votify.Core.Tests.Votacion
                     new VotoDetalleDTO { IdProyecto = idProyecto1 },
                     new VotoDetalleDTO { IdProyecto = idProyecto2 },
                     new VotoDetalleDTO { IdProyecto = Guid.NewGuid() }
-                }
+                },
+                IdEvento = idEvento
             };
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
@@ -379,7 +410,8 @@ namespace Votify.Core.Tests.Votacion
                     new VotoDetalleDTO { IdProyecto = idProyecto1 },
                     new VotoDetalleDTO { IdProyecto = idProyecto2 },
                     new VotoDetalleDTO { IdProyecto = idProyectoOtroEvento }
-                }
+                },
+                IdEvento = idEvento
             };
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
@@ -400,7 +432,8 @@ namespace Votify.Core.Tests.Votacion
                     new VotoDetalleDTO { IdProyecto = idProyecto1 },
                     new VotoDetalleDTO { IdProyecto = idProyecto2 },
                     new VotoDetalleDTO { IdProyecto = idProyecto3 }
-                }
+                },
+                IdEvento = idEvento
             };
 
             var resultado = await votacionService.RegistrarVotoAsync(idVotacion, dto);
@@ -425,7 +458,8 @@ namespace Votify.Core.Tests.Votacion
                     new VotoDetalleDTO { IdProyecto = idProyecto1 },
                     new VotoDetalleDTO { IdProyecto = idProyecto2 },
                     new VotoDetalleDTO { IdProyecto = idProyecto3 }
-                }
+                },
+                IdEvento = idEvento
             };
 
             await votacionService.RegistrarVotoAsync(idVotacion, dto);
