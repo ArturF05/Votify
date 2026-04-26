@@ -82,7 +82,7 @@ namespace Votify.Core.Services
                 if (v.Puntuaciones == null || !v.Puntuaciones.Any())
                 {
                     puntuacionTotal = 1m;
-                }
+                } 
                 else
                 {
                     foreach (var criterio in criterios)
