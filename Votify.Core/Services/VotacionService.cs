@@ -75,15 +75,26 @@ namespace Votify.Core.Services
 
             if (criterios == null || criterios.Count == 0)
                 throw new Exception("La votación no tiene criterios definidos.");
-
             var votos = dto.Votos.Select(v =>
             {
                 decimal puntuacionTotal = 0m;
 
-                foreach (var criterio in criterios)
+                if (v.Puntuaciones == null || !v.Puntuaciones.Any())
                 {
-                    var puntuacion = v.Puntuaciones.First(p => p.IdCriterio == criterio.Id);
-                    puntuacionTotal += puntuacion.Nota * (criterio.Peso / 100m);
+                    puntuacionTotal = 1m;
+                }
+                else
+                {
+                    foreach (var criterio in criterios)
+                    {
+                        var puntuacion = v.Puntuaciones
+                            .FirstOrDefault(p => p.IdCriterio == criterio.Id);
+
+                        if (puntuacion == null)
+                            throw new Exception("Falta la puntuación de algún criterio.");
+
+                        puntuacionTotal += puntuacion.Nota * (criterio.Peso / 100m);
+                    }
                 }
 
                 return new Voto
