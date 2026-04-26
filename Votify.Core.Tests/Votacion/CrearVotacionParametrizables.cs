@@ -33,12 +33,16 @@ namespace Votify.Core.Tests.Votacion
             VotoRepository votoRepository = new VotoRepository(context);
             ProyectoRepository proyectoRepository = new ProyectoRepository(context);
             DimensionRepository dimensionRepository = new DimensionRepository(context);
+            UsuarioRepository usuarioRepository = new UsuarioRepository(context);
+            EventoUsuarioRolRepository usuarioRolRepository = new EventoUsuarioRolRepository(context);
 
             votacionService = new VotacionService(
                 votacionRepository,
                 votoRepository,
                 proyectoRepository,
-                dimensionRepository
+                dimensionRepository,
+                usuarioRepository,
+                usuarioRolRepository
             );
 
             DateTime hoy = DateTime.UtcNow;

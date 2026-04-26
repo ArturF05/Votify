@@ -1,4 +1,4 @@
-﻿/*using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -42,12 +42,16 @@ namespace Votify.Core.Tests.Votacion
             var votoRepository = new VotoRepository(context);
             var proyectoRepository = new ProyectoRepository(context);
             DimensionRepository dimensionRepository = new DimensionRepository(context);
+            UsuarioRepository usuarioRepository = new UsuarioRepository(context);
+            EventoUsuarioRolRepository eventoUsuarioRolRepository = new EventoUsuarioRolRepository(context);
 
             votacionService = new VotacionService(
                 votacionRepository,
                 votoRepository,
                 proyectoRepository,
-                dimensionRepository
+                dimensionRepository,
+                usuarioRepository,
+                eventoUsuarioRolRepository
             );
 
             idVotacion = Guid.NewGuid();
@@ -797,4 +801,4 @@ namespace Votify.Core.Tests.Votacion
             Assert.IsTrue(resultado.All(v => v.FechaFin > DateTime.UtcNow));
         }
     }
-}*/
+}

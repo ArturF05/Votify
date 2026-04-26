@@ -21,6 +21,7 @@ namespace Votify.Core.Tests.Votaciones
         private VotacionRepository votacionRepository;
         private VotoRepository votoRepository;
         private ProyectoRepository proyectoRepository;
+        DimensionRepository dimensionRepository;
         private VotacionService votacionService;
         private UsuarioRepository usuarioRepository;
         private EventoUsuarioRolRepository eventoUsuarioRolRepository;
@@ -61,6 +62,7 @@ namespace Votify.Core.Tests.Votaciones
             votacionRepository = new VotacionRepository(context);
             votoRepository = new VotoRepository(context);
             proyectoRepository = new ProyectoRepository(context);
+            dimensionRepository = new DimensionRepository(context);
             usuarioRepository = new UsuarioRepository(context);
             eventoUsuarioRolRepository = new EventoUsuarioRolRepository(context);
 
@@ -68,6 +70,7 @@ namespace Votify.Core.Tests.Votaciones
                 votacionRepository,
                 votoRepository,
                 proyectoRepository,
+                dimensionRepository,
                 usuarioRepository,
                 eventoUsuarioRolRepository
             );
