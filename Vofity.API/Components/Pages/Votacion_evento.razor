@@ -222,7 +222,7 @@
     {
         <div class="page-header">
             <h2 class="titulo">Proyectos del evento @evento.Nombre</h2>
-            <p class="subtitulo">Selecciona tus 3 proyectos favoritos</p>
+            <p class="subtitulo">Selecciona tus @NumProy proyectos favoritos</p>
         </div>
 
         <div class="proyecto-container">
@@ -286,6 +286,7 @@
     private Guid idVotacion;
     private Votify.Core.Entities.Votacion? votacion;
     private Guid idVotante;
+    private int? NumProy = 0;
     private string mensaje = "";
     private Dictionary<Guid, string> comentariosPorProyecto = new();
 
@@ -294,10 +295,13 @@
         evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
         votacion = await contexto.Votacion
             .FirstOrDefaultAsync(v => v.Id_evento == id);
+        NumProy = votacion.NumProy;
 
         if (votacion != null)
         {
+            NumProy = votacion.NumProy;
             idVotacion = votacion.Id;
+            mensaje = $"DEBUG -> NumProy = {NumProy}";
         }
         if (evento == null)
         {
@@ -338,7 +342,7 @@
         }
         else
         {
-            if (proyectosSeleccionados.Count < 3)
+            if (proyectosSeleccionados.Count < NumProy)
             {
                 proyectosSeleccionados.Add(idProyecto);
                 comentariosPorProyecto[idProyecto] = "";
@@ -408,10 +412,9 @@
             }
         }
        
-
-        if (proyectosSeleccionados.Count != 3)
+        if (proyectosSeleccionados.Count != NumProy)
         {
-            mensaje = "Debes seleccionar exactamente 3 proyectos para votar.";
+            mensaje = "Debes seleccionar exactamente "+ NumProy + "  proyectos para votar.";
             return;
         }
 

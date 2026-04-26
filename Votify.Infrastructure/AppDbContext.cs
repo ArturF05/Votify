@@ -61,6 +61,8 @@ public class AppDbContext : DbContext
                 .WithMany(e => e.Votaciones)
                 .HasForeignKey(v => v.Id_evento)
                 .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(v => v.NumProy)
+                .HasColumnName("NumProy");
         });
 
         modelBuilder.Entity<VotacionJurado>().HasBaseType<Votacion>();

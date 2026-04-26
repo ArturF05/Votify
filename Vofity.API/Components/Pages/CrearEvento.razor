@@ -104,6 +104,10 @@
                     <label>Fin de la votación*:</label>
                     <input type="datetime-local" @bind-value="votaciones[i].Fin" @bind-value:event="onchange" />
                 </div>
+                <div class="campo campo-columna">
+                    <label>Número de proyectos votables*:</label>
+                    <input type="number" @bind-value="votaciones[i].NumProy" min="1" />
+                </div>
                 <div class="grupo-botones-votacion">
                     <button type="button" class="boton-votacion" @onclick='() => quitarVotacion(i)' disabled="@(votaciones.Count<=1)">Quitar votación</button>
                 </div>
@@ -279,6 +283,11 @@
                     mensaje = "Sólo se permite una votación por tipo en cada evento";
                     return;
                 }
+                if (votaciones[i].NumProy <= 0)
+                {
+                    mensaje = $"La votación {i + 1} debe permitir votar al menos 1 proyecto";
+                    return;
+                }
             }
             List<CrearVotacionDTOs> crearVotacionDTOs = new();
             for (int i = 0; i < votaciones.Count; i++)
@@ -289,6 +298,7 @@
                     FechaFin = votaciones[i].Fin.ToUniversalTime(),
                     PermiteAutoVoto = votaciones[i].PermiteAutoVoto == 1,
                     TipoVotacion = votaciones[i].Tipo,
+                    Num_Proy = votaciones[i].NumProy
                     
                 };
                 crearVotacionDTOs.Add(dtoVotacion);
@@ -330,5 +340,6 @@
         public DateTime Inicio { get; set; }
         public DateTime Fin { get; set; }
         public int PermiteAutoVoto { get; set; }
+        public int NumProy { get; set; } = 1; 
     }
 }

@@ -10,7 +10,7 @@ namespace Votify.Core.Factories
 {
     internal class ConcreteVotacionFactory : VotacionFactory
     {
-        public override Votacion CrearVotacion(DateTime fechaInicio, DateTime fechaFin, bool permiteAutoVoto, Guid Id_evento, TipoVotacion tipoVotacion)
+        public override Votacion CrearVotacion(DateTime fechaInicio, DateTime fechaFin, bool permiteAutoVoto, Guid Id_evento, TipoVotacion tipoVotacion,int NumProy)
          {
             switch (tipoVotacion)
             {
@@ -22,6 +22,8 @@ namespace Votify.Core.Factories
                         Id_evento = Id_evento,
                         FechaInicio = fechaInicio.ToUniversalTime(),
                         FechaFin = fechaFin.ToUniversalTime(),
+                        NumProy= NumProy,
+
                     };
 
                 case TipoVotacion.Jurado:
@@ -32,6 +34,7 @@ namespace Votify.Core.Factories
                         Id_evento = Id_evento,
                         FechaInicio = fechaInicio.ToUniversalTime(),
                         FechaFin = fechaFin.ToUniversalTime(),
+                        NumProy = NumProy,
                     };
 
                 case TipoVotacion.Mixto:
@@ -42,6 +45,8 @@ namespace Votify.Core.Factories
                         Id_evento = Id_evento,
                         FechaInicio = fechaInicio.ToUniversalTime(),
                         FechaFin = fechaFin.ToUniversalTime(),
+                        NumProy = NumProy,
+
                     };
                 default:
                     throw new ArgumentException("Tipo de votación no reconocido");
