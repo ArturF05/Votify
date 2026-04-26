@@ -218,6 +218,88 @@
         border: 1px solid #fed7aa;
         font-weight: 500;
     }
+
+    .criterios-proyecto {
+        margin-top: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+    }
+
+    .linea-criterios {
+        border: none;
+        border-top: 1px solid #ece2d8;
+        margin: 0.25rem 0 0.2rem 0;
+    }
+
+    .criterio-fila {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.8rem;
+        background: #fcfbfa;
+        border: 1px solid #eee3d8;
+        border-radius: 14px;
+        padding: 0.7rem 0.8rem;
+    }
+
+    .criterio-nombre-voto {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .input-puntuacion {
+        width: 54px;
+        min-width: 54px;
+        text-align: center;
+        background: #f3f4f6;
+        border: 2px solid transparent;
+        border-radius: 12px;
+        padding: 0.55rem 0.35rem;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1f2937;
+        outline: none;
+        box-sizing: border-box;
+        transition: all 0.2s ease;
+    }
+
+        .input-puntuacion:focus,
+        .input-puntuacion:hover {
+            background: #ffffff;
+            border-color: #f28c28;
+        }
+
+    .comentario-container {
+        margin-top: 0.7rem;
+    }
+
+    .textarea-comentario {
+        width: 100%;
+        min-height: 78px;
+        background: #f3f4f6;
+        border: 2px solid transparent;
+        border-radius: 14px;
+        padding: 0.85rem 0.95rem;
+        font-size: 0.95rem;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #1f2937;
+        resize: none;
+        outline: none;
+        box-sizing: border-box;
+        transition: all 0.2s ease;
+    }
+
+        .textarea-comentario:focus,
+        .textarea-comentario:hover {
+            background: #ffffff;
+            border-color: #f28c28;
+        }
+
+        .textarea-comentario::placeholder {
+            color: #8b93a1;
+        }
 </style>
 
 <div class="votacion-evento-page">
@@ -262,15 +344,35 @@
                     <div class="proyecto-header">
                         <div class="proyecto-nombre">@proyecto.Titulo</div>
                     </div>
-                     @if (proyectosSeleccionados.Contains(proyecto.Id))
-                         {
-                             <div class="comentario-container">
-                                 <textarea @bind="comentariosPorProyecto[proyecto.Id]"
-                                           placeholder="@(yaVoto ? "" : "Escribe tu comentario aquí...")"
-                                           class="form-control">
-                                         </textarea>
-                             </div>
-                         }
+
+                    @if (proyectosSeleccionados.Contains(proyecto.Id))
+                    {
+                        <div class="criterios-proyecto">
+                            <hr class="linea-criterios" />
+
+                            @foreach (var criterio in criterios)
+                            {
+                                <div class="criterio-fila">
+                                    <span class="criterio-nombre-voto">@criterio.Nombre</span>
+
+                                    <input type="number"
+                                           min="0"
+                                           max="10"
+                                           class="input-puntuacion"
+                                           value="@puntuacionesPorProyecto[proyecto.Id][criterio.Id]"
+                                           @oninput="(e) => notaValida(e, proyecto.Id, criterio.Id)" />
+                                </div>
+                            }
+                            @if (proyectosSeleccionados.Contains(proyecto.Id)){
+                            <div class="comentario-container">
+                                <textarea @bind="comentariosPorProyecto[proyecto.Id]"
+                                          placeholder="@(yaVoto ? "" : "Escribe tu comentario aquí...")"
+                                          class="textarea-comentario">
+                        </textarea>
+                            </div>
+                            }
+                        </div>
+                    }
                 </div>
             }
         </div>
@@ -311,6 +413,8 @@
     private Dictionary<Guid, string> comentariosPorProyecto = new();
     private Votify.Core.Entities.Usuario usuario;
     private bool yaVoto = false;
+    private List<DimensionesDeValor> criterios = new();
+    private Dictionary<Guid, Dictionary<Guid, int>> puntuacionesPorProyecto = new();
 
 
     protected override async Task OnInitializedAsync()
@@ -331,6 +435,24 @@
             mensaje = "No se ha encontrado el evento.";
             return;
         }
+
+        criterios = await contexto.DimensionesDeValor.Where(d => d.Id_votacion == votacion.Id).ToListAsync();
+
+        foreach (var proyecto in evento.Proyectos)
+        {
+            if (!comentariosPorProyecto.ContainsKey(proyecto.Id))
+                comentariosPorProyecto[proyecto.Id] = "";
+
+            if (!puntuacionesPorProyecto.ContainsKey(proyecto.Id))
+                puntuacionesPorProyecto[proyecto.Id] = new Dictionary<Guid, int>();
+
+            foreach (var criterio in criterios)
+            {
+                if (!puntuacionesPorProyecto[proyecto.Id].ContainsKey(criterio.Id))
+                    puntuacionesPorProyecto[proyecto.Id][criterio.Id] = 0;
+            }
+        }
+    }
         ProtectedBrowserStorageResult<Guid> resultado;
         try
         {
@@ -413,6 +535,37 @@
             mensaje = "Debes seleccionar exactamente "+ NumProy + "  proyectos para votar.";
             return;
         }
+
+        foreach (var idProyecto in proyectosSeleccionados)
+        {
+            if (!puntuacionesPorProyecto.ContainsKey(idProyecto))
+            {
+                mensaje = "Faltan puntuaciones en uno de los proyectos seleccionados.";
+                return;
+            }
+
+            foreach (var criterio in criterios)
+            {
+                if (!puntuacionesPorProyecto[idProyecto].ContainsKey(criterio.Id))
+                {
+                    mensaje = $"Falta la puntuación del criterio {criterio.Nombre} en uno de los proyectos.";
+                    return;
+                }
+
+                int nota = puntuacionesPorProyecto[idProyecto][criterio.Id];
+
+                if (nota < 0 || nota > 10)
+                {
+                    mensaje = $"La puntuación del criterio {criterio.Nombre} debe estar entre 0 y 10.";
+                    return;
+                }
+            }
+        }
+
+        // evitar votos duplicados  
+        var yaVoto = await contexto.Voto
+            .AnyAsync(v => v.Id_votante == usuario.Id && v.Id_votacion == idVotacion);
+
         var votoDto = new EmitirVotoDTO
         {
             IdVotante = usuario.Id,
@@ -421,9 +574,14 @@
                 IdProyecto = idProyecto,
                 Comentario = comentariosPorProyecto.ContainsKey(idProyecto)
                     ? comentariosPorProyecto[idProyecto]
-                    : string.Empty
-            }).ToList(),
-            IdEvento = evento.Id
+                    : string.Empty,
+                Puntuaciones = criterios.Select(c => new PuntuacionCriterioDTO
+                {
+                    IdCriterio = c.Id,
+                    Nota = puntuacionesPorProyecto[idProyecto][c.Id]
+                }).ToList()
+            }).ToList()
+              IdEvento = evento.Id
         };
 
         try
@@ -456,5 +614,18 @@
         DateTime hoy = DateTime.UtcNow;
 
         return votacion.FechaFin <= hoy;
+    }
+
+    private void notaValida(ChangeEventArgs e, Guid idProyecto, Guid idCriterio)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out int valor))
+            valor = 0;
+
+        if (valor < 0)
+            valor = 0;
+        else if (valor > 10)
+            valor = 10;
+
+        puntuacionesPorProyecto[idProyecto][idCriterio] = valor;
     }
 }

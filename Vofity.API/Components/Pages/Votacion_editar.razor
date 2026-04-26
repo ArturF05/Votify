@@ -89,7 +89,8 @@
                     </div>
 
                     <div class="criterio-acciones">
-                        <!--<span class="criterio-peso">0.3</span>-->
+                        <span class="criterio-descripcion">Peso (%):</span>
+                        <input type="text" class="criterio-peso" @bind="c.Peso" />
                         <button type="button" class="boton-secundario" @onclick='() => QuitarCriterio(c.Id)'>Quitar</button>
                     </div>
                 </div>
@@ -139,6 +140,7 @@
     private string mensajeNoCriterio = "";
     private string nombreCriterio = "";
     private string descripcionCriterio = "";
+    private int pesoCriterio = 0;
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Votify.Core.Entities.Votacion> votaciones = new();
     List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
@@ -242,6 +244,13 @@
                 mensaje = "Se tiene que poder votar mínimo 1 proyecto";
                 return;
             }
+
+            if (criterios.Sum(c => c.Peso) != 100)
+            {
+                mensajeErrorCriterio = "La suma de los pesos debe ser 100";
+                return;
+            }
+
             var dto = new CrearVotacionDTOs
             {
                 Id_evento = Id_evento,
@@ -311,6 +320,18 @@
             return;
         }
 
+        if (descripcionCriterio == "")
+        {
+            mensajeErrorCriterio = "No se puede añadir el criterio: Debes asignar una descripción al criterio";
+            return;
+        }
+
+        if (criterios.Any(c => c.Nombre == nombreCriterio))
+        {
+            mensajeErrorCriterio = "No se puede añadir el criterio: Ya existe un criterio con ese nombre";
+            return;
+        }
+
         criterios.Add(new DimensionesDeValor
         {
             Id = Guid.NewGuid(),
@@ -324,8 +345,9 @@
         descripcionCriterio = "";
         mensajeErrorCriterio = "";
         mensajeNoCriterio = "";
+        pesoCriterio = 0;
     }
-
+    
     private void QuitarCriterio(Guid idCriterio)
     {
         criterios.RemoveAll(c => c.Id == idCriterio);

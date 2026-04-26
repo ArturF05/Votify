@@ -34,5 +34,10 @@ namespace Votify.Infrastructure.Repositorios
             contexto.Remove(criterio);
             await contexto.SaveChangesAsync();
         }
+        public async Task EditarCriterioAsync(DimensionesDeValor criterio)
+        {
+            contexto.Update(criterio);
+            await contexto.SaveChangesAsync();
+        }
     }
 }
