@@ -33,8 +33,10 @@ namespace Votify.Core.Tests.Votacion
             var votoRepo = new VotoRepository(context);
             var proyectoRepo = new ProyectoRepository(context);
             var dimensionRepo = new DimensionRepository(context);
+            var usuarioRepository = new UsuarioRepository(context);
+            var eventoUsuarioRolRepository = new EventoUsuarioRolRepository(context);
 
-            votacionService = new VotacionService(votacionRepo, votoRepo, proyectoRepo, dimensionRepo);
+            votacionService = new VotacionService(votacionRepo, votoRepo, proyectoRepo, dimensionRepo, usuarioRepository, eventoUsuarioRolRepository);
 
             idEvento = Guid.NewGuid();
             idVotacion = Guid.NewGuid();
