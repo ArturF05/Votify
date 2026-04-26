@@ -17,13 +17,15 @@ namespace Votify.Core.Services
         private readonly IProyectoRepository proyectoRepository;
         private readonly IUsuarioRepository usuarioRepository;
         private readonly IEventoUsuarioRolRepository eventoUsuarioRolRepository;
+        private readonly IDimensionRepository dimensionRepository;
         private readonly VotacionFactory votacionFactory;
 
-        public VotacionService(IVotacionRepository votacionRepository, IVotoRepository votoRepository, IProyectoRepository proyectoRepository, IUsuarioRepository usuarioRepository , IEventoUsuarioRolRepository eventoUsuarioRolRepository)
+        public VotacionService(IVotacionRepository votacionRepository, IVotoRepository votoRepository, IProyectoRepository proyectoRepository, IDimensionRepository dimensionRepository, IUsuarioRepository usuarioRepository , IEventoUsuarioRolRepository eventoUsuarioRolRepository)
         {
             this.votacionRepository = votacionRepository;
             this.votoRepository = votoRepository;
             this.proyectoRepository = proyectoRepository;
+            this.dimensionRepository = dimensionRepository;
             this.usuarioRepository = usuarioRepository;
             this.eventoUsuarioRolRepository = eventoUsuarioRolRepository;
             this.votacionFactory = new ConcreteVotacionFactory();
@@ -45,17 +47,25 @@ namespace Votify.Core.Services
             if (dto.IdVotante == Guid.Empty)
                 throw new Exception("El id del votante está vacío.");
 
-            if (dto.Votos == null || dto.Votos.Count != 3)
-                throw new Exception("Debes votar exactamente 3 proyectos.");
-
-            var idsProyectos = dto.Votos.Select(v => v.IdProyecto).ToList();
-
-            if (idsProyectos.Distinct().Count() != 3)
-                throw new Exception("No puedes votar dos veces al mismo proyecto.");
-
             var votacion = await votacionRepository.ObtenerPorIdAsync(idVotacion);
             if (votacion == null)
                 throw new Exception("La votación no existe.");
+
+            int numProy = votacion.NumProy ?? 3;
+
+            if (dto.Votos == null)
+                throw new Exception($"Debes votar exactamente {numProy} proyectos.");
+
+            if (dto.Votos.Count > numProy)
+                throw new Exception("No puedes votar más proyectos que el máximo permitido.");
+
+            if (dto.Votos.Count < numProy)
+                throw new Exception($"Debes votar exactamente {numProy} proyectos.");
+
+            var idsProyectos = dto.Votos.Select(v => v.IdProyecto).ToList();
+
+            if (idsProyectos.Distinct().Count() != idsProyectos.Count)
+                throw new Exception("No puedes votar dos veces al mismo proyecto.");
 
             var ahoraUtc = DateTime.UtcNow;
             if (ahoraUtc < votacion.FechaInicio || ahoraUtc > votacion.FechaFin)
@@ -64,8 +74,9 @@ namespace Votify.Core.Services
                 throw new Exception("Ya has votado en esta votación.");
 
             var proyectos = await proyectoRepository.ObtenerPorIdAsync(idsProyectos);
-            if (proyectos.Count != 3)
-                throw new Exception("No se han encontrado los 3 proyectos.");
+
+            if (proyectos.Count != idsProyectos.Count)
+                throw new Exception($"No se han encontrado los {numProy} proyectos que debías votar.");
 
             if (proyectos.Any(p => p.Id_evento != votacion.Id_evento))
                 throw new Exception("Algún proyecto no pertenece al evento.");
@@ -128,21 +139,24 @@ namespace Votify.Core.Services
             return await votacionRepository.BuscarPorNombreAsync(Id_evento, tipoVotacion, permiteAutoVoto, verFinalizadas);
         }
 
-        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion)
+        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy)
         {
             if (Id_evento == Guid.Empty)
                 throw new Exception("El evento es obligatorio");
 
             if (finVotacion < inicioVotacion)
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
-
-            var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion);
+            if (NumProy < 1)
+                throw new Exception("Se tiene que poder votar mínimo 1 proyecto");
+            var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion,NumProy);
 
             await votacionRepository.CrearVotacionAsync(nuevaVotacion);
         }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion)
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios,int NumProy)
         {
             var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);
+
+
 
             if (votacionActual == null)
                 throw new Exception("La votación no existe");
@@ -162,22 +176,57 @@ namespace Votify.Core.Services
                 votacionActual.FechaInicio = DateTime.SpecifyKind(inicioVotacion, DateTimeKind.Local).ToUniversalTime();
                 votacionActual.FechaFin = DateTime.SpecifyKind(finVotacion, DateTimeKind.Local).ToUniversalTime();
                 votacionActual.PermiteAutoVoto = permiteAutoVoto;
+                votacionActual.NumProy = NumProy;
 
                 await votacionRepository.EditarVotacionAsync(votacionActual);
-                return;
+            }
+            else
+            {
+                var nuevaVotacion = votacionFactory.CrearVotacion(
+                    inicioVotacion,
+                    finVotacion,
+                    permiteAutoVoto,
+                    Id_evento,
+                    tipoVotacion,
+                    NumProy
+                );
+
+                nuevaVotacion.Id = votacionActual.Id;
+
+                await votacionRepository.ReemplazarVotacionAsync(votacionActual, nuevaVotacion);
             }
 
-            var nuevaVotacion = votacionFactory.CrearVotacion(
-                inicioVotacion,
-                finVotacion,
-                permiteAutoVoto,
-                Id_evento,
-                tipoVotacion
-            );
+            var criteriosExistentes = await dimensionRepository.ObtenerCriterioPorVotacionAsync(Id);
 
-            nuevaVotacion.Id = votacionActual.Id;
+            foreach (var criterioDto in criterios)
+            {
+                bool yaExiste = criteriosExistentes.Any(c => c.Id == criterioDto.Id);
 
-            await votacionRepository.ReemplazarVotacionAsync(votacionActual, nuevaVotacion);
+                if (!yaExiste)
+                {
+                    var nuevoCriterio = new DimensionesDeValor
+                    {
+                        Id = criterioDto.Id == Guid.Empty ? Guid.NewGuid() : criterioDto.Id,
+                        Id_votacion = Id,
+                        Nombre = criterioDto.Nombre,
+                        Descripcion = criterioDto.Descripcion,
+                        Peso = criterioDto.Peso
+                    };
+
+                    await dimensionRepository.CrearCriterioAsync(nuevoCriterio);
+                }
+            }
+
+            var idsEnListaActual = criterios.Select(c => c.Id).ToHashSet();
+
+            var criteriosABorrar = criteriosExistentes
+                .Where(c => !idsEnListaActual.Contains(c.Id))
+                .ToList();
+
+            foreach (var criterio in criteriosABorrar)
+            {
+                await dimensionRepository.EliminarCriterioAsync(criterio);
+            }
         }
 
         public async Task EliminarVotacion(Guid Id)

@@ -1,6 +1,4 @@
-﻿/* Votify Theme - Con Animaciones */
-
-.crear-proyecto-container {
+﻿.crear-proyecto-container {
     min-height: 100vh;
     background: linear-gradient(135deg, #FFF8F0 0%, #FFF5EB 100%);
     display: flex;

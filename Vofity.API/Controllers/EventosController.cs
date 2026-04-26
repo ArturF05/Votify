@@ -41,7 +41,7 @@ namespace Votify.API.Controllers
                 await context.SaveChangesAsync();
                 for (int i = 0; i < dto.dTOsVotacion.Count; i++)
                     {
-                        await votacionService.CrearVotacion(evento.Id, dto.dTOsVotacion[i].FechaInicio, dto.dTOsVotacion[i].FechaFin, dto.dTOsVotacion[i].PermiteAutoVoto, dto.dTOsVotacion[i].TipoVotacion);
+                        await votacionService.CrearVotacion(evento.Id, dto.dTOsVotacion[i].FechaInicio, dto.dTOsVotacion[i].FechaFin, dto.dTOsVotacion[i].PermiteAutoVoto, dto.dTOsVotacion[i].TipoVotacion, dto.dTOsVotacion[i].Num_Proy);
                         await context.SaveChangesAsync();
                 }
                 await context.SaveChangesAsync();

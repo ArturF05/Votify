@@ -1,0 +1,577 @@
+﻿/* ========================================
+   LAYOUT GENERAL
+   ======================================== */
+
+.materiales-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #FFF8F0 0%, #FFF5EB 100%);
+    padding: 2rem 2.5rem;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.page-titulo {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1A1A2E;
+    margin: 0;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #F5E6D0;
+}
+
+/* ========================================
+   ESTADOS DE CARGA Y VACÍO
+   ======================================== */
+
+.estado-carga,
+.estado-vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 4rem 2rem;
+    color: #9CA3AF;
+    font-size: 1rem;
+}
+
+    .estado-vacio svg {
+        width: 56px;
+        height: 56px;
+        color: #D1D5DB;
+    }
+
+/* ========================================
+   TABS DE PROYECTOS
+   ======================================== */
+
+.proyectos-tabs-wrapper {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 999px;
+    border: none;
+    background-color: #E5E7EB;
+    color: #6B7280;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+    .tab-btn:hover {
+        background-color: #D1D5DB;
+        color: #374151;
+    }
+
+    .tab-btn.tab-activo {
+        background: linear-gradient(135deg, #F5A623 0%, #FF8C00 100%);
+        color: #FFFFFF;
+        box-shadow: 0 4px 12px -2px rgba(245, 166, 35, 0.45);
+    }
+
+.tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background-color: rgba(0, 0, 0, 0.12);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+    .tab-badge.tab-badge-activo {
+        background-color: rgba(255, 255, 255, 0.3);
+        color: #FFFFFF;
+    }
+
+/* ========================================
+   PANEL DEL PROYECTO
+   ======================================== */
+
+.proyecto-panel {
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px -4px rgba(245, 166, 35, 0.12), 0 0 0 1px rgba(245, 166, 35, 0.06);
+    overflow: hidden;
+}
+
+.proyecto-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #FFF3E0 0%, #FFF8F0 100%);
+    border-bottom: 1px solid #F5E6D0;
+}
+
+.proyecto-nombre {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1A1A2E;
+    margin: 0 0 0.25rem 0;
+}
+
+.proyecto-evento {
+    font-size: 0.875rem;
+    color: #9CA3AF;
+    margin: 0;
+}
+
+/* ========================================
+   BOTÓN AÑADIR MATERIAL
+   ======================================== */
+
+.btn-anadir {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.625rem 1.25rem;
+    background: linear-gradient(135deg, #F5A623 0%, #FF8C00 100%);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px -2px rgba(245, 166, 35, 0.4);
+    white-space: nowrap;
+}
+
+    .btn-anadir svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .btn-anadir:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px -4px rgba(245, 166, 35, 0.5);
+    }
+
+    .btn-anadir:active {
+        transform: translateY(0);
+    }
+
+/* ========================================
+   FORMULARIO AÑADIR MATERIAL
+   ======================================== */
+
+.form-anadir {
+    padding: 1.25rem 1.5rem;
+    background-color: #FAFAFA;
+    border-bottom: 1px solid #F3F4F6;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.form-input {
+    padding: 0.625rem 0.875rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: #1A1A2E;
+    background-color: #FFFFFF;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .form-input:focus {
+        border-color: #F5A623;
+        box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+    }
+
+.form-input-file {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+    color: #374151;
+    cursor: pointer;
+}
+
+.imagen-preview {
+    margin-top: 0.625rem;
+    max-width: 100%;
+    max-height: 180px;
+    object-fit: contain;
+    border-radius: 10px;
+    border: 2px solid #F5E6D0;
+}
+
+.form-error {
+    font-size: 0.8rem;
+    color: #DC2626;
+    margin: 0;
+}
+
+.form-acciones {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+.btn-form-cancelar {
+    padding: 0.5rem 1.25rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 10px;
+    background: transparent;
+    color: #6B7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .btn-form-cancelar:hover {
+        border-color: #D1D5DB;
+        background-color: #F9FAFB;
+    }
+
+.btn-form-agregar {
+    padding: 0.5rem 1.25rem;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #F5A623 0%, #FF8C00 100%);
+    color: #FFFFFF;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px -1px rgba(245, 166, 35, 0.4);
+}
+
+    .btn-form-agregar:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px -2px rgba(245, 166, 35, 0.5);
+    }
+
+/* ========================================
+   LISTA DE MATERIALES
+   ======================================== */
+
+.materiales-lista {
+    display: flex;
+    flex-direction: column;
+}
+
+.materiales-vacios {
+    padding: 2.5rem;
+    text-align: center;
+    color: #9CA3AF;
+    font-size: 0.9rem;
+}
+
+.material-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #F3F4F6;
+    transition: background-color 0.15s ease;
+}
+
+    .material-item:last-child {
+        border-bottom: none;
+    }
+
+    .material-item:hover {
+        background-color: #FAFAFA;
+    }
+
+/* ========================================
+   ICONOS DE TIPO
+   ======================================== */
+
+.material-icono {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+    .material-icono svg {
+        width: 20px;
+        height: 20px;
+        color: #FFFFFF;
+    }
+
+.icono-imagen {
+    background-color: #3B82F6;
+}
+
+.icono-enlace {
+    background-color: #10B981;
+}
+
+.icono-video {
+    background-color: #EF4444;
+}
+
+/* ========================================
+   INFO DEL MATERIAL
+   ======================================== */
+
+.material-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.material-nombre {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1A1A2E;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.material-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    flex-wrap: wrap;
+}
+
+.material-tipo {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+}
+
+.tipo-imagen {
+    background-color: #EFF6FF;
+    color: #1D4ED8;
+}
+
+.tipo-enlace {
+    background-color: #ECFDF5;
+    color: #065F46;
+}
+
+.tipo-video {
+    background-color: #FEF2F2;
+    color: #991B1B;
+}
+
+.material-url {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: #F5A623;
+    text-decoration: none;
+    max-width: 280px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+    .material-url:hover {
+        text-decoration: underline;
+    }
+
+    .material-url svg {
+        width: 12px;
+        height: 12px;
+        flex-shrink: 0;
+    }
+
+.material-archivo {
+    font-size: 0.8rem;
+    color: #6B7280;
+}
+
+.material-fecha {
+    font-size: 0.8rem;
+    color: #9CA3AF;
+}
+
+.material-thumbnail {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #E5E7EB;
+    flex-shrink: 0;
+}
+
+/* ========================================
+   BOTÓN ELIMINAR
+   ======================================== */
+
+.btn-eliminar {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #D1D5DB;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+    .btn-eliminar svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .btn-eliminar:hover {
+        background-color: #FEF2F2;
+        color: #EF4444;
+    }
+
+/* ========================================
+   FOOTER
+   ======================================== */
+
+.footer-acciones {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 2px solid #F5E6D0;
+    margin-top: auto;
+}
+
+.btn-cancelar {
+    padding: 0.75rem 2rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    background: transparent;
+    color: #6B7280;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .btn-cancelar:hover {
+        border-color: #D1D5DB;
+        background-color: #F9FAFB;
+        color: #374151;
+    }
+
+.btn-guardar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #F5A623 0%, #FF8C00 100%);
+    color: #FFFFFF;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px -3px rgba(245, 166, 35, 0.5);
+}
+
+    .btn-guardar svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .btn-guardar:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px -5px rgba(245, 166, 35, 0.55);
+    }
+
+    .btn-guardar:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 640px) {
+    .materiales-page {
+        padding: 1.25rem 1rem;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .proyecto-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .footer-acciones {
+        flex-direction: column-reverse;
+        gap: 0.75rem;
+    }
+
+    .btn-cancelar,
+    .btn-guardar {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .material-url {
+        max-width: 160px;
+    }
+}
