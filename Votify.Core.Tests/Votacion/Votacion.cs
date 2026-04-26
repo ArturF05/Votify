@@ -209,7 +209,7 @@ namespace Votify.Core.Tests.Votacion
                 () => votacionService.RegistrarVotoAsync(idVotacion, dto)
             );
 
-            Assert.AreEqual("Debes votar exactamente 3 proyectos.", exception.Message);
+            Assert.AreEqual("No puedes votar más proyectos que el máximo permitido.", exception.Message);
         }
 
         [TestMethod]
@@ -339,7 +339,7 @@ namespace Votify.Core.Tests.Votacion
                 () => votacionService.RegistrarVotoAsync(idVotacion, dto)
             );
 
-            Assert.AreEqual("No se han encontrado los 3 proyectos.", exception.Message);
+            Assert.AreEqual("No se han encontrado los 3 proyectos que debías votar.", exception.Message);
         }
 
         [TestMethod]

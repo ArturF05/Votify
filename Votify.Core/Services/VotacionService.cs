@@ -35,13 +35,25 @@ namespace Votify.Core.Services
             if (dto.IdVotante == Guid.Empty)
                 throw new Exception("El id del votante está vacío.");
 
-
-            var idsProyectos = dto.Votos.Select(v => v.IdProyecto).ToList();
-
-
             var votacion = await votacionRepository.ObtenerPorIdAsync(idVotacion);
             if (votacion == null)
                 throw new Exception("La votación no existe.");
+
+            int numProy = votacion.NumProy ?? 3;
+
+            if (dto.Votos == null)
+                throw new Exception($"Debes votar exactamente {numProy} proyectos.");
+
+            if (dto.Votos.Count > numProy)
+                throw new Exception("No puedes votar más proyectos que el máximo permitido.");
+
+            if (dto.Votos.Count < numProy)
+                throw new Exception($"Debes votar exactamente {numProy} proyectos.");
+
+            var idsProyectos = dto.Votos.Select(v => v.IdProyecto).ToList();
+
+            if (idsProyectos.Distinct().Count() != idsProyectos.Count)
+                throw new Exception("No puedes votar dos veces al mismo proyecto.");
 
             var ahoraUtc = DateTime.UtcNow;
             if (ahoraUtc < votacion.FechaInicio || ahoraUtc > votacion.FechaFin)
@@ -52,12 +64,10 @@ namespace Votify.Core.Services
                 throw new Exception("Este usuario ya ha votado.");
 
             var proyectos = await proyectoRepository.ObtenerPorIdAsync(idsProyectos);
-            if (dto.Votos.Count > votacion.NumProy)
-                throw new Exception("No puedes votar más proyectos que el máximo permitido.");
-            if (proyectos.Count != votacion.NumProy)
-                throw new Exception("No se han encontrado los " +votacion.NumProy + " proyectos que debías votar.");
-            if (idsProyectos.Distinct().Count() != votacion.NumProy)
-                throw new Exception("No puedes votar dos veces al mismo proyecto.");
+
+            if (proyectos.Count != idsProyectos.Count)
+                throw new Exception($"No se han encontrado los {numProy} proyectos que debías votar.");
+
             if (proyectos.Any(p => p.Id_evento != votacion.Id_evento))
                 throw new Exception("Algún proyecto no pertenece al evento.");
 

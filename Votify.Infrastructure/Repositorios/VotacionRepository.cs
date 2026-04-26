@@ -80,7 +80,7 @@ namespace Votify.Infrastructure.Repositorios
             ""FechaFin"" = {nuevaVotacion.FechaFin},
             ""Id_evento"" = {nuevaVotacion.Id_evento},
             ""PermiteAutoVoto"" = {nuevaVotacion.PermiteAutoVoto},
-            ""TipoVotacion"" = {tipo}
+            ""TipoVotacion"" = {tipo},
             ""NumProy""= {nuevaVotacion.NumProy}
         WHERE ""Id"" = {nuevaVotacion.Id}
     ");
