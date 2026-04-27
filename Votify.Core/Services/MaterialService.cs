@@ -46,6 +46,14 @@ namespace Votify.Core.Services
 
                 if ((mat.Tipo == "Imagen" || mat.Tipo == "Archivo") && mat.ArchivoBytes != null)
                 {
+                    var extensionesPermitidas = new[] { ".jpg",".jpeg", ".png", ".pdf", ".doc", ".docx", ".zip", ".tgz", ".pptx", ".ppt" };
+
+                    var ext = Path.GetExtension(mat.NombreArchivo ?? "").ToLower();
+
+                    if (!extensionesPermitidas.Contains(ext))
+                    {
+                        throw new Exception("Tipo de archivo no permitido, sólo se permiten archivos con tipo .jpg, .png, .pdf, .doc, .docx, .zip, .tgz, .pptx o .ppt");
+                    }
                     using var stream = new MemoryStream(mat.ArchivoBytes);
                     urlFinal = await _azure.SubirArchivoAsync(stream, mat.NombreArchivo!);
                 }

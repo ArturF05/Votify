@@ -41,11 +41,13 @@ namespace Votify.Core.Tests.Votacion
             var votacionRepository = new VotacionRepository(context);
             var votoRepository = new VotoRepository(context);
             var proyectoRepository = new ProyectoRepository(context);
+            var dimensionRepository = new DimensionRepository(context);
 
             votacionService = new VotacionService(
                 votacionRepository,
                 votoRepository,
-                proyectoRepository
+                proyectoRepository,
+                dimensionRepository
             );
 
             idVotacion = Guid.NewGuid();
@@ -533,7 +535,7 @@ namespace Votify.Core.Tests.Votacion
             var nuevaFechaInicio = DateTime.Now.AddDays(5);
             var nuevaFechaFin = DateTime.Now.AddDays(15);
 
-            await votacionService.EditarVotacion(idVotacion, nuevoEvento, nuevaFechaInicio, nuevaFechaFin, true, TipoVotacion.Publico);
+            await votacionService.EditarVotacion(idVotacion, nuevoEvento, nuevaFechaInicio, nuevaFechaFin, true, TipoVotacion.Publico, new List<CrearCriterioDTO>());
 
             var votacionEditada = await context.Votacion.FindAsync(idVotacion);
 
@@ -550,7 +552,7 @@ namespace Votify.Core.Tests.Votacion
             var finVotacion = DateTime.Now.AddDays(10);
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
-                () => votacionService.EditarVotacion(idInexistente, idEvento, inicioVotacion, finVotacion, true, TipoVotacion.Publico)
+                () => votacionService.EditarVotacion(idInexistente, idEvento, inicioVotacion, finVotacion, true, TipoVotacion.Publico, new List<CrearCriterioDTO>())
             );
 
             Assert.AreEqual("La votación no existe", exception.Message);
@@ -563,7 +565,7 @@ namespace Votify.Core.Tests.Votacion
             var finVotacion = DateTime.Now.AddDays(10);
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
-                () => votacionService.EditarVotacion(idVotacion, Guid.Empty, inicioVotacion, finVotacion, true, TipoVotacion.Publico)
+                () => votacionService.EditarVotacion(idVotacion, Guid.Empty, inicioVotacion, finVotacion, true, TipoVotacion.Publico, new List<CrearCriterioDTO>())
             );
 
             Assert.AreEqual("El evento es obligatorio", exception.Message);
@@ -576,7 +578,7 @@ namespace Votify.Core.Tests.Votacion
             var finVotacion = DateTime.Now.AddDays(1);
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
-                () => votacionService.EditarVotacion(idVotacion, idEvento, inicioVotacion, finVotacion, true, TipoVotacion.Publico)
+                () => votacionService.EditarVotacion(idVotacion, idEvento, inicioVotacion, finVotacion, true, TipoVotacion.Publico, new List<CrearCriterioDTO>())
             );
 
             Assert.AreEqual("La fecha de fin no puede ser anterior a la fecha de inicio", exception.Message);
@@ -591,7 +593,7 @@ namespace Votify.Core.Tests.Votacion
             var inicioVotacion = DateTime.Now.AddDays(1);
             var finVotacion = DateTime.Now.AddDays(10);
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, inicioVotacion, finVotacion, !permisoOriginal, TipoVotacion.Publico);
+            await votacionService.EditarVotacion(idVotacion, idEvento, inicioVotacion, finVotacion, !permisoOriginal, TipoVotacion.Publico, new List<CrearCriterioDTO>());
 
             var votacionActualizada = await context.Votacion.FindAsync(idVotacion);
 
@@ -603,7 +605,7 @@ namespace Votify.Core.Tests.Votacion
         {
             var fecha = DateTime.Now.AddDays(5);
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, fecha, fecha, true, TipoVotacion.Publico);
+            await votacionService.EditarVotacion(idVotacion, idEvento, fecha, fecha, true, TipoVotacion.Publico, new List<CrearCriterioDTO>());
 
             var votacionEditada = await context.Votacion.FindAsync(idVotacion);
 
@@ -618,7 +620,7 @@ namespace Votify.Core.Tests.Votacion
             var nuevaFechaInicio = DateTime.Now.AddDays(5);
             var nuevaFechaFin = DateTime.Now.AddDays(15);
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, nuevaFechaInicio, nuevaFechaFin, true, TipoVotacion.Publico);
+            await votacionService.EditarVotacion(idVotacion, idEvento, nuevaFechaInicio, nuevaFechaFin, true, TipoVotacion.Publico, new List<CrearCriterioDTO>());
 
             var votacionEditada = await context.Votacion.FindAsync(idVotacion);
 

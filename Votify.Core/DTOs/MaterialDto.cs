@@ -4,7 +4,7 @@ namespace Votify.Core.DTOs
 {
     public class MaterialDto
     {
-        public Guid? Id { get; set; } // Si es null, es nuevo
+        public Guid? Id { get; set; } 
         public string Nombre { get; set; } = string.Empty;
         public string Tipo { get; set; } = string.Empty;
         public string? Url { get; set; }

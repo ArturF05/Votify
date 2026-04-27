@@ -9,6 +9,8 @@
 @inject IJSRuntime JS
 
 <div class="materiales-page">
+    <NavigationLock ConfirmExternalNavigation="true"
+                    OnBeforeInternalNavigation="ConfirmarSalida" />
     <h1 class="page-titulo">Materiales del Proyecto</h1>
 
     @if (cargando)
@@ -67,7 +69,7 @@
                             </div>
                             <div class="form-campo">
                                 <label class="form-label">Tipo</label>
-                                <select class="form-input" @bind="nuevoTipo">
+                                <select class="form-input" @onchange="OnTipoCambiado">
                                     <option value="Imagen">Imagen</option>
                                     <option value="Archivo">Archivo</option>
                                     <option value="Enlace">Enlace</option>
@@ -81,8 +83,9 @@
                             <div class="form-campo">
                                 <label class="form-label">Archivo</label>
                                 <InputFile OnChange="OnArchivoSeleccionado"
-                                           accept=".jpg,.jpeg,.png,.txt,.pdf,.doc,.docx"
-                                           class="form-input-file" />
+                                           accept="@acceptFile"
+                                           class="form-input-file"
+                                           @key="fileInputKey" />
 
                                 @if (archivoBytes != null)
                                 {
@@ -164,8 +167,8 @@
     }
 
     <div class="footer-acciones">
-        <button class="btn-cancelar" @onclick='() => nav.NavigateTo("/Home")'>Volver</button>
-        <button class="btn-guardar" @onclick="GuardarCambios" disabled="@guardando">
+        <button class="btn-cancelar" @onclick='() => nav.NavigateTo("/AltaProyecto")'>Crear proyecto</button>
+        <button class="btn-guardar" @onclick="GuardarCambios" disabled="@(guardando || !hayCambios)">
             @if (guardando)
             {
                 <span>Guardando...</span>
@@ -190,6 +193,7 @@
     private bool cargando = true;
     private bool guardando = false;
     private bool mostrarFormulario = false;
+    private bool hayCambios = false;
 
     private string mensajeError = "";
     private string mensajeExito = "";
@@ -202,8 +206,10 @@
     private string nuevoNombre = "";
     private string nuevoTipo = "Imagen";
     private string nuevoValor = "";
+    private string acceptFile = ".jpg,.jpeg,.png";
     private byte[]? archivoBytes;
     private string? nombreArchivo;
+    private int fileInputKey = 0;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -247,7 +253,21 @@
         mensajeError = "";
         mostrarFormulario = true;
     }
+    private void OnTipoCambiado(ChangeEventArgs e)
+    {
+        nuevoTipo = e.Value?.ToString() ?? "Imagen";
 
+        acceptFile = nuevoTipo switch
+        {
+            "Imagen" => ".jpg,.jpeg,.png",
+            "Archivo" => ".pdf,.doc,.docx,.txt,.ppt,.pptx,.zip,.tgz",
+            _ => "*/*"
+        };
+
+        archivoBytes = null;
+        nombreArchivo = null;
+        fileInputKey++;
+    }
     private async Task OnArchivoSeleccionado(InputFileChangeEventArgs e)
     {
         var file = e.File;
@@ -281,7 +301,7 @@
     private void AgregarMaterial()
     {
         mensajeError = "";
-
+        hayCambios = true;
         if (string.IsNullOrWhiteSpace(nuevoNombre)) { mensajeError = "El nombre es obligatorio"; return; }
 
         if (nuevoTipo == "Imagen" || nuevoTipo == "Archivo")
@@ -326,7 +346,7 @@
     private async Task EliminarMaterial(Guid? id)
     {
         if (proyectoSeleccionado == null || !id.HasValue) return;
-
+        hayCambios = true;
         var material = proyectoSeleccionado.Materiales.FirstOrDefault(x => x.Id == id);
         if (material == null) return;
 
@@ -365,6 +385,19 @@
         finally
         {
             guardando = false;
+        }
+    }
+    private async Task ConfirmarSalida(LocationChangingContext context)
+    {
+        if (!hayCambios)
+            return;
+
+        var confirmado = await JS.InvokeAsync<bool>("confirm",
+            "Tienes cambios sin guardar. ¿Seguro que quieres salir?");
+
+        if (!confirmado)
+        {
+            context.PreventNavigation();
         }
     }
 

@@ -11,7 +11,5 @@ public class Material
 
     public Guid ProyectoId { get; set; }
     public DateTime FechaSubida { get; set; } = DateTime.UtcNow;
-
-    // AÑADE ESTA LÍNEA (Propiedad de navegación)
     public Proyecto Proyecto { get; set; } = null!;
 }
