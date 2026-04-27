@@ -44,7 +44,7 @@ namespace Votify.Core.Services
             {
                 string urlFinal = mat.Valor ?? "";
 
-                if (mat.Tipo == "Imagen" && mat.ArchivoBytes != null)
+                if ((mat.Tipo == "Imagen" || mat.Tipo == "Archivo") && mat.ArchivoBytes != null)
                 {
                     using var stream = new MemoryStream(mat.ArchivoBytes);
                     urlFinal = await _azure.SubirArchivoAsync(stream, mat.NombreArchivo!);
@@ -71,10 +71,12 @@ namespace Votify.Core.Services
 
             if (material == null) return;
 
-            if (material.Tipo == "Imagen" && !string.IsNullOrEmpty(material.Url))
+            if ((material.Tipo == "Imagen" || material.Tipo == "Archivo")
+                && !string.IsNullOrEmpty(material.Url))
             {
                 await _azure.EliminarArchivoAsync(material.Url);
             }
+
 
             await _materialRepository.EliminarAsync(material);
             await _materialRepository.GuardarCambiosAsync();

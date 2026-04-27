@@ -69,20 +69,24 @@
                                 <label class="form-label">Tipo</label>
                                 <select class="form-input" @bind="nuevoTipo">
                                     <option value="Imagen">Imagen</option>
+                                    <option value="Archivo">Archivo</option>
                                     <option value="Enlace">Enlace</option>
                                     <option value="Video">Video</option>
                                 </select>
                             </div>
                         </div>
 
-                        @if (nuevoTipo == "Imagen")
+                        @if (nuevoTipo == "Imagen" || nuevoTipo == "Archivo")
                         {
                             <div class="form-campo">
-                                <label class="form-label">Archivo de imagen</label>
-                                <InputFile OnChange="OnArchivoSeleccionado" accept="image/*" class="form-input-file" />
+                                <label class="form-label">Archivo</label>
+                                <InputFile OnChange="OnArchivoSeleccionado"
+                                           accept=".jpg,.jpeg,.png,.txt,.pdf,.doc,.docx"
+                                           class="form-input-file" />
+
                                 @if (archivoBytes != null)
                                 {
-                                    <p class="form-info">Imagen lista para subir (@nombreArchivo)</p>
+                                    <p class="form-info">Archivo listo (@nombreArchivo)</p>
                                 }
                             </div>
                         }
@@ -90,8 +94,7 @@
                         {
                             <div class="form-campo">
                                 <label class="form-label">URL</label>
-                                <input type="text" class="form-input" @bind="nuevoValor"
-                                       placeholder="https://" />
+                                <input type="text" class="form-input" @bind="nuevoValor" placeholder="https://" />
                             </div>
                         }
 
@@ -125,20 +128,26 @@
                                 <div class="material-meta">
                                     <span class="material-tipo tipo-@material.Tipo.ToLower()">@material.Tipo</span>
 
-                                    @if (material.Tipo != "Imagen")
+                                    @if (material.Tipo == "Enlace" || material.Tipo == "Video")
                                     {
                                         <a href="@material.Url" target="_blank" class="material-url">
                                             @material.Url
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                                            </svg>
                                         </a>
                                     }
-                                    else if (!string.IsNullOrEmpty(material.Url))
+                                    else if (material.Tipo == "Imagen")
                                     {
                                         <img src="@GetProxyUrl(material.Url)" class="material-thumbnail" />
                                     }
+                                    else if (material.Tipo == "Archivo")
+                                    {
 
+                                        @if (!string.IsNullOrWhiteSpace(material.Url))
+                                        {
+                                            <a href="@material.Url" target="_blank">
+                                                Descargar archivo
+                                            </a>
+                                        }
+                                    }
                                     <span class="material-fecha">Subido: @material.FechaSubida.ToString("dd/MM/yyyy")</span>
                                 </div>
                             </div>
@@ -249,11 +258,23 @@
             mensajeError = "Archivo demasiado grande (máx 5MB)";
             return;
         }
+        var extensionesPermitidas = new[]
+        {
+            ".jpg", ".jpeg", ".png", ".txt", ".pdf", ".doc", ".docx"
+        }; 
+        var extension = Path.GetExtension(file.Name).ToLower();
 
+        if (!extensionesPermitidas.Contains(extension))
+        {
+            mensajeError = "Tipo de archivo no permitido";
+            return;
+        }
         nombreArchivo = file.Name;
+
         using var stream = file.OpenReadStream(maxAllowedSize: max);
         using var ms = new MemoryStream();
         await stream.CopyToAsync(ms);
+
         archivoBytes = ms.ToArray();
     }
 
@@ -263,10 +284,21 @@
 
         if (string.IsNullOrWhiteSpace(nuevoNombre)) { mensajeError = "El nombre es obligatorio"; return; }
 
-        if (nuevoTipo == "Imagen" && archivoBytes == null) { mensajeError = "Debes seleccionar una imagen"; return; }
-        else if (nuevoTipo != "Imagen" && (string.IsNullOrWhiteSpace(nuevoValor) || !nuevoValor.StartsWith("http")))
+        if (nuevoTipo == "Imagen" || nuevoTipo == "Archivo")
         {
-            mensajeError = "Debes introducir una URL válida"; return;
+            if (archivoBytes == null)
+            {
+                mensajeError = "Debes seleccionar un archivo";
+                return;
+            }
+        }
+        else // Enlace
+        {
+            if (string.IsNullOrWhiteSpace(nuevoValor) || !nuevoValor.StartsWith("http"))
+            {
+                mensajeError = "Debes introducir una URL válida";
+                return;
+            }
         }
 
         proyectoSeleccionado!.Materiales.Add(new MaterialDto

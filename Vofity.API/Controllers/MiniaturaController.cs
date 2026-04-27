@@ -49,4 +49,6 @@ public class MiniaturaController : ControllerBase // Cambiado a ControllerBase p
             return StatusCode(500, "Error interno al procesar la imagen");
         }
     }
+
+    
 }
