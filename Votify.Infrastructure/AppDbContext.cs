@@ -25,6 +25,7 @@ public class AppDbContext : DbContext
     public DbSet<DimensionesDeValor> DimensionesDeValor { get; set; }
     public DbSet<EventoUsuarioRol> EventoUsuarioRol { get; set; }
     public DbSet<Material> Material { get; set; }
+    public DbSet<ProyectoParticipantes> ProyectoParticipantes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -61,6 +62,8 @@ public class AppDbContext : DbContext
                 .WithMany(e => e.Votaciones)
                 .HasForeignKey(v => v.Id_evento)
                 .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(v => v.NumProy)
+                .HasColumnName("NumProy");
         });
 
         modelBuilder.Entity<VotacionJurado>().HasBaseType<Votacion>();
@@ -76,5 +79,26 @@ public class AppDbContext : DbContext
             .HasOne(d => d.Votacion)
             .WithMany(v => v.DimensionesDeValores)
             .HasForeignKey(d => d.Id_votacion);
+
+        modelBuilder.Entity<ProyectoParticipantes>(entity =>
+        {
+            entity.ToTable("ProyectoParticipantes");
+
+            entity.HasKey(pp => new { pp.Id_proyecto, pp.Id_usuario });
+
+            entity.Property(pp => pp.Id_proyecto)
+                .HasColumnName("Id_proyecto");
+
+            entity.Property(pp => pp.Id_usuario)
+                .HasColumnName("Id_usuario");
+
+            entity.HasOne(pp => pp.Usuario)
+                .WithMany(u => u.ProyectoParticipantes)
+                .HasForeignKey(pp => pp.Id_usuario);
+
+            entity.HasOne(pp => pp.Proyecto)
+                .WithMany(p => p.ProyectoParticipantes)
+                .HasForeignKey(pp => pp.Id_proyecto);
+        });
     }
 }

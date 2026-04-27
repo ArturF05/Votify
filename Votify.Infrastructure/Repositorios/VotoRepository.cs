@@ -19,11 +19,6 @@ namespace Votify.Infrastructure.Repositorios
             this.contexto = contexto;
         }
 
-        public async Task<bool> UsuarioYaVotoAsync(Guid idVotacion, Guid idVotante)
-        {
-            return await contexto.Voto.AnyAsync(v => v.Id_votacion == idVotacion && v.Id_votante == idVotante);
-        }
-
         public async Task GuardarVotosAsync(List<Voto> votos)
         {
             await contexto.Voto.AddRangeAsync(votos);

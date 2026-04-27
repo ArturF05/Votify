@@ -57,6 +57,15 @@
         box-shadow: 0 20px 50px rgba(245, 166, 35, 0.22);
         border-color: #f28c28;
     }
+    .proyecto-card:disabled {
+        background-color: #e5e7eb;
+        border-color: #d1d5db;
+        color: #9ca3af;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+        vertical-align: auto;
+    }
 
 .proyecto-top {
     display: flex;
@@ -84,6 +93,15 @@
         .boton-favorito:hover img {
             transform: scale(1.08);
         }
+    .boton-favorito:disabled {
+        background-color: #e5e7eb;
+        border-color: #d1d5db;
+        color: #9ca3af;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+        vertical-align: auto;
+    }
 
 .estrella-img {
     width: 22px;
@@ -140,7 +158,14 @@
         transform: translateY(-2px);
         box-shadow: 0 12px 30px -5px rgba(245, 166, 35, 0.5);
     }
-
+    .boton-principal:disabled {
+        background-color: #e5e7eb;
+        border-color: #d1d5db;
+        color: #9ca3af;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
 .boton-secundario {
     background: #ffffff;
     border: 1px solid #f28c28;

@@ -120,7 +120,9 @@ namespace Votify.Infrastructure.Repositorios
         public async Task<Votacion?> ObtenerVotacionPorEventoAsync(Guid eventoId)
         {
             return await contexto.Votacion
-                .FirstOrDefaultAsync(v => v.Id_evento == eventoId);
+                .Where(v => v.Id_evento == eventoId && v.FechaFin <= DateTime.UtcNow)
+                .OrderByDescending(v => v.FechaFin)
+                .FirstOrDefaultAsync();
         }
         public async Task AsignarOrganizadorAsync(Guid eventoId, Guid usuarioId)
         {

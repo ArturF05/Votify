@@ -12,5 +12,6 @@ namespace Votify.Core.Interfaces
         public Task<List<DimensionesDeValor?>> ObtenerCriterioPorVotacionAsync(Guid id);
         public Task CrearCriterioAsync(DimensionesDeValor nuevoCriterio);
         public Task EliminarCriterioAsync(DimensionesDeValor criterio);
+        public Task EditarCriterioAsync(DimensionesDeValor criterio);
     }
 }

@@ -1,5 +1,6 @@
 @page "/Votacion"
 @rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using Microsoft.EntityFrameworkCore
 @using Votify.Core.Entities
 @using Votify.Core.Services
@@ -8,30 +9,140 @@
 @inject NavigationManager nav;
 @inject AppDbContext contexto
 @inject UsuarioSesion usuarioSesion
+@inject ProtectedSessionStorage sessionStorage
+
 <div class="votacion-page">
     <div class="page-header">
         <h2 class="titulo">Elija un evento sobre el que votar</h2>
     </div>
-
     <div class="evento-container">
-        @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateTime.Now) > 0 && e.FechaInicio.CompareTo(DateTime.Now) <= 0))
+        @if (eventos.Count == 0)
         {
-            <button class="evento-card" @onclick="() => irAEvento(evento)">
-                <div class="evento-nombre">@evento.Nombre</div>
-            </button>
+            <div>No estás participando en ningún evento</div>
+        }
+        else if(puedeVotar.Count<eventos.Count || deshabilitar.Count < eventos.Count)
+        {
+            <div>Cargando...</div>
+        }
+        else
+        {
+            int indice = 0;
+            @foreach (var evento in eventos)
+            {
+                <button class="evento-card" @onclick="() => irAEvento(evento)" disabled="@(deshabilitar[indice])">
+                    <div class="evento-nombre">@evento.Nombre</div>
+                    <div>@puedeVotar[indice]</div>
+                </button>
+                indice++;
+            }
         }
     </div>
 </div>
 
 @code {
+    private Guid idUsuario;
     List<Votify.Core.Entities.Evento> eventos = new();
+    private Guid idVotacion;
+    private Votify.Core.Entities.Votacion? votacion;
+    private Votify.Core.Entities.Usuario usuario;
+    private List<string> puedeVotar = new();
+    private List<bool> deshabilitar = new();
+
     protected override async Task OnInitializedAsync()
     {
-        eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
+        ProtectedBrowserStorageResult<Guid> resultado;
+        try
+        {
+            resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
+            if (!resultado.Success || resultado.Value == Guid.Empty)
+            {
+                nav.NavigateTo("/Login");
+                return;
+            }
+        }
+        catch (Exception e)
+        {
+            nav.NavigateTo("/Login");
+            return;
+        }
+
+        idUsuario = resultado.Value;
+        usuario = await contexto.Usuario.Include(u => u.Rol).FirstOrDefaultAsync(u => u.Id == idUsuario);
+
+        eventos = await contexto.Evento.Include(e => e.Categoria).Where(e => e.FechaFin.CompareTo(DateTime.UtcNow) > 0 && e.FechaInicio.CompareTo(DateTime.UtcNow) <= 0 && 
+            (contexto.EventoUsuarioRol.Include(eur => eur.Rol)
+            .Any(eur => eur.EventoId == e.Id&& eur.UsuarioId == idUsuario&& eur.Rol.Nombre != "Organizador"))).ToListAsync();
+        for(int i = 0; i < eventos.Count; i++)
+        {
+            puedeVotar.Add("");
+            deshabilitar.Add(false);
+        }
+        int j = 0;
+        foreach(var evento in eventos)
+        {
+            await ponerParametros(evento, j);
+            j++;
+        }
+        StateHasChanged();
     }
 
     private void irAEvento(Votify.Core.Entities.Evento evento)
     {
         nav.NavigateTo($"/Votacion_evento/{evento.Id}");
+    }
+    private async Task ponerParametros(Votify.Core.Entities.Evento evento, int indice)
+    {
+        idVotacion = Guid.Empty;
+        votacion = await contexto.Votacion.Where(vot => vot.Id_evento == evento.Id && vot.FechaFin.CompareTo(DateTime.UtcNow) > 0 && vot.FechaInicio.CompareTo(DateTime.UtcNow) <= 0).FirstOrDefaultAsync();
+        if (votacion != null)
+        {
+            idVotacion = votacion.Id;
+        }
+        if (idVotacion == Guid.Empty)
+        {
+            puedeVotar[indice] = "No hay una votación activa para este evento";
+            deshabilitar[indice] = true;
+            return;
+        }
+        var rolUsuario = usuario.Rol.Nombre;
+        bool esJuradoAsignado = await contexto.EventoUsuarioRol
+    .Where(eur => eur.EventoId == evento.Id && eur.UsuarioId == usuario.Id && eur.Rol.Nombre=="Jurado")
+    .AnyAsync();
+
+        bool aux = await contexto.EventoUsuarioRol
+    .Where(eur => eur.EventoId == evento.Id && eur.UsuarioId == usuario.Id && (eur.Rol.Nombre=="Publico" || eur.Rol.Nombre=="Participante"))
+    .AnyAsync();
+        bool esPublico = rolUsuario == "Publico" || aux;
+
+        if (votacion is VotacionPublico)
+        {
+            if (!esPublico)
+            {
+                puedeVotar[indice] = "Solo usuarios públicos pueden votar";
+                deshabilitar[indice] = true;
+                return;
+            }
+        }
+        else if (votacion is VotacionJurado)
+        {
+            if (!esJuradoAsignado)
+            {
+                puedeVotar[indice] = "Solo el jurado asignado puede votar.";
+                deshabilitar[indice] = true;
+                return;
+            }
+        }
+        else if (votacion is VotacionMixta)
+        {
+
+            if (!esPublico && !esJuradoAsignado)
+            {
+                puedeVotar[indice] = "Solo usuarios públicos o jurado asignado pueden votar en este evento.";
+                deshabilitar[indice] = true;
+                return;
+            }
+        }
+       
+        deshabilitar[indice] = false;
     }
 }

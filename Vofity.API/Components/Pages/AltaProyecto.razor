@@ -159,8 +159,9 @@
             var response = await Http.PostAsJsonAsync("api/v1/proyecto", new
             {
                 titulo = modelo.Titulo,
-                descripcion = modelo.Descripcion,
-                idEvento = modelo.IdEvento
+                descripcion = modelo.Descripcion ?? "",
+                idEvento = modelo.IdEvento,
+                Id_Creador = idUsuario
             });
 
             if (response.IsSuccessStatusCode)

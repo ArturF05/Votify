@@ -18,6 +18,14 @@ namespace Votify.Infrastructure.Repositorios
         {
             return await contexto.Votacion.FirstOrDefaultAsync(v => v.Id == idVotacion);
         }
+        public async Task<bool> YaVotoAsync(Guid idVotacion, Guid idVotante)
+        {
+            return await contexto.Voto.AnyAsync(v => v.Id_votacion == idVotacion && v.Id_votante == idVotante);
+        }
+        public async Task<List<Voto>> ObtenerPorVotacionYUsuarioAsync(Guid votacionId, Guid usuarioId)
+        {
+            return await contexto.Voto.Where(v => v.Id_votacion == votacionId && v.Id_votante == usuarioId).ToListAsync();
+        }
 
         public async Task<List<Votacion>?> BuscarPorNombreAsync(Guid Id_evento, int tipoVotacion, int permiteAutoVoto, bool verFinalizadas)
         {
@@ -80,7 +88,8 @@ namespace Votify.Infrastructure.Repositorios
             ""FechaFin"" = {nuevaVotacion.FechaFin},
             ""Id_evento"" = {nuevaVotacion.Id_evento},
             ""PermiteAutoVoto"" = {nuevaVotacion.PermiteAutoVoto},
-            ""TipoVotacion"" = {tipo}
+            ""TipoVotacion"" = {tipo},
+            ""NumProy""= {nuevaVotacion.NumProy}
         WHERE ""Id"" = {nuevaVotacion.Id}
     ");
         }

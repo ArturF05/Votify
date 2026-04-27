@@ -70,10 +70,20 @@
         transition: all 0.25s ease;
     }
 
+        .proyecto-card.deshabilitado {
+            opacity: 0.6; 
+            pointer-events: none; 
+        }
+
         .proyecto-card:hover {
             transform: translateY(-6px);
             box-shadow: 0 20px 50px rgba(245, 166, 35, 0.22);
             border-color: #f28c28;
+        }
+
+        .proyecto-card.deshabilitado:hover {
+            transform: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
         }
 
     .proyecto-top {
@@ -103,6 +113,10 @@
                 transform: scale(1.08);
             }
 
+        .boton-favorito:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     .estrella-img {
         width: 22px;
         height: 22px;
@@ -155,8 +169,14 @@
     }
 
         .boton-principal:hover {
-            transform: translateY(-2px);
+            transform: none;
             box-shadow: 0 12px 30px -5px rgba(245, 166, 35, 0.5);
+        }
+
+        .boton-principal:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
         }
 
     .boton-secundario {
@@ -198,6 +218,88 @@
         border: 1px solid #fed7aa;
         font-weight: 500;
     }
+
+    .criterios-proyecto {
+        margin-top: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+    }
+
+    .linea-criterios {
+        border: none;
+        border-top: 1px solid #ece2d8;
+        margin: 0.25rem 0 0.2rem 0;
+    }
+
+    .criterio-fila {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.8rem;
+        background: #fcfbfa;
+        border: 1px solid #eee3d8;
+        border-radius: 14px;
+        padding: 0.7rem 0.8rem;
+    }
+
+    .criterio-nombre-voto {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .input-puntuacion {
+        width: 54px;
+        min-width: 54px;
+        text-align: center;
+        background: #f3f4f6;
+        border: 2px solid transparent;
+        border-radius: 12px;
+        padding: 0.55rem 0.35rem;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1f2937;
+        outline: none;
+        box-sizing: border-box;
+        transition: all 0.2s ease;
+    }
+
+        .input-puntuacion:focus,
+        .input-puntuacion:hover {
+            background: #ffffff;
+            border-color: #f28c28;
+        }
+
+    .comentario-container {
+        margin-top: 0.7rem;
+    }
+
+    .textarea-comentario {
+        width: 100%;
+        min-height: 78px;
+        background: #f3f4f6;
+        border: 2px solid transparent;
+        border-radius: 14px;
+        padding: 0.85rem 0.95rem;
+        font-size: 0.95rem;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #1f2937;
+        resize: none;
+        outline: none;
+        box-sizing: border-box;
+        transition: all 0.2s ease;
+    }
+
+        .textarea-comentario:focus,
+        .textarea-comentario:hover {
+            background: #ffffff;
+            border-color: #f28c28;
+        }
+
+        .textarea-comentario::placeholder {
+            color: #8b93a1;
+        }
 </style>
 
 <div class="votacion-evento-page">
@@ -222,15 +324,15 @@
     {
         <div class="page-header">
             <h2 class="titulo">Proyectos del evento @evento.Nombre</h2>
-            <p class="subtitulo">Selecciona tus 3 proyectos favoritos</p>
+            <p class="subtitulo">Selecciona tus @NumProy proyectos favoritos</p>
         </div>
 
         <div class="proyecto-container">
             @foreach (var proyecto in evento.Proyectos)
             {
-                <div class="proyecto-card">
+                <div class="proyecto-card @(yaVoto ? "deshabilitado" : "")">
                     <div class="proyecto-top">
-                        <button class="boton-favorito" @onclick="() => Favorito(proyecto.Id)">
+                        <button class="boton-favorito" @onclick="() => Favorito(proyecto.Id)" disabled="@yaVoto">
                             <img src="@(proyectosSeleccionados.Contains(proyecto.Id)
                                 ? "/EsFavorito.jpg"
                                 : "/Estrella.png")"
@@ -242,15 +344,35 @@
                     <div class="proyecto-header">
                         <div class="proyecto-nombre">@proyecto.Titulo</div>
                     </div>
-                     @if (proyectosSeleccionados.Contains(proyecto.Id))
-                         {
-                             <div class="comentario-container">
-                                 <textarea @bind="comentariosPorProyecto[proyecto.Id]"
-                                           placeholder="Escribe tu comentario aquí..."
-                                           class="form-control">
-                                         </textarea>
-                             </div>
-                         }
+
+                    @if (proyectosSeleccionados.Contains(proyecto.Id))
+                    {
+                        <div class="criterios-proyecto">
+                            <hr class="linea-criterios" />
+
+                            @foreach (var criterio in criterios)
+                            {
+                                <div class="criterio-fila">
+                                    <span class="criterio-nombre-voto">@criterio.Nombre</span>
+
+                                    <input type="number"
+                                           min="0"
+                                           max="10"
+                                           class="input-puntuacion"
+                                           value="@puntuacionesPorProyecto[proyecto.Id][criterio.Id]"
+                                           @oninput="(e) => notaValida(e, proyecto.Id, criterio.Id)" />
+                                </div>
+                            }
+                            @if (proyectosSeleccionados.Contains(proyecto.Id)){
+                            <div class="comentario-container">
+                                <textarea @bind="comentariosPorProyecto[proyecto.Id]"
+                                          placeholder="@(yaVoto ? "" : "Escribe tu comentario aquí...")"
+                                          class="textarea-comentario">
+                        </textarea>
+                            </div>
+                            }
+                        </div>
+                    }
                 </div>
             }
         </div>
@@ -268,7 +390,7 @@
                     Ver Resultados
                 </button>
             }
-            <button type="button" class="boton-principal" @onclick='() => EnviarVoto()'>Enviar Voto</button>
+            <button type="button" class="boton-principal" disabled="@yaVoto" @onclick='() => EnviarVoto()'>Enviar Voto</button>
         </div>
     </div>
 
@@ -286,28 +408,51 @@
     private Guid idVotacion;
     private Votify.Core.Entities.Votacion? votacion;
     private Guid idVotante;
+    private int? NumProy = 0;
     private string mensaje = "";
     private Dictionary<Guid, string> comentariosPorProyecto = new();
+    private Votify.Core.Entities.Usuario usuario;
+    private bool yaVoto = false;
+    private List<DimensionesDeValor> criterios = new();
+    private Dictionary<Guid, Dictionary<Guid, int>> puntuacionesPorProyecto = new();
+
 
     protected override async Task OnInitializedAsync()
     {
         evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
-        votacion = await contexto.Votacion
-            .FirstOrDefaultAsync(v => v.Id_evento == id);
+        votacion = await contexto.Votacion.Where(vot => vot.Id_evento == evento.Id && vot.FechaFin.CompareTo(DateTime.UtcNow) > 0 && vot.FechaInicio.CompareTo(DateTime.UtcNow) <= 0).FirstOrDefaultAsync();
+        NumProy = votacion.NumProy;
+
 
         if (votacion != null)
         {
+            NumProy = votacion.NumProy;
             idVotacion = votacion.Id;
+            mensaje = $"DEBUG -> NumProy = {NumProy}";
         }
         if (evento == null)
         {
             mensaje = "No se ha encontrado el evento.";
             return;
         }
-    }
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender) return;
+
+        criterios = await contexto.DimensionesDeValor.Where(d => d.Id_votacion == votacion.Id).ToListAsync();
+
+        foreach (var proyecto in evento.Proyectos)
+        {
+            if (!comentariosPorProyecto.ContainsKey(proyecto.Id))
+                comentariosPorProyecto[proyecto.Id] = "";
+
+            if (!puntuacionesPorProyecto.ContainsKey(proyecto.Id))
+                puntuacionesPorProyecto[proyecto.Id] = new Dictionary<Guid, int>();
+
+            foreach (var criterio in criterios)
+            {
+                if (!puntuacionesPorProyecto[proyecto.Id].ContainsKey(criterio.Id))
+                    puntuacionesPorProyecto[proyecto.Id][criterio.Id] = 0;
+            }
+        }
+
         ProtectedBrowserStorageResult<Guid> resultado;
         try
         {
@@ -316,29 +461,42 @@
             {
                 idVotante = resultado.Value;
                 usuarioSesion.IdUsuario = resultado.Value;
+                usuario = await contexto.Usuario.Include(u => u.Rol).Include(u => u.ProyectoParticipantes).FirstOrDefaultAsync(u => u.Id == idVotante);
+                yaVoto = await VotacionService.YaVotoAsync(idVotacion, idVotante);
+
+                if (yaVoto)
+                {
+                    mensaje = "Ya has votado en este evento.";
+                    List<Voto> votos = await VotacionService.ObtenerVotosUsuarioAsync(idVotacion, idVotante);
+                    foreach (var voto in votos)
+                    {
+                        proyectosSeleccionados.Add(voto.Id_proyecto);
+                        comentariosPorProyecto[voto.Id_proyecto] = voto.Comentario ?? "";
+                    }
+                }
                 StateHasChanged();
             }
             if (!resultado.Success || resultado.Value == Guid.Empty)
             {
-                nav.NavigateTo("/Login");
                 return;
             }
         }
         catch (Exception e)
         {
-            nav.NavigateTo("/Login");
             return;
         }
+
     }
     private void Favorito(Guid idProyecto)
     {
+        if (yaVoto) return;
         if (proyectosSeleccionados.Contains(idProyecto))
         {
             proyectosSeleccionados.Remove(idProyecto);
         }
         else
         {
-            if (proyectosSeleccionados.Count < 3)
+            if (proyectosSeleccionados.Count < NumProy)
             {
                 proyectosSeleccionados.Add(idProyecto);
                 comentariosPorProyecto[idProyecto] = "";
@@ -354,10 +512,11 @@
             return;
         }
 
-        var usuario = await contexto.Usuario.Include(u => u.Rol).FirstOrDefaultAsync(u => u.Id == idVotante);
-            if (usuario == null)
+        if (usuario == null)
         {
             mensaje = "No se ha encontrado el usuario autenticado.";
+            await Task.Delay(900);
+            nav.NavigateTo("/Login");
             return;
         }
         if (evento == null)
@@ -365,65 +524,48 @@
             mensaje = "No se ha podido cargar el evento.";
             return;
         }
-      
+
         if (idVotacion == Guid.Empty)
         {
             mensaje = "No hay una votación activa para este evento, espera a que haya una para poder votar.";
             return;
         }
-        var rolUsuario = usuario.Rol.Nombre;
-
-        if (votacion is VotacionPublico)
+        if (proyectosSeleccionados.Count != NumProy)
         {
-            if (rolUsuario != "Publico")
-            {
-                mensaje = "Solo usuarios públicos pueden votar en este evento.";
-                return;
-            }
-        }
-        else if (votacion is VotacionJurado)
-        {
-            var autorizacion = await contexto.EventoUsuarioRol
-                .Where(eur => eur.EventoId == id && eur.UsuarioId == usuario.Id)
-                .AnyAsync();
-
-            if (!autorizacion)
-            {
-                mensaje = "Solo el jurado asignado puede votar.";
-                return;
-            }
-        }
-        else if (votacion is VotacionMixta)
-        {
-            bool esPublico = rolUsuario == "Publico";
-
-            bool esJuradoAsignado = await contexto.EventoUsuarioRol
-                .Where(eur => eur.EventoId == id && eur.UsuarioId == usuario.Id)
-                .AnyAsync();
-
-            if (!esPublico && !esJuradoAsignado)
-            {
-                mensaje = "Solo usuarios públicos o jurado asignado pueden votar en este evento.";
-                return;
-            }
-        }
-       
-
-        if (proyectosSeleccionados.Count != 3)
-        {
-            mensaje = "Debes seleccionar exactamente 3 proyectos para votar.";
+            mensaje = "Debes seleccionar exactamente "+ NumProy + "  proyectos para votar.";
             return;
+        }
+
+        foreach (var idProyecto in proyectosSeleccionados)
+        {
+            if (!puntuacionesPorProyecto.ContainsKey(idProyecto))
+            {
+                mensaje = "Faltan puntuaciones en uno de los proyectos seleccionados.";
+                return;
+            }
+
+            foreach (var criterio in criterios)
+            {
+                if (!puntuacionesPorProyecto[idProyecto].ContainsKey(criterio.Id))
+                {
+                    mensaje = $"Falta la puntuación del criterio {criterio.Nombre} en uno de los proyectos.";
+                    return;
+                }
+
+                int nota = puntuacionesPorProyecto[idProyecto][criterio.Id];
+
+                if (nota < 0 || nota > 10)
+                {
+                    mensaje = $"La puntuación del criterio {criterio.Nombre} debe estar entre 0 y 10.";
+                    return;
+                }
+            }
         }
 
         // evitar votos duplicados  
         var yaVoto = await contexto.Voto
             .AnyAsync(v => v.Id_votante == usuario.Id && v.Id_votacion == idVotacion);
 
-        if (yaVoto)
-        {
-            mensaje = "Ya has votado en este evento.";
-            return;
-        }
         var votoDto = new EmitirVotoDTO
         {
             IdVotante = usuario.Id,
@@ -432,15 +574,26 @@
                 IdProyecto = idProyecto,
                 Comentario = comentariosPorProyecto.ContainsKey(idProyecto)
                     ? comentariosPorProyecto[idProyecto]
-                    : string.Empty
-            }).ToList()
+                    : string.Empty,
+                Puntuaciones = criterios.Select(c => new PuntuacionCriterioDTO
+                {
+                    IdCriterio = c.Id,
+                    Nota = puntuacionesPorProyecto[idProyecto][c.Id]
+                }).ToList()
+            }).ToList(),
+            IdEvento = evento.Id
         };
 
-            var resultado = await VotacionService.RegistrarVotoAsync(idVotacion, votoDto);
-
-            mensaje = resultado
-                ? "Voto enviado correctamente."
-                : "Error al registrar el voto. Verifica que no hayas votado antes y que la votación esté activa.";
+        try
+        {
+            await VotacionService.RegistrarVotoAsync(idVotacion, votoDto);
+            mensaje = "Voto enviado correctamente.";
+            yaVoto = true;
+        }
+        catch (Exception ex)
+        {
+            mensaje = ex.Message; 
+        }
     }
 
     void Volver()
@@ -458,8 +611,21 @@
         if (votacion == null)
             return false;
 
-        var hoy = DateTime.Now;
+        DateTime hoy = DateTime.UtcNow;
 
         return votacion.FechaFin <= hoy;
+    }
+
+    private void notaValida(ChangeEventArgs e, Guid idProyecto, Guid idCriterio)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out int valor))
+            valor = 0;
+
+        if (valor < 0)
+            valor = 0;
+        else if (valor > 10)
+            valor = 10;
+
+        puntuacionesPorProyecto[idProyecto][idCriterio] = valor;
     }
 }

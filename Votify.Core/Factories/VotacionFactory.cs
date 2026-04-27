@@ -9,15 +9,16 @@ namespace Votify.Core.Factories
 {
     internal abstract class VotacionFactory
     {
-        public abstract Votacion CrearVotacion(DateTime fechaInicio,DateTime fechaFin,bool permiteAutoVoto,Guid Id_evento,TipoVotacion tipoVotacion);
-        public virtual Votacion RecrearVotacion(Guid id,DateTime fechaInicio,DateTime fechaFin,bool permiteAutoVoto,Guid Id_evento,TipoVotacion tipoVotacion)
+        public abstract Votacion CrearVotacion(DateTime fechaInicio,DateTime fechaFin,bool permiteAutoVoto,Guid Id_evento,TipoVotacion tipoVotacion,int NumProy);
+        public virtual Votacion RecrearVotacion(Guid id,DateTime fechaInicio,DateTime fechaFin,bool permiteAutoVoto,Guid Id_evento,TipoVotacion tipoVotacion,int NumProy)
         {
             var votacion = CrearVotacion(
                 fechaInicio,
                 fechaFin,
                 permiteAutoVoto,
                 Id_evento,
-                tipoVotacion
+                tipoVotacion,
+                NumProy
             );
 
             votacion.Id = id;

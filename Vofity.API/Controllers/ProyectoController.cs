@@ -17,19 +17,14 @@ public class ProyectoController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CrearProyectoDto dto)
     {
-
-        if (string.IsNullOrEmpty(dto.Titulo))
-            return BadRequest(new
-            {
-                status = "error",
-                statusCode = 400,
-                message = "Datos inválidos",
-                details = new[] { new { field = "titulo", issue = "El título es requerido" } }
-            });
         if (dto.IdEvento == null)
-            return BadRequest("El evento es obligatorio");
+            return BadRequest("Debes seleccionar un evento");
+        if (string.IsNullOrEmpty(dto.Titulo))
+            return BadRequest("El título es obligatorio");
+        if (string.IsNullOrWhiteSpace(dto.Descripcion))
+            return BadRequest("La descripción es obligatoria");
 
-        var resultado = await _proyectoService.CrearProyecto(dto.Titulo, dto.Descripcion,dto.IdEvento.Value);
+        var resultado = await _proyectoService.CrearProyecto(dto.Titulo, dto.Descripcion,dto.IdEvento.Value, dto.Id_Creador);
 
         if (resultado)
             return StatusCode(201, new { status = "success", message = "Proyecto creado" });
