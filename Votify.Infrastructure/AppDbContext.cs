@@ -64,6 +64,7 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
             entity.Property(v => v.NumProy)
                 .HasColumnName("NumProy");
+            entity.Property(v => v.EstadoVotacion).HasColumnName("EstadoVotacion");
         });
 
         modelBuilder.Entity<VotacionJurado>().HasBaseType<Votacion>();

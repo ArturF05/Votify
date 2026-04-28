@@ -100,7 +100,8 @@ namespace Votify.API.Controllers
                     dto.PermiteAutoVoto,
                     dto.TipoVotacion,
                     dto.Criterios,
-                    dto.Num_Proy
+                    dto.Num_Proy,
+                    dto.EstadoVotacion
                 );
 
                 return Ok(new { mensaje = "Evento editado correctamente" });

@@ -141,6 +141,7 @@
     private string nombreCriterio = "";
     private string descripcionCriterio = "";
     private int pesoCriterio = 0;
+    private EstadoVotacion estadoVotacion=0;
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Votify.Core.Entities.Votacion> votaciones = new();
     List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
@@ -259,6 +260,7 @@
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion,
                 Num_Proy = NumProy ?? 0,
+                EstadoVotacion=estadoVotacion,
                 Criterios = criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
                 {
                     Id = c.Id,

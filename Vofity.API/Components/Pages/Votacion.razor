@@ -93,7 +93,7 @@
     private async Task ponerParametros(Votify.Core.Entities.Evento evento, int indice)
     {
         idVotacion = Guid.Empty;
-        votacion = await contexto.Votacion.Where(vot => vot.Id_evento == evento.Id && vot.FechaFin.CompareTo(DateTime.UtcNow) > 0 && vot.FechaInicio.CompareTo(DateTime.UtcNow) <= 0).FirstOrDefaultAsync();
+        votacion = await contexto.Votacion.Where(vot => vot.Id_evento == evento.Id && vot.EstadoVotacion==EstadoVotacion.Abierta).FirstOrDefaultAsync();
         if (votacion != null)
         {
             idVotacion = votacion.Id;

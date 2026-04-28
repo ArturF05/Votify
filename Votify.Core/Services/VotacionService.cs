@@ -30,6 +30,7 @@ namespace Votify.Core.Services
             this.eventoUsuarioRolRepository = eventoUsuarioRolRepository;
             this.votacionFactory = new ConcreteVotacionFactory();
         }
+
         public async Task<bool> YaVotoAsync(Guid idVotacion, Guid idVotante)
         {
             return await votacionRepository.YaVotoAsync(idVotacion, idVotante);
@@ -179,12 +180,9 @@ namespace Votify.Core.Services
 
             await votacionRepository.CrearVotacionAsync(nuevaVotacion);
         }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios,int NumProy)
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios,int NumProy,EstadoVotacion estadoVotacion)
         {
             var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);
-
-
-
             if (votacionActual == null)
                 throw new Exception("La votación no existe");
             System.Diagnostics.Debug.WriteLine($"Tipo actual real: {votacionActual.GetType().Name}");
@@ -204,6 +202,7 @@ namespace Votify.Core.Services
                 votacionActual.FechaFin = DateTime.SpecifyKind(finVotacion, DateTimeKind.Local).ToUniversalTime();
                 votacionActual.PermiteAutoVoto = permiteAutoVoto;
                 votacionActual.NumProy = NumProy;
+                votacionActual.EstadoVotacion = estadoVotacion;
 
                 await votacionRepository.EditarVotacionAsync(votacionActual);
             }
@@ -215,7 +214,8 @@ namespace Votify.Core.Services
                     permiteAutoVoto,
                     Id_evento,
                     tipoVotacion,
-                    NumProy
+                    NumProy,
+                    estadoVotacion
                 );
 
                 nuevaVotacion.Id = votacionActual.Id;
