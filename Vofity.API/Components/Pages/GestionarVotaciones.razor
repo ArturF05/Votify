@@ -6,10 +6,12 @@
 @using Votify.Core.Interfaces
 @using Votify.Core.Services
 @using Votify.Infrastructure.Data
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject NavigationManager nav
 @inject AppDbContext contexto
 @inject HttpClient Http
 @inject IEvento eventoService
+@inject ProtectedSessionStorage sessionStorage
 @rendermode InteractiveServer
 
 <div class="titulo-y-finalizadas">
@@ -109,11 +111,30 @@
     private int tipoVotacion = -1;
     private int permiteAutoVoto = -1;
     private string noHayResultados = "";
+    private Guid idUsuario;
 
     protected override async Task OnInitializedAsync()
     {
+        var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
+
+        if (!resultado.Success || resultado.Value == Guid.Empty)
+        {
+            nav.NavigateTo("/Login");
+            return;
+        }
+
+        idUsuario = resultado.Value;
+
         eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).Include(e => e.Proyectos).ToListAsync();
-        votaciones = await contexto.Votacion.ToListAsync();
+
+        votaciones = await contexto.Votacion
+            .Where(v => contexto.EventoUsuarioRol
+                .Include(eur => eur.Rol)
+                .Any(eur =>
+                    eur.EventoId == v.Id_evento &&
+                    eur.UsuarioId == idUsuario &&
+                    eur.Rol.Nombre == "Organizador"))
+            .ToListAsync();
         HayVotaciones();
     }
 
@@ -130,7 +151,14 @@
         noHayResultados = "";
         if (tipoVotacion == -1 && Id_evento == Guid.Empty && permiteAutoVoto==-1)
         {
-            votaciones = await contexto.Votacion.ToListAsync();
+            votaciones = await contexto.Votacion
+            .Where(v => contexto.EventoUsuarioRol
+                .Include(eur => eur.Rol)
+                .Any(eur =>
+                    eur.EventoId == v.Id_evento &&
+                    eur.UsuarioId == idUsuario &&
+                    eur.Rol.Nombre == "Organizador"))
+            .ToListAsync();
             HayVotaciones();
         }
         else
