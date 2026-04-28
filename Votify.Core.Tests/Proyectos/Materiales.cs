@@ -20,6 +20,7 @@ namespace Votify.Core.Tests.Materiales
     {
         private AppDbContext context;
         private IMaterialRepository repository;
+        private IProyectoRepository proyectoRepository;
         private IMaterialService service;
         private FakeAzureStorage azure;
 
@@ -37,8 +38,9 @@ namespace Votify.Core.Tests.Materiales
 
             context = new AppDbContext(options);
             repository = new MaterialRepository(context);
+            proyectoRepository = new ProyectoRepository(context);
             azure = new FakeAzureStorage();
-            service = new MaterialService(repository, azure);
+            service = new MaterialService(repository, azure, proyectoRepository);
             usuarioId = Guid.NewGuid();
             eventoId = Guid.NewGuid();
             proyectoId = Guid.NewGuid();
@@ -48,7 +50,9 @@ namespace Votify.Core.Tests.Materiales
                 Id = proyectoId,
                 Titulo = "Proyecto Test",
                 Id_evento = eventoId,
-                Descripcion = "dac"
+                Descripcion = "dac",
+                Id_creador = usuarioId
+
             });
 
             context.SaveChanges();
@@ -86,7 +90,8 @@ namespace Votify.Core.Tests.Materiales
                     Nombre = "Doc Test",
                     Tipo = "Archivo",
                     ArchivoBytes = new byte[] {5,6,7},
-                    NombreArchivo = "doc.pdf"
+                    NombreArchivo = "doc.pdf",
+
                 }
             };
 
@@ -151,6 +156,7 @@ namespace Votify.Core.Tests.Materiales
                     Tipo = "Archivo",
                     ArchivoBytes = new byte[] {9,9,9},
                     NombreArchivo = "virus.exe"
+
                 }
             };
 
