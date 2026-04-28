@@ -19,7 +19,7 @@ namespace Votify.Infrastructure.Repositorios
             // Buscamos los materiales cuyo proyecto pertenezca al usuario
             return await _context.Material
                 .Include(m => m.Proyecto) 
-               // .Where(m => m.Proyecto.UsuarioId == usuarioId)
+               .Where(m => m.Proyecto.Id_creador == usuarioId)
                 .ToListAsync();
         }
 

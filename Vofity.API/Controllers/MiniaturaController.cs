@@ -2,7 +2,7 @@
 
 [ApiController]
 [Route("api/miniaturas")]
-public class MiniaturaController : ControllerBase // Cambiado a ControllerBase por ser API
+public class MiniaturaController : ControllerBase 
 {
     private readonly IHttpClientFactory _httpClientFactory;
 
