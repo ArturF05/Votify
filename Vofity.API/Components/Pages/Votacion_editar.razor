@@ -7,6 +7,8 @@
 @using Votify.Infrastructure.Repositorios
 @using Votify.API.DTOs
 @using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage sessionStorage
 @inject NavigationManager nav
 @inject AppDbContext contexto
 @inject HttpClient Http
@@ -111,6 +113,63 @@
 
     </section>
 
+    <div class="jurado-section">
+        <div class="jurado-column">
+            <h3>Usuarios disponibles</h3>
+
+            <div class="buscador-jurado">
+                <input type="text"
+                placeholder="Buscar por nombre..."
+                @bind="busquedaUsuario"
+                @bind:event="oninput" />
+                <span>🔍</span>
+            </div>
+
+            <div class="lista-jurado">
+                @foreach (var usuario in UsuariosDisponiblesFiltrados)
+                {
+                    <div class="fila-jurado">
+                        <span>@usuario.Nombre</span>
+
+                        <button type="button"
+                        class="boton-add-jurado"
+                        @onclick="() => AnadirJurado(usuario)">
+                            +
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="jurado-column">
+            <h3>Miembros del jurado seleccionados</h3>
+
+            <div class="lista-jurado seleccionados">
+                @if (!juradoSeleccionado.Any())
+                {
+                    <div class="jurado-vacio">
+                        No hay miembros seleccionados
+                    </div>
+                }
+                else
+                {
+                    @foreach (var usuario in juradoSeleccionado)
+                    {
+                        <div class="fila-jurado">
+                            <span>@usuario.Nombre</span>
+
+                            <button type="button"
+                            class="boton-remove-jurado"
+                            @onclick="() => QuitarJurado(usuario)">
+                                🗑
+                            </button>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
     <div class="botones">
         <div>
             <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar</button>
@@ -145,6 +204,22 @@
     List<Votify.Core.Entities.Votacion> votaciones = new();
     List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
     private Votify.Core.Entities.Evento? evento;
+    private Guid idUsuarioActual = Guid.Empty;
+    private Guid idRolJurado;
+    private bool usuariosCargados = false;
+
+    private string busquedaUsuario = "";
+
+    private List<Usuario> usuariosDisponibles = new();
+    private List<Usuario> juradoSeleccionado = new();
+
+    private IEnumerable<Usuario> UsuariosDisponiblesFiltrados =>
+    usuariosDisponibles
+        .Where(u =>
+            string.IsNullOrWhiteSpace(busquedaUsuario)
+            || (u.Nombre ?? "").Contains(busquedaUsuario, StringComparison.OrdinalIgnoreCase));
+
+
     protected override async Task OnInitializedAsync()
     {
         eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
@@ -163,6 +238,52 @@
 
         await SetVotacion(votacion);
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || usuariosCargados)
+            return;
+
+        var resultadoSesion = await sessionStorage.GetAsync<Guid>("IdUsuario");
+
+        if (!resultadoSesion.Success || resultadoSesion.Value == Guid.Empty)
+        {
+            nav.NavigateTo("/Login");
+            return;
+        }
+
+        idUsuarioActual = resultadoSesion.Value;
+
+        if (votacion == null)
+            return;
+
+        var idsJurado = await contexto.EventoUsuarioRol
+            .Include(eur => eur.Rol)
+            .Where(eur =>
+                eur.EventoId == votacion.Id_evento &&
+                eur.Rol.Nombre == "Jurado")
+            .Select(eur => eur.UsuarioId)
+            .ToListAsync();
+
+        juradoSeleccionado = await contexto.Usuario
+            .AsNoTracking()
+            .Where(u => idsJurado.Contains(u.Id))
+            .OrderBy(u => u.Nombre)
+            .ToListAsync();
+
+        usuariosDisponibles = await contexto.Usuario
+            .AsNoTracking()
+            .Where(u =>
+                u.Id != idUsuarioActual &&
+                !idsJurado.Contains(u.Id))
+            .OrderBy(u => u.Nombre)
+            .ToListAsync();
+
+        usuariosCargados = true;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
     public async Task SetVotacion(Votify.Core.Entities.Votacion votacion)
     {
         Id_evento = votacion.Id_evento;
@@ -351,5 +472,18 @@
     private void QuitarCriterio(Guid idCriterio)
     {
         criterios.RemoveAll(c => c.Id == idCriterio);
+    }
+
+    private void AnadirJurado(Usuario usuario)
+    {
+        if (!juradoSeleccionado.Any(u => u.Id == usuario.Id))
+        {
+            juradoSeleccionado.Add(usuario);
+        }
+    }
+
+    private void QuitarJurado(Usuario usuario)
+    {
+        juradoSeleccionado.RemoveAll(u => u.Id == usuario.Id);
     }
 }
