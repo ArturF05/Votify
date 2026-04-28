@@ -321,6 +321,8 @@
             }
         }
 
+        hayCambios = true;
+
         proyectoSeleccionado!.Materiales.Add(new MaterialDto
         {
             Id = null,
@@ -346,18 +348,27 @@
     private async Task EliminarMaterial(Guid? id)
     {
         if (proyectoSeleccionado == null || !id.HasValue) return;
-        hayCambios = true;
+
         var material = proyectoSeleccionado.Materiales.FirstOrDefault(x => x.Id == id);
         if (material == null) return;
 
-        // Si no es un material recién añadido a la lista (tiene ID real en BD)
+        
+        var confirmado = await JS.InvokeAsync<bool>("confirm",
+            "¿Seguro que quieres eliminar este material?");
+
+        if (!confirmado)
+            return;
+
         if (!material.EsNuevo)
         {
             await MaterialService.EliminarMaterial(id.Value);
         }
+        else
+        {
+            hayCambios = true;
+        }
 
         proyectoSeleccionado.Materiales.Remove(material);
-        StateHasChanged();
     }
 
     private async Task GuardarCambios()
@@ -385,6 +396,7 @@
         finally
         {
             guardando = false;
+            hayCambios = false;
         }
     }
     private async Task ConfirmarSalida(LocationChangingContext context)

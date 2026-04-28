@@ -8,34 +8,35 @@ namespace Votify.Core.Services
     {
         private readonly IMaterialRepository _materialRepository;
         private readonly IAzureStorage _azure;
+        private readonly IProyectoRepository _proyectoRepository;
 
-        public MaterialService(IMaterialRepository materialRepository, IAzureStorage azure)
+        public MaterialService(
+                IMaterialRepository materialRepository,
+                IAzureStorage azure,
+                IProyectoRepository proyectoRepository)
         {
             _materialRepository = materialRepository;
             _azure = azure;
+            _proyectoRepository = proyectoRepository;
         }
 
         public async Task<List<ProyectoConMaterialesDto>> ObtenerProyectosUsuario(Guid usuarioId)
         {
-            var materialesDb = await _materialRepository.ObtenerPorUsuarioAsync(usuarioId);
+            var proyectos = await _proyectoRepository.ObtenerPorUsuarioAsync(usuarioId);
 
-            // Agrupamos por ProyectoId e intentamos sacar el título
-            return materialesDb
-                .GroupBy(m => new { m.ProyectoId, m.Proyecto?.Titulo })
-                .Select(g => new ProyectoConMaterialesDto
+            return proyectos.Select(p => new ProyectoConMaterialesDto
+            {
+                ProyectoId = p.Id,
+                Titulo = p.Titulo,
+                Materiales = p.Materiales?.Select(m => new MaterialDto
                 {
-                    ProyectoId = g.Key.ProyectoId,
-                    Titulo = g.Key.Titulo ?? "Proyecto sin título",
-                    Materiales = g.Select(m => new MaterialDto
-                    {
-                        Id = m.Id,
-                        Nombre = m.Nombre,
-                        Tipo = m.Tipo,
-                        Url = m.Url,
-                        FechaSubida = m.FechaSubida
-                    }).ToList()
-                })
-                .ToList();
+                    Id = m.Id,
+                    Nombre = m.Nombre,
+                    Tipo = m.Tipo,
+                    Url = m.Url,
+                    FechaSubida = m.FechaSubida
+                }).ToList() ?? new List<MaterialDto>()
+            }).ToList();
         }
 
         public async Task GuardarMateriales(Guid proyectoId, List<MaterialDto> materiales)

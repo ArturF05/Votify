@@ -7,9 +7,11 @@ using Votify.Core.Entities;
 
 namespace Votify.Core.Interfaces
 {
-   
-    public interface IProyectoRepository{
+
+    public interface IProyectoRepository
+    {
         Task<bool> CrearProyectoAsync(Proyecto proyecto);
         Task<List<Proyecto>> ObtenerPorIdAsync(List<Guid> idsProyectos);
-        }
+        Task<List<Proyecto>> ObtenerPorUsuarioAsync(Guid usuarioId);
+    }
 }
