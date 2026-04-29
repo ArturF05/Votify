@@ -124,7 +124,9 @@ namespace Votify.Core.Services
                 throw new Exception("La votación no tiene criterios definidos.");
             var votos = dto.Votos.Select(v =>
             {
+                var idVoto = Guid.NewGuid();
                 decimal puntuacionTotal = 0m;
+                var votosCriterio = new List<VotoCriterio>();
 
                 if (v.Puntuaciones == null || !v.Puntuaciones.Any())
                 {
@@ -135,24 +137,34 @@ namespace Votify.Core.Services
                     foreach (var criterio in criterios)
                     {
                         var puntuacion = v.Puntuaciones
-                            .FirstOrDefault(p => p.CriterioId == criterio.Id);
+                            .FirstOrDefault(p => p.IdCriterio == criterio.Id);
 
                         if (puntuacion == null)
                             throw new Exception("Falta la puntuación de algún criterio.");
 
-                        puntuacionTotal += puntuacion.Valor * (criterio.Peso / 100m);
+                        puntuacionTotal += puntuacion.Nota * (criterio.Peso / 100m);
+                        votosCriterio.Add(new VotoCriterio
+                        {
+                            Id = Guid.NewGuid(),
+                            Id_voto = idVoto,
+                            Id_criterio = criterio.Id,
+                            Nota = puntuacion.Nota,
+                            Comentario = string.IsNullOrWhiteSpace(puntuacion.Comentario)
+                                ? null
+                                : puntuacion.Comentario.Trim()
+                        });
                     }
                 }
 
                 return new Voto
                 {
-                    Id = Guid.NewGuid(),
+                    Id = idVoto,
                     Id_votacion = idVotacion,
                     Id_proyecto = v.IdProyecto,
                     Id_votante = dto.IdVotante,
-                    Comentario = string.IsNullOrWhiteSpace(v.Comentario) ? null : v.Comentario.Trim(),
                     Puntuacion = puntuacionTotal,
-                    Fecha_voto = DateTime.UtcNow
+                    Fecha_voto = DateTime.UtcNow,
+                    VotosCriterio = votosCriterio
                 };
             }).ToList();
 

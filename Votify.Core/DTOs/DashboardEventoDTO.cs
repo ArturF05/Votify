@@ -7,7 +7,7 @@
         public Guid ProyectoGanadorId { get; set; }
         public string TituloProyectoGanador { get; set; } = "";
         public decimal PuntuacionProyectoGanador { get; set; }
-        public List<CriterioDashboardDTO> Criterios { get; set; }
+        public List<CriterioDashboardDTO> Criterios { get; set; } = new();
         public List<ProyectoDashboardDTO> Proyectos { get; set; } = new();
     }
 }

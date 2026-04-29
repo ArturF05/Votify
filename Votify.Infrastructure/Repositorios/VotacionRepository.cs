@@ -24,7 +24,10 @@ namespace Votify.Infrastructure.Repositorios
         }
         public async Task<List<Voto>> ObtenerPorVotacionYUsuarioAsync(Guid votacionId, Guid usuarioId)
         {
-            return await contexto.Voto.Where(v => v.Id_votacion == votacionId && v.Id_votante == usuarioId).ToListAsync();
+            return await contexto.Voto
+                .Include(v => v.VotosCriterio)
+                .Where(v => v.Id_votacion == votacionId && v.Id_votante == usuarioId)
+                .ToListAsync();
         }
 
         public async Task<List<Votacion>?> BuscarPorNombreAsync(Guid Id_evento, int tipoVotacion, int permiteAutoVoto, bool verFinalizadas)
