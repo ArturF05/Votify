@@ -268,18 +268,16 @@ namespace Votify.Core.Services
                 await dimensionRepository.EliminarCriterioAsync(criterio);
             }
 
-            var rolJurado = await rolRepository.ObtenerPorNombreAsync("Jurado");
-
-            if (rolJurado == null)
-                throw new Exception("No existe el rol Jurado");
-
-            var juradosExistentes = await eventoUsuarioRolRepository
-                .ObtenerPorEventoYRolAsync(Id_evento, rolJurado.Id);
+            var juradosExistentes = await eventoUsuarioRolRepository.ObtenerJuradosPorEventoAsync(Id_evento);
 
             foreach (var idUsuarioJurado in Jurados)
             {
                 var existente = juradosExistentes
                     .FirstOrDefault(j => j.UsuarioId == idUsuarioJurado);
+
+                var idRolJurado = await eventoUsuarioRolRepository.ObtenerIdRolJuradoAsync();
+                if (idRolJurado == Guid.Empty)
+                    throw new Exception("No existe el rol Jurado");
 
                 if (existente == null)
                 {
@@ -287,7 +285,7 @@ namespace Votify.Core.Services
                     {
                         EventoId = Id_evento,
                         UsuarioId = idUsuarioJurado,
-                        RolId = rolJurado.Id
+                        RolId = idRolJurado
                     };
 
                     await eventoUsuarioRolRepository.CrearAsync(nuevoJurado);

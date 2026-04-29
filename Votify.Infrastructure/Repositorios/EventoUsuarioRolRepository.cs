@@ -42,5 +42,12 @@ namespace Votify.Infrastructure.Repositorios
             contexto.EventoUsuarioRol.Remove(eventoUsuarioRol);
             await contexto.SaveChangesAsync();
         }
+        public async Task<Guid> ObtenerIdRolJuradoAsync()
+        {
+            return await contexto.Role
+                .Where(r => r.Nombre == "Jurado")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+        }
     }
 }

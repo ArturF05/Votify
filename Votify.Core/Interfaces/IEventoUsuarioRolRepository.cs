@@ -13,5 +13,6 @@ namespace Votify.Core.Interfaces
         Task<List<EventoUsuarioRol>> ObtenerJuradosPorEventoAsync(Guid eventoId);
         Task CrearAsync(EventoUsuarioRol eventoUsuarioRol);
         Task EliminarAsync(EventoUsuarioRol eventoUsuarioRol);
+        Task<Guid> ObtenerIdRolJuradoAsync();
     }
 }
