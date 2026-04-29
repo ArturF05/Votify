@@ -179,11 +179,9 @@ namespace Votify.Core.Services
 
             await votacionRepository.CrearVotacionAsync(nuevaVotacion);
         }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios,int NumProy)
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<Guid> Jurados, List<CrearCriterioDTO> criterios,int NumProy)
         {
             var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);
-
-
 
             if (votacionActual == null)
                 throw new Exception("La votación no existe");
@@ -256,6 +254,41 @@ namespace Votify.Core.Services
             foreach (var criterio in criteriosABorrar)
             {
                 await dimensionRepository.EliminarCriterioAsync(criterio);
+            }
+
+            var rolJurado = await rolRepository.ObtenerPorNombreAsync("Jurado");
+
+            if (rolJurado == null)
+                throw new Exception("No existe el rol Jurado");
+
+            var juradosExistentes = await eventoUsuarioRolRepository
+                .ObtenerPorEventoYRolAsync(Id_evento, rolJurado.Id);
+
+            foreach (var idUsuarioJurado in Jurados)
+            {
+                var existente = juradosExistentes
+                    .FirstOrDefault(j => j.UsuarioId == idUsuarioJurado);
+
+                if (existente == null)
+                {
+                    var nuevoJurado = new EventoUsuarioRol
+                    {
+                        EventoId = Id_evento,
+                        UsuarioId = idUsuarioJurado,
+                        RolId = rolJurado.Id
+                    };
+
+                    await eventoUsuarioRolRepository.CrearAsync(nuevoJurado);
+                }
+            }
+
+            var juradosABorrar = juradosExistentes
+                .Where(j => !Jurados.Any(id => id == j.UsuarioId))
+                .ToList();
+
+            foreach (var jurado in juradosABorrar)
+            {
+                await eventoUsuarioRolRepository.EliminarAsync(jurado);
             }
         }
 
