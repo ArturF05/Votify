@@ -29,6 +29,7 @@ builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<IAzureStorage, AzureStorageService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
 builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 // Login
 builder.Services.AddHttpClient<ILogin, LoginService>(client =>
 {

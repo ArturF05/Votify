@@ -135,12 +135,12 @@ namespace Votify.Core.Services
                     foreach (var criterio in criterios)
                     {
                         var puntuacion = v.Puntuaciones
-                            .FirstOrDefault(p => p.IdCriterio == criterio.Id);
+                            .FirstOrDefault(p => p.CriterioId == criterio.Id);
 
                         if (puntuacion == null)
                             throw new Exception("Falta la puntuación de algún criterio.");
 
-                        puntuacionTotal += puntuacion.Nota * (criterio.Peso / 100m);
+                        puntuacionTotal += puntuacion.Valor * (criterio.Peso / 100m);
                     }
                 }
 

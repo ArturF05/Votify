@@ -13,5 +13,7 @@ namespace Votify.Core.Interfaces
         Task<bool> CrearProyectoAsync(Proyecto proyecto);
         Task<List<Proyecto>> ObtenerPorIdAsync(List<Guid> idsProyectos);
         Task<List<Proyecto>> ObtenerPorUsuarioAsync(Guid usuarioId);
+        Task<List<Proyecto>> ObtenerPorEventoIdAsync(Guid eventoId);
+
     }
 }

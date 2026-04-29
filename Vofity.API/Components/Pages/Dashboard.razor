@@ -8,119 +8,208 @@
 
     @if (dashboard == null)
     {
-        <p class="cargando">Cargando resultados...</p>
+        <div class="loading-container" role="status">
+            <div class="loading-spinner"></div>
+            <p class="cargando">Cargando resultados...</p>
+        </div>
     }
     else
     {
-        <!-- HEADER -->
-        <div class="topbar">
+        <header class="topbar">
             <div class="title">
-                <h1>Dashboard</h1>
-                <p>@dashboard.NombreEvento</p>
+                <h1>Dashboard de Resultados</h1>
+                <p class="subtitle">@dashboard.NombreEvento</p>
             </div>
 
-            <button class="back-button" @onclick="Volver">← Volver</button>
-        </div>
+            <button class="back-button" @onclick="Volver" aria-label="Volver atras">
+                <span class="icon">&#8592;</span> Volver
+            </button>
+        </header>
 
-        <!-- GANADOR -->
-        <div class="winner-panel">
-            <div class="winner-text">
-                <h2>@dashboard.NombreProyectoGanador</h2>
-                <p>Proyecto ganador</p>
-            </div>
+        @if (Top3.Any())
+        {
+            <section class="podium-section">
+                <h3 class="section-title">
+                    <span class="title-icon">&#127942;</span>
+                    Podio de Ganadores
+                </h3>
 
-            <div class="winner-card">
-                <div class="trophy">★</div>
-                <div><strong>@dashboard.PuntuacionProyectoGanador puntos</strong></div>
-            </div>
-        </div>
+                <div class="podium-container">
 
-        <div class="dashboard-ranking-box">
-            <h3 class="dashboard-ranking-title">Ranking</h3>
-
-            @{
-                var ranking = ObtenerRanking();
-            }
-
-            @for (int i = 0; i < ranking.Count; i++)
-            {
-                <div class="dashboard-ranking-row">
-                    <span class="dashboard-ranking-name">@(i + 1). @ranking[i].NombreProyecto</span>
-                    <span class="dashboard-ranking-score">@ranking[i].PuntuacionTotal puntos</span>
-                </div>
-            }
-        </div>
-
-        <!-- COMENTARIOS -->
-        <div class="comentarios">
-            <h3>Comentarios</h3>
-
-            <!-- SELECTOR PROYECTO -->
-            <div class="selector-row">
-                <select @bind="proyectoSeleccionadoId">
-                    @foreach (var proyecto in dashboard.Proyectos)
+                    @if (Top3.Count > 1)
                     {
-                        <option value="@proyecto.ProyectoId">
-                            @proyecto.NombreProyecto
-                        </option>
+                        <div class="podium-item">
+                            <span class="rank-badge silver">2</span>
+                            <div class="podium-bar silver-bar">
+                                <h4>@Top3[1].TituloProyecto</h4>
+                                <div class="score">@Top3[1].PuntuacionTotal pts</div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Top3.Count > 0)
+                    {
+                        <div class="podium-item first-place">
+                            <span class="rank-badge gold">1</span>
+                            <div class="podium-bar gold-bar">
+                                <span class="winner-crown">&#128081;</span>
+                                <h4>@Top3[0].TituloProyecto</h4>
+                                <div class="score">@Top3[0].PuntuacionTotal pts</div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Top3.Count > 2)
+                    {
+                        <div class="podium-item">
+                            <span class="rank-badge bronze">3</span>
+                            <div class="podium-bar bronze-bar">
+                                <h4>@Top3[2].TituloProyecto</h4>
+                                <div class="score">@Top3[2].PuntuacionTotal pts</div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </section>
+        }
+
+        <div class="dashboard-grid">
+            @if (dashboard.Criterios?.Any() == true)
+            {
+                <section class="criterios-section">
+                    <h3 class="section-title">
+                        <span class="title-icon">&#9881;</span>
+                        Criterios de Votacion
+                    </h3>
+                    <div class="criterios-grid">
+                        @foreach (var c in dashboard.Criterios)
+                        {
+                            <div class="criterio-card">
+                                <div class="criterio-header">
+                                    <strong class="criterio-nombre">@c.Nombre</strong>
+                                    <span class="criterio-peso-badge">@c.Peso%</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(c.Descripcion))
+                                {
+                                    <p class="criterio-descripcion">@c.Descripcion</p>
+                                }
+                                <div class="criterio-barra-container">
+                                    <div class="criterio-barra" style="width: @(c.Peso)%"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+
+            <section class="ranking-section">
+                <h3 class="section-title">
+                    <span class="title-icon">&#128202;</span>
+                    Ranking Completo
+                </h3>
+                <div class="ranking-list">
+                    @foreach (var (proyecto, index) in Ranking.Select((p, i) => (p, i)))
+                    {
+                        <div class="dashboard-ranking-row @GetRankingRowClass(index)">
+                            <span class="ranking-position @GetPositionClass(index)">@(index + 1)</span>
+                            <span class="dashboard-ranking-name">@proyecto.TituloProyecto</span>
+                            <span class="dashboard-ranking-score">@proyecto.PuntuacionTotal <strong>pts</strong></span>
+                        </div>
+                    }
+                </div>
+            </section>
+        </div>
+
+        <section class="comentarios-section">
+            <h3 class="section-title">
+                <span class="title-icon">&#128172;</span>
+                Feedback de Proyectos
+            </h3>
+
+            <div class="selector-wrapper">
+                <label for="proyecto-select">Ver comentarios de:</label>
+                <select id="proyecto-select" @bind="proyectoSeleccionadoId">
+                    @foreach (var p in Ranking)
+                    {
+                        <option value="@p.ProyectoId">@p.TituloProyecto</option>
                     }
                 </select>
             </div>
 
-            <!-- LISTA -->
             <div class="lista-comentarios">
-                @foreach (var comentario in ObtenerComentarios())
+                @if (ComentariosActuales.Any())
                 {
-                    <div class="comentario-item">
-                        @comentario
-                    </div>
+                    @foreach (var c in ComentariosActuales)
+                    {
+                        <div class="comentario-card">
+                            <span class="comentario-icon">&#128100;</span>
+                            <p>@c</p>
+                        </div>
+                    }
                 }
-
-                @if (!ObtenerComentarios().Any())
+                else
                 {
-                    <div class="sin-comentarios">
-                        No hay comentarios para este proyecto
+                    <div class="empty-state">
+                        <span class="empty-icon">&#128172;</span>
+                        <p>No hay comentarios para mostrar.</p>
                     </div>
                 }
             </div>
-        </div>
+        </section>
     }
-
 </div>
 
 @code {
-    [Parameter]
-    public Guid id { get; set; }
+    [Parameter] public Guid id { get; set; }
 
     private DashboardEventoDTO? dashboard;
     private Guid proyectoSeleccionadoId;
 
+    private List<ProyectoDashboardDTO> Ranking => dashboard?.Proyectos?
+        .OrderByDescending(p => p.PuntuacionTotal)
+        .ToList() ?? new();
+
+    private List<ProyectoDashboardDTO> Top3 => Ranking.Take(3).ToList();
+
+    private List<string> ComentariosActuales => Ranking
+        .FirstOrDefault(p => p.ProyectoId == proyectoSeleccionadoId)?
+        .Comentarios ?? new();
+
     protected override async Task OnInitializedAsync()
     {
-        dashboard = await Http.GetFromJsonAsync<DashboardEventoDTO>($"api/eventos/{id}/dashboard");
+        try
+        {
+            dashboard = await Http.GetFromJsonAsync<DashboardEventoDTO>($"api/eventos/{id}/dashboard");
 
-        if (dashboard != null && dashboard.Proyectos.Any())
-            proyectoSeleccionadoId = dashboard.Proyectos.First().ProyectoId;
+            if (dashboard?.Proyectos?.Any() == true)
+            {
+                proyectoSeleccionadoId = dashboard.ProyectoGanadorId != Guid.Empty
+                    ? dashboard.ProyectoGanadorId
+                    : Ranking.First().ProyectoId;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar el dashboard: {ex.Message}");
+        }
     }
 
-    private List<ProyectoDashboardDTO> ObtenerRanking()
+    private string GetRankingRowClass(int index) => index switch
     {
-        return dashboard?.Proyectos
-            .OrderByDescending(p => p.PuntuacionTotal)
-            .ToList()
-            ?? new List<ProyectoDashboardDTO>();
-    }
+        0 => "ranking-gold",
+        1 => "ranking-silver",
+        2 => "ranking-bronze",
+        _ => ""
+    };
 
-    private List<string> ObtenerComentarios()
+    private string GetPositionClass(int index) => index switch
     {
-        var proyecto = dashboard?.Proyectos
-            .FirstOrDefault(p => p.ProyectoId == proyectoSeleccionadoId);
+        0 => "position-gold",
+        1 => "position-silver",
+        2 => "position-bronze",
+        _ => ""
+    };
 
-        return proyecto?.Comentarios ?? new List<string>();
-    }
-
-    private void Volver()
-    {
-        JS.InvokeVoidAsync("history.back");
-    }
+    private async Task Volver() => await JS.InvokeVoidAsync("history.back");
 }

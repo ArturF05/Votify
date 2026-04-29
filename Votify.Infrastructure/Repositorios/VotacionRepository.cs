@@ -99,5 +99,12 @@ namespace Votify.Infrastructure.Repositorios
             contexto.Votacion.Remove(votacion);
             await contexto.SaveChangesAsync();
         }
+        public async Task<Votacion?> ObtenerUltimaPorEventoAsync(Guid eventoId)
+        {
+            return await contexto.Votacion
+                .Where(v => v.Id_evento == eventoId)
+                .OrderByDescending(v => v.FechaInicio)
+                .FirstOrDefaultAsync();
+        }
     }
 }

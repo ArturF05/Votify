@@ -34,5 +34,13 @@ namespace Votify.Infrastructure.Repositorios
         {
             return await contexto.Proyecto.Include(p => p.ProyectoParticipantes).Where(p => idsProyectos.Contains(p.Id)).ToListAsync();
         }
+        public async Task<List<Proyecto>> ObtenerPorEventoIdAsync(Guid eventoId)
+        {
+            return await contexto.Proyecto
+                .Where(p => p.Id_evento == eventoId)
+                .Include(p => p.Materiales)
+                .Include(p => p.ProyectoParticipantes)
+                .ToListAsync();
+        }
     }
 }

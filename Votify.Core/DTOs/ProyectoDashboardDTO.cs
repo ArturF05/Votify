@@ -3,7 +3,7 @@
     public class ProyectoDashboardDTO
     {
         public Guid ProyectoId { get; set; }
-        public string NombreProyecto { get; set; } = "";
+        public string TituloProyecto { get; set; } = "";
         public decimal PuntuacionTotal { get; set; }
         public List<string> Comentarios { get; set; } = new();
     }

@@ -128,7 +128,7 @@ namespace Votify.Core.Services
                 .Select(p => new ProyectoDashboardDTO
                 {
                     ProyectoId = p.Id,
-                    NombreProyecto = p.Titulo,
+                    TituloProyecto = p.Titulo,
                     PuntuacionTotal = votos
                         .Where(v => v.Id_proyecto == p.Id)
                         .Sum(v => v.Puntuacion),
@@ -147,7 +147,7 @@ namespace Votify.Core.Services
                 EventoId = evento.Id,
                 NombreEvento = evento.Nombre,
                 ProyectoGanadorId = ganador.ProyectoId,
-                NombreProyectoGanador = ganador.NombreProyecto,
+                TituloProyectoGanador = ganador.TituloProyecto,
                 PuntuacionProyectoGanador = ganador.PuntuacionTotal,
                 Proyectos = proyectosDashboard
             };

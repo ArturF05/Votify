@@ -8,7 +8,8 @@ namespace Votify.Core.DTOs
 {
     public class PuntuacionCriterioDTO
     {
-        public Guid IdCriterio { get; set; }
-        public int Nota { get; set; }
+        public Guid CriterioId { get; set; }
+        public string NombreCriterio { get; set; } = "";
+        public decimal Valor { get; set; }
     }
 }
