@@ -138,13 +138,33 @@
             </div>
 
             <div class="lista-comentarios">
-                @if (ComentariosActuales.Any())
+                @if (ProyectoSeleccionado?.Criterios?.Any(c => c.Comentarios.Any()) == true)
                 {
-                    @foreach (var c in ComentariosActuales)
+                    @foreach (var criterio in ProyectoSeleccionado.Criterios)
                     {
-                        <div class="comentario-card">
-                            <span class="comentario-icon">&#128100;</span>
-                            <p>@c</p>
+                        <div class="criterio-feedback-card">
+                            <div class="criterio-feedback-header">
+                                <div>
+                                    <strong>@criterio.Nombre</strong>
+                                    <span>@criterio.PuntuacionMedia.ToString("0.##") / 10 media</span>
+                                </div>
+                                <span class="criterio-peso-badge">@criterio.Peso%</span>
+                            </div>
+
+                            @if (criterio.Comentarios.Any())
+                            {
+                                @foreach (var comentario in criterio.Comentarios)
+                                {
+                                    <div class="comentario-card">
+                                        <span class="comentario-icon">&#128100;</span>
+                                        <p>@comentario</p>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="comentario-vacio">No hay comentarios para este criterio.</p>
+                            }
                         </div>
                     }
                 }
@@ -158,7 +178,6 @@
             </div>
         </section>
     }
-    <p>Total criterios: @(dashboard?.Criterios?.Count ?? 0)</p>
 </div>
 
 @code {
@@ -173,9 +192,8 @@
 
     private List<ProyectoDashboardDTO> Top3 => Ranking.Take(3).ToList();
 
-    private List<string> ComentariosActuales => Ranking
-        .FirstOrDefault(p => p.ProyectoId == proyectoSeleccionadoId)?
-        .Comentarios ?? new();
+    private ProyectoDashboardDTO? ProyectoSeleccionado => Ranking
+        .FirstOrDefault(p => p.ProyectoId == proyectoSeleccionadoId);
 
     protected override async Task OnInitializedAsync()
     {

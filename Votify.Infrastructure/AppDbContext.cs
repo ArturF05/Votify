@@ -28,6 +28,7 @@ public class AppDbContext : DbContext
     public DbSet<Material> Material { get; set; }
     public DbSet<ProyectoParticipantes> ProyectoParticipantes { get; set; }
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

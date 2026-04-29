@@ -153,7 +153,7 @@ namespace Votify.Core.Services
                                 Descripcion = c.Descripcion,
                                 Peso = c.Peso,
                                 PuntuacionMedia = votosCriterio.Any()
-                                    ? votosCriterio.Average(vc => vc.Nota)
+                                    ? (decimal)votosCriterio.Average(vc => vc.Nota)
                                     : 0m,
                                 Comentarios = votosCriterio
                                     .Where(vc => !string.IsNullOrWhiteSpace(vc.Comentario))

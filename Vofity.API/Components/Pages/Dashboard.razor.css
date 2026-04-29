@@ -512,7 +512,39 @@
 .lista-comentarios {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
+}
+
+.criterio-feedback-card {
+    padding: 18px;
+    border-radius: 18px;
+    border: 1px solid #f1ebe3;
+    background: #ffffff;
+}
+
+.criterio-feedback-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.criterio-feedback-header strong {
+    display: block;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+}
+
+.criterio-feedback-header span {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.comentario-vacio {
+    margin: 0;
+    color: #9ca3af;
+    font-style: italic;
 }
 
 .comentario-card {

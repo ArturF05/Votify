@@ -43,7 +43,7 @@ namespace Votify.Core.Services
                 : (await _dimensionRepo.ObtenerCriterioPorVotacionAsync(votacion.Id))
                     .Select(d => new CriterioDashboardDTO
                     {
-                        Id = d.Id,
+                        CriterioId   = d.Id,
                         Nombre = d.Nombre,
                         Descripcion = d.Descripcion ?? "",
                         Peso = d.Peso
@@ -89,7 +89,7 @@ namespace Votify.Core.Services
                 : votacion.DimensionesDeValores
                     .Select(d => new CriterioDashboardDTO
                     {
-                        Id = d.Id,
+                        CriterioId = d.Id,
                         Nombre = d.Nombre,
                         Descripcion = d.Descripcion ?? "",
                         Peso = d.Peso
@@ -106,15 +106,42 @@ namespace Votify.Core.Services
                 foreach (var dim in dimensiones)
                 {
                     var votosDim = votos
-                        .Where(v => v.Id_proyecto == proyecto.Id && v.Id_categoria == dim.Id)
+                        .Where(v => v.Id_proyecto == proyecto.Id && v.VotosCriterio.Any(vc => vc.Id_criterio == dim.CriterioId))
                         .ToList();
 
                     if (votosDim.Any())
                     {
-                        var avg = votosDim.Average(v => v.Puntuacion);
+                        var avg = (decimal)(votosDim
+                            .SelectMany(v => v.VotosCriterio)
+                            .Where(vc => vc.Id_criterio == dim.CriterioId)
+                            .Average(vc => vc.Nota));
                         total += avg * (dim.Peso / 100m);
                     }
                 }
+
+                var criteriosProyecto = dimensiones.Select(dim =>
+                {
+                    var votosCriterio = votos
+                        .Where(v => v.Id_proyecto == proyecto.Id)
+                        .SelectMany(v => v.VotosCriterio)
+                        .Where(vc => vc.Id_criterio == dim.CriterioId)
+                        .ToList();
+
+                    return new CriterioDashboardDTO
+                    {
+                        CriterioId = dim.CriterioId,
+                        Nombre = dim.Nombre,
+                        Descripcion = dim.Descripcion,
+                        Peso = dim.Peso,
+                        PuntuacionMedia = votosCriterio.Any()
+                            ? (decimal)votosCriterio.Average(vc => vc.Nota)
+                            : 0m,
+                        Comentarios = votosCriterio
+                            .Where(vc => !string.IsNullOrWhiteSpace(vc.Comentario))
+                            .Select(vc => vc.Comentario!)
+                            .ToList()
+                    };
+                }).ToList();
 
                 result.Add(new ProyectoDashboardDTO
                 {
@@ -124,7 +151,8 @@ namespace Votify.Core.Services
                     Comentarios = votos
                         .Where(v => v.Id_proyecto == proyecto.Id && !string.IsNullOrEmpty(v.Comentario))
                         .Select(v => v.Comentario!)
-                        .ToList()
+                        .ToList(),
+                    Criterios = criteriosProyecto
                 });
             }
 
@@ -150,7 +178,7 @@ namespace Votify.Core.Services
             return (await _dimensionRepo.ObtenerCriterioPorVotacionAsync(votacion.Id))
                 .Select(d => new CriterioDashboardDTO
                 {
-                    Id = d.Id,
+                    CriterioId = d.Id,
                     Nombre = d.Nombre,
                     Descripcion = d.Descripcion ?? "",
                     Peso = d.Peso
