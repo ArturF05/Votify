@@ -102,8 +102,9 @@ namespace Votify.Infrastructure.Repositorios
         public async Task<Votacion?> ObtenerUltimaPorEventoAsync(Guid eventoId)
         {
             return await contexto.Votacion
+                .Include(v => v.DimensionesDeValores)
                 .Where(v => v.Id_evento == eventoId)
-                .OrderByDescending(v => v.FechaInicio)
+                .OrderByDescending(v => v.FechaFin)
                 .FirstOrDefaultAsync();
         }
     }

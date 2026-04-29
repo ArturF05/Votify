@@ -84,8 +84,17 @@ namespace Votify.Core.Services
                 }).ToList();
             }
 
-            var dimensiones = await _dimensionRepo.ObtenerCriterioPorVotacionAsync(votacion.Id);
-
+            var dimensiones = votacion == null
+                ? new List<CriterioDashboardDTO>()
+                : votacion.DimensionesDeValores
+                    .Select(d => new CriterioDashboardDTO
+                    {
+                        Id = d.Id,
+                        Nombre = d.Nombre,
+                        Descripcion = d.Descripcion ?? "",
+                        Peso = d.Peso
+                    })
+                    .ToList();
             var votos = await _eventoRepo.ObtenerVotosDeEventoAsync(eventoId);
 
             var result = new List<ProyectoDashboardDTO>();
@@ -119,6 +128,7 @@ namespace Votify.Core.Services
                 });
             }
 
+
             return result
                 .OrderByDescending(p => p.PuntuacionTotal)
                 .ToList();
@@ -147,5 +157,6 @@ namespace Votify.Core.Services
                 })
                 .ToList();
         }
+
     }
 }
