@@ -178,7 +178,7 @@ namespace Votify.Core.Services
             return await votacionRepository.BuscarPorNombreAsync(Id_evento, tipoVotacion, permiteAutoVoto, verFinalizadas);
         }
 
-        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy)
+        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy, List<Guid> Jurados, List<CrearCriterioDTO> criterios)
         {
             if (Id_evento == Guid.Empty)
                 throw new Exception("El evento es obligatorio");
@@ -190,6 +190,37 @@ namespace Votify.Core.Services
             var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion,NumProy);
 
             await votacionRepository.CrearVotacionAsync(nuevaVotacion);
+
+            var idVotacion = nuevaVotacion.Id;
+
+            foreach (var criterioDto in criterios)
+            {
+                var nuevoCriterio = new DimensionesDeValor
+                {
+                    Id = criterioDto.Id == Guid.Empty ? Guid.NewGuid() : criterioDto.Id,
+                    Id_votacion = idVotacion,
+                    Nombre = criterioDto.Nombre,
+                    Descripcion = criterioDto.Descripcion,
+                    Peso = criterioDto.Peso
+                };
+                await dimensionRepository.CrearCriterioAsync(nuevoCriterio);
+            }
+
+            foreach (var idUsuarioJurado in Jurados)
+            {
+                var idRolJurado = await eventoUsuarioRolRepository.ObtenerIdRolJuradoAsync();
+                if (idRolJurado == Guid.Empty)
+                    throw new Exception("No existe el rol Jurado");
+
+                var nuevoJurado = new EventoUsuarioRol
+                {
+                    EventoId = Id_evento,
+                    UsuarioId = idUsuarioJurado,
+                    RolId = idRolJurado
+                };
+
+                await eventoUsuarioRolRepository.CrearAsync(nuevoJurado);
+            }
         }
         public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<Guid> Jurados, List<CrearCriterioDTO> criterios,int NumProy)
         {
