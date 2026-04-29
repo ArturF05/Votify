@@ -69,7 +69,8 @@ namespace Votify.API.Controllers
                     dto.FechaFin,
                     dto.PermiteAutoVoto,
                     dto.TipoVotacion,
-                    dto.Num_Proy
+                    dto.Num_Proy,
+                    dto.EstadoVotacion
                 );
                 await context.SaveChangesAsync();
                 await transaccion.CommitAsync();

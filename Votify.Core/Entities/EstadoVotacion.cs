@@ -11,5 +11,6 @@ namespace Votify.Core.Entities
         Abierta = 0,
         Cerrada = 1,
         Pausada = 2,
+        Finalizada = 3
     }
 }

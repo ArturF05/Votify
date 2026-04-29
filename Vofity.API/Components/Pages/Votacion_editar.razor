@@ -43,11 +43,38 @@
         @onclick='() => SeleccionarTipo(TipoVotacion.Jurado)'>
             Jurado
         </button>
-
+    
         <button type="button"
         class="boton-votacion @(tipoVotacion == TipoVotacion.Mixto ? "activo" : "")"
         @onclick='() => SeleccionarTipo(TipoVotacion.Mixto)'>
             Mixto
+        </button>
+    </div>
+    <label> Estado Votacion: @estadoVotacion </label>
+    <div class="grupo-botones-estados">
+        <button type="button"
+                class="boton-control abrir"
+                disabled="@(estadoVotacion != EstadoVotacion.Cerrada)"
+                @onclick='() => SeleccionarEstado(EstadoVotacion.Abierta)'>
+            ▷ Abrir
+        </button>
+        <button type="button"
+                class="boton-control detener"
+                disabled="@(estadoVotacion == EstadoVotacion.Pausada || estadoVotacion == EstadoVotacion.Cerrada)"
+                @onclick='() => SeleccionarEstado(EstadoVotacion.Pausada)'>
+            ⏸ Pausar
+        </button>
+        <button type="button"
+                class="boton-control reanudar"
+                disabled="@(estadoVotacion != EstadoVotacion.Pausada)"
+                @onclick='() => SeleccionarEstado(EstadoVotacion.Abierta)'>
+            ▷ Reanudar
+        </button>
+        <button type="button"
+                class="boton-control cerrar"
+                disabled="@(estadoVotacion == EstadoVotacion.Cerrada)"
+                @onclick='() => SeleccionarEstado(EstadoVotacion.Cerrada)'>
+            ⊙ Cerrar
         </button>
     </div>
     <div class="campo">
@@ -170,6 +197,7 @@
         inicioVotacion = votacion.FechaInicio.ToLocalTime();
         finVotacion = votacion.FechaFin.ToLocalTime();
         NumProy = votacion.NumProy;
+        estadoVotacion = votacion.EstadoVotacion;
 
         if (votacion is VotacionPublico)
             tipoVotacion = TipoVotacion.Publico;
@@ -193,6 +221,10 @@
     void SeleccionarTipo(TipoVotacion tipo)
     {
         tipoVotacion = tipo;
+    }
+    void SeleccionarEstado(EstadoVotacion estado)
+    {
+        estadoVotacion = estado;
     }
     void Cancelar()
     {

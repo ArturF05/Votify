@@ -3,6 +3,7 @@
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using Votify.Infrastructure.Data
+@using Votify.Core.Entities
 @inject AppDbContext contexto
 @inject HttpClient Http
 @inject ProtectedSessionStorage sessionStorage
@@ -60,7 +61,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-
+        ActualizarEstadosVotaciones();
         try
         {
             ProtectedBrowserStorageResult <Guid> resultado;
@@ -126,6 +127,30 @@
             mensaje = $"Error cargando Home: {ex.Message}";
             Console.WriteLine($"[HOME ERROR] {ex}");
         }
+    }
+    private async Task ActualizarEstadosVotaciones()
+    {
+        var ahora = DateTime.UtcNow;
+
+        var votaciones = await contexto.Votacion.ToListAsync();
+
+        foreach (var votacion in votaciones)
+        {
+            if (votacion.EstadoVotacion == EstadoVotacion.Abierta &&
+                votacion.FechaFin <= ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Finalizada;
+            }
+
+            if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
+                votacion.FechaInicio <= ahora &&
+                votacion.FechaFin > ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Abierta;
+            }
+        }
+
+        await contexto.SaveChangesAsync();
     }
 
     private async Task Apuntarse(Guid eventoId)

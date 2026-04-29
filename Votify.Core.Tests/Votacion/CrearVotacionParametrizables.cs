@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -26,15 +25,19 @@ namespace Votify.Core.Tests.Votacion
         [TestInitialize]
         public void Setup()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
             context = new AppDbContext(options);
             factory = new ConcreteEventFactory();
-            VotacionRepository votacionRepository = new VotacionRepository(context);
-            VotoRepository votoRepository = new VotoRepository(context);
-            ProyectoRepository proyectoRepository = new ProyectoRepository(context);
-            DimensionRepository dimensionRepository = new DimensionRepository(context);
-            UsuarioRepository usuarioRepository = new UsuarioRepository(context);
-            EventoUsuarioRolRepository usuarioRolRepository = new EventoUsuarioRolRepository(context);
+
+            var votacionRepository = new VotacionRepository(context);
+            var votoRepository = new VotoRepository(context);
+            var proyectoRepository = new ProyectoRepository(context);
+            var dimensionRepository = new DimensionRepository(context);
+            var usuarioRepository = new UsuarioRepository(context);
+            var usuarioRolRepository = new EventoUsuarioRolRepository(context);
 
             votacionService = new VotacionService(
                 votacionRepository,
@@ -64,7 +67,6 @@ namespace Votify.Core.Tests.Votacion
             );
 
             idEvento = evento.Id;
-
             context.Evento.Add(evento);
 
             idVotacion = Guid.NewGuid();
@@ -75,16 +77,19 @@ namespace Votify.Core.Tests.Votacion
                 Id_evento = idEvento,
                 FechaInicio = hoy.AddDays(-1),
                 FechaFin = hoy.AddDays(10),
-                PermiteAutoVoto = false
+                PermiteAutoVoto = false,
+                NumProy = 3,
+                EstadoVotacion = EstadoVotacion.Abierta
             });
 
             context.SaveChanges();
         }
+
         [TestMethod]
         public async Task CrearVotacion_NumProyectosNoValido_LanzaExcepcion()
         {
-            var inicio = DateTime.Now.AddDays(1);
-            var fin = DateTime.Now.AddDays(5);
+            var inicio = DateTime.UtcNow.AddDays(1);
+            var fin = DateTime.UtcNow.AddDays(5);
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
                 () => votacionService.CrearVotacion(
@@ -93,7 +98,8 @@ namespace Votify.Core.Tests.Votacion
                     fin,
                     true,
                     TipoVotacion.Publico,
-                    0
+                    0,
+                    EstadoVotacion.Abierta
                 )
             );
 
@@ -112,8 +118,10 @@ namespace Votify.Core.Tests.Votacion
                 FechaInicio = DateTime.UtcNow.AddHours(-1),
                 FechaFin = DateTime.UtcNow.AddHours(2),
                 PermiteAutoVoto = true,
-                NumProy = 2
+                NumProy = 2,
+                EstadoVotacion = EstadoVotacion.Abierta
             });
+
             var p1 = Guid.NewGuid();
             var p2 = Guid.NewGuid();
             var p3 = Guid.NewGuid();
@@ -147,11 +155,12 @@ namespace Votify.Core.Tests.Votacion
             var dto = new EmitirVotoDTO
             {
                 IdVotante = Guid.NewGuid(),
+                IdEvento = idEvento,
                 Votos = new List<VotoDetalleDTO>
                 {
                     new VotoDetalleDTO { IdProyecto = p1 },
                     new VotoDetalleDTO { IdProyecto = p2 },
-                    new VotoDetalleDTO { IdProyecto = p3 } 
+                    new VotoDetalleDTO { IdProyecto = p3 }
                 }
             };
 
@@ -160,6 +169,13 @@ namespace Votify.Core.Tests.Votacion
             );
 
             Assert.AreEqual("No puedes votar más proyectos que el máximo permitido.", exception.Message);
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            context.Database.EnsureDeleted();
+            context.Dispose();
         }
     }
 }

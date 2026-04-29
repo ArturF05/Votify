@@ -74,7 +74,7 @@
             }
             else
             {
-                @foreach (var vot in votaciones.Where(vot => (vot.FechaFin.CompareTo(DateTime.UtcNow) > 0 && !verFinalizadas) || (vot.FechaFin.CompareTo(DateTime.UtcNow)<= 0 && verFinalizadas)))
+                @foreach (var vot in votaciones.Where(vot => verFinalizadas ? vot.EstadoVotacion == EstadoVotacion.Finalizada : vot.EstadoVotacion != EstadoVotacion.Finalizada))
                 {
                     <tr>
                         <td>@eventos.FirstOrDefault(e => e.Id == vot.Id_evento)?.Nombre</td>
@@ -194,7 +194,7 @@
     }
     private void HayVotaciones()
     {
-        votacionesActuales = votaciones.Where(vot => (vot.FechaFin > DateTime.UtcNow && !verFinalizadas)|| (vot.FechaFin <= DateTime.UtcNow && verFinalizadas)).ToList();
+        votacionesActuales = votaciones.Where(vot => verFinalizadas? vot.EstadoVotacion == EstadoVotacion.Finalizada: vot.EstadoVotacion != EstadoVotacion.Finalizada).ToList();
         if (votacionesActuales.Count() == 0)
             if (!verFinalizadas) noHayResultados = "No hay votaciones que no hayan finalizado";
             else noHayResultados = "No hay votaciones finalizadas";
