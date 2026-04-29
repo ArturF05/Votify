@@ -205,20 +205,19 @@
     List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
     private Votify.Core.Entities.Evento? evento;
     private Guid idUsuarioActual = Guid.Empty;
-    private Guid idRolJurado;
-    private bool usuariosCargados = false;
 
     private string busquedaUsuario = "";
 
     private List<Usuario> usuariosDisponibles = new();
     private List<Usuario> juradoSeleccionado = new();
 
-    private IEnumerable<Usuario> UsuariosDisponiblesFiltrados =>
-    usuariosDisponibles
-        .Where(u =>
-            string.IsNullOrWhiteSpace(busquedaUsuario)
-            || (u.Nombre ?? "").Contains(busquedaUsuario, StringComparison.OrdinalIgnoreCase));
-
+    private List<Usuario> UsuariosDisponiblesFiltrados =>
+        usuariosDisponibles
+            .Where(u => !juradoSeleccionado.Any(j => j.Id == u.Id))
+            .Where(u =>
+                string.IsNullOrWhiteSpace(busquedaUsuario)
+                || (u.Nombre ?? "").Contains(busquedaUsuario, StringComparison.OrdinalIgnoreCase))
+            .ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -237,51 +236,30 @@
             mensajeNoCriterio = "Esta votación no tiene criterios";
 
         await SetVotacion(votacion);
-    }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender || usuariosCargados)
-            return;
+        usuariosDisponibles = await contexto.Usuario
+            .AsNoTracking()
+            .OrderBy(u => u.Nombre)
+            .ToListAsync();
 
-        var resultadoSesion = await sessionStorage.GetAsync<Guid>("IdUsuario");
+        // Obtener el id del rol Jurado
+        var idRolJurado = await contexto.Role
+            .Where(r => r.Nombre == "Jurado")
+            .Select(r => r.Id)
+            .FirstOrDefaultAsync();
 
-        if (!resultadoSesion.Success || resultadoSesion.Value == Guid.Empty)
-        {
-            nav.NavigateTo("/Login");
-            return;
-        }
-
-        idUsuarioActual = resultadoSesion.Value;
-
-        if (votacion == null)
-            return;
-
+        // Obtener ids de usuarios jurado en ese evento
         var idsJurado = await contexto.EventoUsuarioRol
-            .Include(eur => eur.Rol)
-            .Where(eur =>
-                eur.EventoId == votacion.Id_evento &&
-                eur.Rol.Nombre == "Jurado")
+            .Where(eur => eur.EventoId == votacion.Id_evento && eur.RolId == idRolJurado)
             .Select(eur => eur.UsuarioId)
             .ToListAsync();
 
+        // Obtener los usuarios completos
         juradoSeleccionado = await contexto.Usuario
             .AsNoTracking()
             .Where(u => idsJurado.Contains(u.Id))
             .OrderBy(u => u.Nombre)
             .ToListAsync();
-
-        usuariosDisponibles = await contexto.Usuario
-            .AsNoTracking()
-            .Where(u =>
-                u.Id != idUsuarioActual &&
-                !idsJurado.Contains(u.Id))
-            .OrderBy(u => u.Nombre)
-            .ToListAsync();
-
-        usuariosCargados = true;
-
-        await InvokeAsync(StateHasChanged);
     }
 
     public async Task SetVotacion(Votify.Core.Entities.Votacion votacion)
