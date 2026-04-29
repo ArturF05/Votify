@@ -25,7 +25,7 @@
     }
 
     <button class="boton-finalizadas" @onclick="VerFinalizadas">
-        @boton 
+        @boton
     </button>
 </div>
 
@@ -70,13 +70,13 @@
             </tr>
         </thead>
         <tbody>
-            @if(votaciones == null)
+            @if (votaciones == null)
             {
                 <label>Cargando Votaciones ...</label>
             }
             else
             {
-                @foreach (var vot in votaciones.Where(vot => (vot.FechaFin.CompareTo(DateTime.UtcNow) > 0 && !verFinalizadas) || (vot.FechaFin.CompareTo(DateTime.UtcNow)<= 0 && verFinalizadas)))
+                @foreach (var vot in votaciones.Where(vot => (vot.FechaFin.CompareTo(DateTime.UtcNow) > 0 && !verFinalizadas) || (vot.FechaFin.CompareTo(DateTime.UtcNow) <= 0 && verFinalizadas)))
                 {
                     <tr>
                         <td>@eventos.FirstOrDefault(e => e.Id == vot.Id_evento)?.Nombre</td>
@@ -85,13 +85,16 @@
                         <td>@vot.FechaInicio.ToLocalTime()</td>
                         <td>@vot.FechaFin.ToLocalTime()</td>
                         <td><button class="boton-editar" hidden="@(verFinalizadas)" @onclick='() => EditarVotacion(vot)'>Editar</button></td>
-                        <td><div class="tooltip-wrapper"><button class="boton-editar" hidden="@(!verFinalizadas)" @onclick='() => VerResultados(vot)' disabled="@(!puedeVerResultados(vot))">Resultados</button>@if(!puedeVerResultados(vot)){
+                        <td>
+                            <div class="tooltip-wrapper">
+                                <button class="boton-editar" hidden="@(!verFinalizadas)" @onclick='() => VerResultados(vot)' disabled="@(!puedeVerResultados(vot))">Resultados</button>@if(!puedeVerResultados(vot)){
                                 <span class="tooltip-text">@ObtenerMotivoBloqueo(vot)</span>
-                                } 
-                        </div></td>
-                    </tr>
-                }
+                            }
+                        </div>
+                    </td>
+                </tr>
             }
+                        }
 
         </tbody>
     </table>
@@ -156,7 +159,7 @@
     private async Task BuscarVotaciones()
     {
         noHayResultados = "";
-        if (tipoVotacion == -1 && Id_evento == Guid.Empty && permiteAutoVoto==-1)
+        if (tipoVotacion == -1 && Id_evento == Guid.Empty && permiteAutoVoto == -1)
         {
             votaciones = await contexto.Votacion
             .Where(v => contexto.EventoUsuarioRol
@@ -229,7 +232,7 @@
     }
     private void HayVotaciones()
     {
-        votacionesActuales = votaciones.Where(vot => (vot.FechaFin > DateTime.UtcNow && !verFinalizadas)|| (vot.FechaFin <= DateTime.UtcNow && verFinalizadas)).ToList();
+        votacionesActuales = votaciones.Where(vot => (vot.FechaFin > DateTime.UtcNow && !verFinalizadas) || (vot.FechaFin <= DateTime.UtcNow && verFinalizadas)).ToList();
         if (votacionesActuales.Count() == 0)
             if (!verFinalizadas) noHayResultados = "No hay votaciones que no hayan finalizado";
             else noHayResultados = "No hay votaciones finalizadas";
