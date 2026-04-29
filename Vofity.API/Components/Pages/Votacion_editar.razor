@@ -1,5 +1,5 @@
 ﻿@page "/EditarVotacion/{id:guid}"
-@rendermode InteractiveServer 
+@rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
 @using Votify.Core.Entities
 @using Votify.Core.Services
@@ -52,14 +52,17 @@
     </div>
     <div class="campo">
         <label>Permitir Autovoto*:</label>
-        <select @bind-value="permiteAutoVoto" @bind-value:event="onchange">
+        <select @onchange="cambioPermiteAutoVoto">
             <option value="1">Sí</option>
             <option value="0">No</option>
         </select>
     </div>
     <div class="campo">
         <label>Inicio de la votación*:</label>
-        <input type="datetime-local" @bind-value="inicioVotacion" @bind-value:event="onchange" />
+        <input type="datetime-local" @bind-value="inicioVotacion" @bind-value:event="onchange" disabled="@(inicioVotacion < DateTime.Now)" 
+               title='@(inicioVotacion < DateTime.Now
+                        ? "No se puede modificar el inicio de una votación en curso"
+                        : null)'/>
     </div>
     <div class="campo">
         <label>Fin de la votación*:</label>
@@ -67,9 +70,27 @@
     </div>
     <div class="campo campo-columna">
         <label>Número de proyectos votables*:</label>
-        <input type="number" @bind-value="NumProy" min=0 />
+        <input type="number" min=1 value="@NumProy" @onchange="cambioNumProy" />
+    </div>
+    <div class="campo">
+        <label>Permitir Comentarios*:</label>
+        <select value="@permiteComentarios" @onchange="cambioPermiteComentarios">
+            <option value="1">Sí</option>
+            <option value="0">No</option>
+        </select>
+    </div>
+    <div class="campo campo-columna">
+        <label>Comentarios Obligatorios*:</label>
+        <select value="@comentariosObligatorios" @onchange="cambioComentariosObligatorios" disabled="@(permiteComentarios == 0)"
+                title="@(permiteComentarios == 0 ? "No se puede modificar porque no se permiten comentarios" : null)">
+            <option value="0">No</option>
+            <option value="1">Sí</option>
+        </select>
     </div>
     <div class="errores">
+        <div><label style="color:red">@mensaje5</label></div>
+        <div><label style="color:red">@mensaje3</label></div>
+        <div><label style="color:red">@mensaje4</label></div>
         <div><label style="color:red">@mensaje</label></div>
         <div><label style="color:red">@mensaje2</label></div>
     </div>
@@ -126,8 +147,14 @@
     [Parameter]
     public Guid id { get; set; }
     private Votify.Core.Entities.Votacion votacion;
-    private int? NumProy = 0;
+    private int NumProy = 0;
     private int permiteAutoVoto = 1;
+    private int permiteComentarios = 1;
+    private int comentariosObligatorios = 0;
+    private int numProyAUX = 1;
+    private int permiteAutoVotoAUX = 1;
+    private int permiteComentariosAUX = 1;
+    private int comentariosObligatoriosAUX = 0;
     private DateTime inicioVotacion = DateTime.Now;
     private DateTime finVotacion = DateTime.Now.AddHours(1);
     private DateTime inicioEvento = DateTime.Now;
@@ -136,6 +163,11 @@
     private TipoVotacion tipoVotacion = TipoVotacion.Publico;
     private string mensaje = "";
     private string mensaje2 = "";
+    private string mensaje3 = "";
+    private string mensaje4 = "";
+    private string mensaje5 = "";
+    private string mensaje6 = "";
+
     private string mensajeErrorCriterio = "";
     private string mensajeNoCriterio = "";
     private string nombreCriterio = "";
@@ -169,15 +201,19 @@
         inicioVotacion = votacion.FechaInicio.ToLocalTime();
         finVotacion = votacion.FechaFin.ToLocalTime();
         NumProy = votacion.NumProy;
-
+        permiteAutoVoto = votacion.PermiteAutoVoto ? 1 : 0;
+        permiteComentarios = votacion.PermiteComentarios ? 1 : 0;
+        comentariosObligatorios = votacion.ComentariosObligatorios ? 1 : 0;
+        numProyAUX = NumProy;
+        permiteAutoVotoAUX = permiteAutoVoto;
+        permiteComentariosAUX = permiteComentarios;
+        comentariosObligatoriosAUX = comentariosObligatorios;
         if (votacion is VotacionPublico)
             tipoVotacion = TipoVotacion.Publico;
         else if (votacion is VotacionJurado)
             tipoVotacion = TipoVotacion.Jurado;
         else if (votacion is VotacionMixta)
             tipoVotacion = TipoVotacion.Mixto;
-
-        permiteAutoVoto = votacion.PermiteAutoVoto ? 1 : 0;
 
         evento = await contexto.Evento
             .Include(e => e.Categoria)
@@ -188,7 +224,35 @@
         inicioEvento = evento.FechaInicio;
         finEvento = evento.FechaFin;
     }
-
+    private void cambioNumProy(ChangeEventArgs e)
+    {
+        int nuevoValor = int.Parse(e.Value.ToString());
+        if ((numProyAUX != nuevoValor)) mensaje6 = "Atención, el cambio en el número de proyectos votables no es retroactivo";
+        else mensaje6 = "";
+        NumProy = nuevoValor;
+    }
+    private void cambioPermiteAutoVoto(ChangeEventArgs e)
+    {
+        int nuevoValor = int.Parse(e.Value.ToString());
+        if ((permiteAutoVotoAUX != nuevoValor)) mensaje5 = "Atención, el cambio en permitir autovoto no es retroactivo";
+        else mensaje5 = "";
+        permiteAutoVoto = nuevoValor;
+    }
+    private void cambioPermiteComentarios(ChangeEventArgs e)
+    {
+        int nuevoValor = int.Parse(e.Value.ToString());
+        if ((permiteComentariosAUX != nuevoValor)) mensaje3 = "Atención, el cambio en permitir comentarios no es retroactivo";
+        else mensaje3 = "";
+        permiteComentarios = nuevoValor;
+        if (permiteComentarios == 0 && comentariosObligatorios == 1) cambioComentariosObligatorios(new ChangeEventArgs { Value = 0 });
+    }
+    private void cambioComentariosObligatorios(ChangeEventArgs e)
+    {
+        int nuevoValor = int.Parse(e.Value.ToString());
+        if (comentariosObligatoriosAUX != nuevoValor) mensaje4 = "Atención, el cambio en la obligación o no a introducir comentarios no es retroactivo";
+        else mensaje4 = "";
+        comentariosObligatorios = nuevoValor;
+    }
     void SeleccionarTipo(TipoVotacion tipo)
     {
         tipoVotacion = tipo;
@@ -258,14 +322,16 @@
                 FechaFin = finVotacion.ToUniversalTime(),
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion,
-                Num_Proy = NumProy ?? 0,
+                Num_Proy = NumProy,
                 Criterios = criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
                 {
                     Id = c.Id,
                     Nombre = c.Nombre,
                     Descripcion = c.Descripcion,
                     Peso = c.Peso
-                }).ToList()
+                }).ToList(),
+                PermiteComentarios = permiteComentarios == 1,
+                ComentariosObligatorios = comentariosObligatorios == 1
             };
             var response = await Http.PutAsJsonAsync($"api/v1/votaciones/{id}", dto);
 

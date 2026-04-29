@@ -81,17 +81,8 @@ namespace Votify.Infrastructure.Repositorios
                 TipoVotacion.Mixto => 2,
                 _ => throw new Exception("Tipo de votación no válido")
             };
-
-            await contexto.Database.ExecuteSqlInterpolatedAsync($@"
-        UPDATE ""Votacion""
-        SET ""FechaInicio"" = {nuevaVotacion.FechaInicio},
-            ""FechaFin"" = {nuevaVotacion.FechaFin},
-            ""Id_evento"" = {nuevaVotacion.Id_evento},
-            ""PermiteAutoVoto"" = {nuevaVotacion.PermiteAutoVoto},
-            ""TipoVotacion"" = {tipo},
-            ""NumProy""= {nuevaVotacion.NumProy}
-        WHERE ""Id"" = {nuevaVotacion.Id}
-    ");
+            await EliminarVotacionAsync(original);
+            await CrearVotacionAsync(nuevaVotacion);
         }
 
         public async Task EliminarVotacionAsync(Votacion votacion)

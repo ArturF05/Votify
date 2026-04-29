@@ -69,7 +69,9 @@ namespace Votify.API.Controllers
                     dto.FechaFin,
                     dto.PermiteAutoVoto,
                     dto.TipoVotacion,
-                    dto.Num_Proy
+                    dto.Num_Proy,
+                    dto.PermiteComentarios,
+                    dto.ComentariosObligatorios
                 );
                 await context.SaveChangesAsync();
                 await transaccion.CommitAsync();
@@ -100,7 +102,9 @@ namespace Votify.API.Controllers
                     dto.PermiteAutoVoto,
                     dto.TipoVotacion,
                     dto.Criterios,
-                    dto.Num_Proy
+                    dto.Num_Proy,
+                    dto.PermiteComentarios,
+                    dto.ComentariosObligatorios
                 );
 
                 return Ok(new { mensaje = "Evento editado correctamente" });

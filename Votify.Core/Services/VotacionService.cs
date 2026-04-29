@@ -42,25 +42,22 @@ namespace Votify.Core.Services
         public async Task<bool> RegistrarVotoAsync(Guid idVotacion, EmitirVotoDTO dto)
         {
             if (dto == null)
-                throw new Exception("El DTO del voto es nulo.");
+                throw new Exception("Error interno: El DTO del voto es nulo.");
 
             if (dto.IdVotante == Guid.Empty)
-                throw new Exception("El id del votante está vacío.");
+                throw new Exception("Error interno: El id del votante está vacío.");
 
             var votacion = await votacionRepository.ObtenerPorIdAsync(idVotacion);
             if (votacion == null)
-                throw new Exception("La votación no existe.");
+                throw new Exception("Error interno: La votación no existe.");
 
-            int numProy = votacion.NumProy ?? 3;
+            int numProy = votacion.NumProy;
 
             if (dto.Votos == null)
                 throw new Exception($"Debes votar exactamente {numProy} proyectos.");
 
             if (dto.Votos.Count > numProy)
                 throw new Exception("No puedes votar más proyectos que el máximo permitido.");
-
-            if (dto.Votos.Count < numProy)
-                throw new Exception($"Debes votar exactamente {numProy} proyectos.");
 
             var idsProyectos = dto.Votos.Select(v => v.IdProyecto).ToList();
 
@@ -85,7 +82,6 @@ namespace Votify.Core.Services
             );
             if (!votacion.PermiteAutoVoto && esPropio)
                 throw new Exception("No se permite el autovoto en esta votación.");
-
 
             Usuario usuario = await usuarioRepository.ObtenerPorIdAsync(dto.IdVotante);
             string? rolUsuario = usuario.Rol.Nombre;
@@ -143,7 +139,8 @@ namespace Votify.Core.Services
                         puntuacionTotal += puntuacion.Nota * (criterio.Peso / 100m);
                     }
                 }
-
+                if (votacion.PermiteComentarios && votacion.ComentariosObligatorios && (string.IsNullOrEmpty(v.Comentario) || string.IsNullOrWhiteSpace(v.Comentario)))
+                    throw new Exception("En esta votación, es obligatorio incluir un comentario en cada voto");
                 return new Voto
                 {
                     Id = Guid.NewGuid(),
@@ -166,7 +163,7 @@ namespace Votify.Core.Services
             return await votacionRepository.BuscarPorNombreAsync(Id_evento, tipoVotacion, permiteAutoVoto, verFinalizadas);
         }
 
-        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy)
+        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy, bool permiteComentarios, bool comentariosObligatorios)
         {
             if (Id_evento == Guid.Empty)
                 throw new Exception("El evento es obligatorio");
@@ -175,11 +172,12 @@ namespace Votify.Core.Services
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
             if (NumProy < 1)
                 throw new Exception("Se tiene que poder votar mínimo 1 proyecto");
-            var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion,NumProy);
+            if (permiteComentarios == false) comentariosObligatorios = false;
+            var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion,NumProy, permiteComentarios, comentariosObligatorios);
 
             await votacionRepository.CrearVotacionAsync(nuevaVotacion);
         }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios,int NumProy)
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios,int NumProy, bool permiteComentarios, bool comentariosObligatorios)
         {
             var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);
 
@@ -196,7 +194,7 @@ namespace Votify.Core.Services
 
             if (finVotacion < inicioVotacion)
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
-
+            if (!permiteComentarios && comentariosObligatorios) comentariosObligatorios = false;
             if (votacionActual.Tipo == tipoVotacion)
             {
                 votacionActual.Id_evento = Id_evento;
@@ -204,7 +202,8 @@ namespace Votify.Core.Services
                 votacionActual.FechaFin = DateTime.SpecifyKind(finVotacion, DateTimeKind.Local).ToUniversalTime();
                 votacionActual.PermiteAutoVoto = permiteAutoVoto;
                 votacionActual.NumProy = NumProy;
-
+                votacionActual.PermiteComentarios = permiteComentarios;
+                votacionActual.ComentariosObligatorios = comentariosObligatorios;
                 await votacionRepository.EditarVotacionAsync(votacionActual);
             }
             else
@@ -215,7 +214,9 @@ namespace Votify.Core.Services
                     permiteAutoVoto,
                     Id_evento,
                     tipoVotacion,
-                    NumProy
+                    NumProy,
+                    permiteComentarios,
+                    comentariosObligatorios
                 );
 
                 nuevaVotacion.Id = votacionActual.Id;

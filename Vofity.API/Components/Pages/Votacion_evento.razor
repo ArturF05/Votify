@@ -8,6 +8,7 @@
 @using Votify.Infrastructure.Repositorios
 @using Votify.Core.Interfaces
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+@inject IJSRuntime JS
 @inject NavigationManager nav;
 @inject AppDbContext contexto
 @inject HttpClient Http
@@ -363,13 +364,13 @@
                                            @oninput="(e) => notaValida(e, proyecto.Id, criterio.Id)" />
                                 </div>
                             }
-                            @if (proyectosSeleccionados.Contains(proyecto.Id)){
-                            <div class="comentario-container">
-                                <textarea @bind="comentariosPorProyecto[proyecto.Id]"
+                            @if (votacion!=null && proyectosSeleccionados.Contains(proyecto.Id) && votacion.PermiteComentarios){
+                                <div class="comentario-container">
+                                    <textarea @bind="comentariosPorProyecto[proyecto.Id]"
                                           placeholder="@(yaVoto ? "" : "Escribe tu comentario aquí...")"
                                           class="textarea-comentario">
-                        </textarea>
-                            </div>
+                                    </textarea>
+                                </div>
                             }
                         </div>
                     }
@@ -421,14 +422,12 @@
     {
         evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
         votacion = await contexto.Votacion.Where(vot => vot.Id_evento == evento.Id && vot.FechaFin.CompareTo(DateTime.UtcNow) > 0 && vot.FechaInicio.CompareTo(DateTime.UtcNow) <= 0).FirstOrDefaultAsync();
-        NumProy = votacion.NumProy;
-
 
         if (votacion != null)
         {
             NumProy = votacion.NumProy;
             idVotacion = votacion.Id;
-            mensaje = $"DEBUG -> NumProy = {NumProy}";
+            mensaje = $"Puedes votar hasta {NumProy} proyectos";
         }
         if (evento == null)
         {
@@ -440,7 +439,7 @@
 
         foreach (var proyecto in evento.Proyectos)
         {
-            if (!comentariosPorProyecto.ContainsKey(proyecto.Id))
+            if (votacion.PermiteComentarios && !comentariosPorProyecto.ContainsKey(proyecto.Id))
                 comentariosPorProyecto[proyecto.Id] = "";
 
             if (!puntuacionesPorProyecto.ContainsKey(proyecto.Id))
@@ -499,7 +498,7 @@
             if (proyectosSeleccionados.Count < NumProy)
             {
                 proyectosSeleccionados.Add(idProyecto);
-                comentariosPorProyecto[idProyecto] = "";
+                if(votacion.PermiteComentarios)comentariosPorProyecto[idProyecto] = "";
             }
         }
     }
@@ -530,10 +529,23 @@
             mensaje = "No hay una votación activa para este evento, espera a que haya una para poder votar.";
             return;
         }
-        if (proyectosSeleccionados.Count != NumProy)
+        if (proyectosSeleccionados.Count > NumProy)
         {
-            mensaje = "Debes seleccionar exactamente "+ NumProy + "  proyectos para votar.";
+            mensaje = $"No puedes seleccionar más de {NumProy} proyectos para votar.";
             return;
+        }
+
+        if (proyectosSeleccionados.Count < NumProy)
+        {
+            bool confirmar = await JS.InvokeAsync<bool>(
+                "confirm",
+                $"Vas a votar a menos proyectos de los permitidos ({proyectosSeleccionados.Count}/{NumProy}). ¿Deseas continuar igualmente?"
+            );
+
+            if (!confirmar)
+            {
+                return;
+            }
         }
 
         foreach (var idProyecto in proyectosSeleccionados)
@@ -542,6 +554,24 @@
             {
                 mensaje = "Faltan puntuaciones en uno de los proyectos seleccionados.";
                 return;
+            }
+            foreach (var criterio in criterios)
+            {
+                if (puntuacionesPorProyecto[idProyecto][criterio.Id] >10 || puntuacionesPorProyecto[idProyecto][criterio.Id]<0)
+                {
+                    mensaje = "La puntuación en los criterios tiene que ser entre 0 y 10";
+                    return;
+                }
+            }
+
+            if (votacion.ComentariosObligatorios)
+            {
+                if (!comentariosPorProyecto.ContainsKey(idProyecto) ||
+                    string.IsNullOrWhiteSpace(comentariosPorProyecto[idProyecto]))
+                {
+                    mensaje = "En esta votación es obligatorio incluir un comentario en cada voto";
+                    return;
+                }
             }
 
             foreach (var criterio in criterios)
@@ -561,10 +591,6 @@
                 }
             }
         }
-
-        // evitar votos duplicados  
-        var yaVoto = await contexto.Voto
-            .AnyAsync(v => v.Id_votante == usuario.Id && v.Id_votacion == idVotacion);
 
         var votoDto = new EmitirVotoDTO
         {

@@ -68,7 +68,22 @@ h3 {
             border-color: #f28c28;
             background-color: #ffffff;
         }
+    .campo select:disabled {
+        background-color: #e5e7eb;
+        border-color: #d1d5db;
+        color: #9ca3af;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
 
+        .campo select:disabled:hover {
+            background-color: #e5e7eb;
+            border-color: #d1d5db;
+            color: #9ca3af;
+            transform: none;
+            box-shadow: none;
+        }
 .labels {
     display: flex;
     justify-content: space-between;

@@ -18,7 +18,7 @@
     <hr class="linea">
     <div class="campo">
         <label>Evento de la votación*: </label>
-        <select @bind="Id_evento" @bind:event="oninput" @onclick='() => ponerTiempos()'>
+        <select @bind="Id_evento" @bind:event="oninput" @onclick='() => ponerTiempos()' title="No se puede cambiar de evento una votación ya creada">
             <option value="@Guid.Empty"></option>
             @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateTime.Now)>=0))
             {
@@ -62,8 +62,8 @@
         </select>
     </div>
     <div class="campo">
-        <label>Número de proyectos*:</label>
-        <input type="number" @bind="numProy" min="0" />
+        <label>Número de proyectos votables*:</label>
+        <input type="number" @bind="numProy" min="1" />
     </div>
     <div class="campo">
         <label>Inicio de la votación*:</label>
@@ -73,7 +73,21 @@
         <label>Fin de la votación*:</label>
         <input type="datetime-local" @bind="finVotacion" />
     </div>
-
+    <div class="campo campo-columna">
+        <label>Permitir comentarios*</label>
+        <select @onchange="(e) => cambioPermiteComentarios(e)">
+            <option value="1">Sí</option>
+            <option value="0">No</option>
+        </select>
+    </div>
+    <div class="campo campo-columna">
+        <label>Comentarios Obligatorios*:</label>
+        <select @bind="comentariosObligatorios" disabled="@(permiteComentarios == 0)"
+                title="@(permiteComentarios == 0 ? "No se puede modificar porque no se permiten comentarios" : null)">
+            <option value="0">No</option>
+            <option value="1">Sí</option>
+        </select>
+    </div>
     <div class="errores">
         <div><label style="color:red">@mensaje</label></div>
         <div><label style="color:red">@mensaje2</label></div>
@@ -91,12 +105,14 @@
 
 @code {
     private int permiteAutoVoto = 1;
+    public int permiteComentarios = 1;
+    public int comentariosObligatorios = 0;
     private DateTime inicioVotacion = DateTime.Now;
     private DateTime finVotacion = DateTime.Now.AddHours(1);
     private DateTime inicioEvento = DateTime.Now;
     private DateTime finEvento = DateTime.Now.AddDays(1);
     private Guid Id_evento = Guid.Empty;
-    private int numProy = 0;
+    private int numProy = 1;
     private TipoVotacion tipoVotacion = TipoVotacion.Publico;
     private string mensaje = "";
     private string mensaje2 = "";
@@ -117,7 +133,7 @@
         }
 
         idUsuario = resultado.Value;
-        
+
         eventos = await contexto.Evento
             .AsNoTracking()
             .Include(e => e.Categoria)
@@ -145,7 +161,12 @@
     {
         tipoVotacion = tipo;
     }
-
+    private void cambioPermiteComentarios(ChangeEventArgs e)
+    {
+        int nuevoValor = int.Parse(e.Value.ToString());
+        permiteComentarios = nuevoValor;
+        if (nuevoValor == 0) comentariosObligatorios = 0;
+    }
     private async Task GuardarVotacion()
     {
         try
@@ -206,6 +227,7 @@
                 mensaje = "Se tiene que poder votar mínimo 1 proyecto";
                 return;
             }
+            if (permiteComentarios == 0) comentariosObligatorios = 0;
             evento = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == Id_evento);
             var dto = new CrearVotacionDTOs
             {
@@ -214,7 +236,9 @@
                 FechaFin = finVotacion.ToUniversalTime(),
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion,
-                Num_Proy=numProy
+                Num_Proy=numProy,
+                PermiteComentarios = permiteComentarios == 1,
+                ComentariosObligatorios = comentariosObligatorios == 1
             };
             var response = await Http.PostAsJsonAsync("api/v1/votaciones", dto);
 

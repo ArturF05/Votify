@@ -108,6 +108,21 @@
                     <label>Número de proyectos votables*:</label>
                     <input type="number" @bind-value="votaciones[i].NumProy" min="1" />
                 </div>
+                <div class="campo campo-columna">
+                    <label>Permitir comentarios*</label>
+                    <select @onchange="(e)=> cambioPermiteComentarios(e,i)">
+                        <option value="1">Sí</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+                <div class="campo campo-columna">
+                    <label>Comentarios obligatorios*</label>
+                    <select @bind="votaciones[i].ComentariosObligatorios" disabled="@(votaciones[i].PermiteComentarios ==0)" 
+                        title="@(votaciones[i].PermiteComentarios == 0 ? "No se puede modificar porque no se permiten comentarios": null)">>
+                        <option value="0">No</option>
+                        <option value="1">Sí</option>
+                    </select>
+                </div>
                 <div class="grupo-botones-votacion">
                     <button type="button" class="boton-votacion" @onclick='() => quitarVotacion(i)' disabled="@(votaciones.Count<=1)">Quitar votación</button>
                 </div>
@@ -202,12 +217,21 @@
             Tipo = TipoVotacion.Publico,
             Inicio = DateTime.Now,
             Fin = DateTime.Now.AddDays(1),
-            PermiteAutoVoto = 1
+            PermiteAutoVoto = 1,
+            NumProy = 1,
+            PermiteComentarios = 1,
+            ComentariosObligatorios = 0
         });
     }
     private void quitarVotacion(int numeroVotacion)
     {
         votaciones.RemoveAt(numeroVotacion);
+    }
+    private void cambioPermiteComentarios(ChangeEventArgs e, int i)
+    {
+        int nuevoValor = int.Parse(e.Value.ToString());
+        votaciones[i].PermiteComentarios = nuevoValor;
+        if (nuevoValor == 0) votaciones[i].ComentariosObligatorios = 0;
     }
 
     private async Task GuardarEvento()
@@ -288,6 +312,7 @@
                     mensaje = $"La votación {i + 1} debe permitir votar al menos 1 proyecto";
                     return;
                 }
+                if (votaciones[i].PermiteComentarios == 0) votaciones[i].ComentariosObligatorios = 0;
             }
             List<CrearVotacionDTOs> crearVotacionDTOs = new();
             for (int i = 0; i < votaciones.Count; i++)
@@ -298,8 +323,10 @@
                     FechaFin = votaciones[i].Fin.ToUniversalTime(),
                     PermiteAutoVoto = votaciones[i].PermiteAutoVoto == 1,
                     TipoVotacion = votaciones[i].Tipo,
-                    Num_Proy = votaciones[i].NumProy
-                    
+                    Num_Proy = votaciones[i].NumProy,
+                    PermiteComentarios = votaciones[i].PermiteComentarios == 1,
+                    ComentariosObligatorios = votaciones[i].ComentariosObligatorios == 1
+
                 };
                 crearVotacionDTOs.Add(dtoVotacion);
             }
@@ -340,6 +367,8 @@
         public DateTime Inicio { get; set; }
         public DateTime Fin { get; set; }
         public int PermiteAutoVoto { get; set; }
+        public int PermiteComentarios { get; set; }
+        public int ComentariosObligatorios { get; set; }
         public int NumProy { get; set; } = 1; 
     }
 }

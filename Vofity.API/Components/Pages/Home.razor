@@ -139,7 +139,6 @@
             }
 
             var url = $"api/eventos/{eventoId}/apuntarse?usuarioId={idUsuario}&apuntar=true";
-            mensaje = $"Llamando a: {url}";
 
             var respuesta = await Http.PatchAsync(url, new StringContent(""));
 
@@ -155,7 +154,6 @@
                     eventosParticipando.Add(evento);
                 }
 
-                mensaje = $"Inscripción correcta. Respuesta API: {detalle}";
                 StateHasChanged();
             }
             else
