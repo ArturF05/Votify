@@ -140,7 +140,7 @@ namespace Votify.Core.Services
                     }
                 }
                 if (votacion.PermiteComentarios && votacion.ComentariosObligatorios && (string.IsNullOrEmpty(v.Comentario) || string.IsNullOrWhiteSpace(v.Comentario)))
-                    throw new Exception("En esta votación, es obligatorio incluir un comentario en cada voto");
+                    throw new Exception("En esta votación, es obligatorio incluir un comentario general en cada voto");
                 return new Voto
                 {
                     Id = Guid.NewGuid(),
