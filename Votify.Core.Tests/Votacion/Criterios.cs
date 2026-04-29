@@ -84,7 +84,7 @@ namespace Votify.Core.Tests.Votacion
                     }
              };
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3);
+            await votacionService.EditarVotacion(idVotacion, idEvento, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3, true, true);
 
             var resultados = await context.DimensionesDeValor.Where(d => d.Id_votacion == idVotacion).ToListAsync();
             Assert.AreEqual(2, resultados.Count);

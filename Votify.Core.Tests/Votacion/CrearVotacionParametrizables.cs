@@ -93,7 +93,9 @@ namespace Votify.Core.Tests.Votacion
                     fin,
                     true,
                     TipoVotacion.Publico,
-                    0
+                    0,
+                    true,
+                    true
                 )
             );
 
