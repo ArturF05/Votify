@@ -84,7 +84,6 @@ namespace Votify.Core.Services
                 }).ToList();
             }
 
-            // 🔥 AQUÍ TU MODELO REAL
             var dimensiones = await _dimensionRepo.ObtenerCriterioPorVotacionAsync(votacion.Id);
 
             var votos = await _eventoRepo.ObtenerVotosDeEventoAsync(eventoId);
