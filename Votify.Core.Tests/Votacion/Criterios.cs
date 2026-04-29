@@ -36,27 +36,46 @@ namespace Votify.Core.Tests.Votacion
             var usuarioRepository = new UsuarioRepository(context);
             var eventoUsuarioRolRepository = new EventoUsuarioRolRepository(context);
 
-            votacionService = new VotacionService(votacionRepo, votoRepo, proyectoRepo, dimensionRepo, usuarioRepository, eventoUsuarioRolRepository);
+            votacionService = new VotacionService(
+                votacionRepo,
+                votoRepo,
+                proyectoRepo,
+                dimensionRepo,
+                usuarioRepository,
+                eventoUsuarioRolRepository
+            );
 
             idEvento = Guid.NewGuid();
             idVotacion = Guid.NewGuid();
+
+            context.Evento.Add(new Evento
+            {
+                Id = idEvento,
+                Nombre = "Evento test",
+                Descripcion = "Evento de prueba",
+                FechaInicio = DateTime.UtcNow.AddDays(-1),
+                FechaFin = DateTime.UtcNow.AddDays(10)
+            });
 
             context.Votacion.Add(new VotacionPublico
             {
                 Id = idVotacion,
                 Id_evento = idEvento,
-                FechaInicio = DateTime.Now,
-                FechaFin = DateTime.Now.AddDays(1),
-                PermiteAutoVoto = true
+                FechaInicio = DateTime.UtcNow,
+                FechaFin = DateTime.UtcNow.AddDays(1),
+                PermiteAutoVoto = true,
+                NumProy = 3,
+                EstadoVotacion = EstadoVotacion.Abierta
             });
+
             context.SaveChanges();
         }
 
         [TestMethod]
         public async Task EditarVotacion_ActualizaCriteriosEnBaseDeDatos()
         {
-            // Test para verificar que el servicio guarda los cambios de los criterios
             var idExistente = Guid.NewGuid();
+
             context.DimensionesDeValor.Add(new DimensionesDeValor
             {
                 Id = idExistente,
@@ -65,32 +84,47 @@ namespace Votify.Core.Tests.Votacion
                 Descripcion = "Criterio viejo",
                 Peso = 100
             });
+
             await context.SaveChangesAsync();
 
-            var dtos = new List<CrearCriterioDTO>{
-                 new CrearCriterioDTO
-                    {
-                        Id = idExistente,
-                        Nombre = "Viejo",
-                        Descripcion = "Actualizado",
-                        Peso = 30
-                    },
-                    new CrearCriterioDTO
-                    {
-                        Id = Guid.Empty,
-                        Nombre = "Nuevo",
-                        Descripcion = "Nuevo criterio",
-                        Peso = 70
-                    }
-             };
+            var dtos = new List<CrearCriterioDTO>
+            {
+                new CrearCriterioDTO
+                {
+                    Id = idExistente,
+                    Nombre = "Viejo",
+                    Descripcion = "Actualizado",
+                    Peso = 30
+                },
+                new CrearCriterioDTO
+                {
+                    Id = Guid.Empty,
+                    Nombre = "Nuevo",
+                    Descripcion = "Nuevo criterio",
+                    Peso = 70
+                }
+            };
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3);
+            await votacionService.EditarVotacion(
+                idVotacion,
+                idEvento,
+                DateTime.UtcNow,
+                DateTime.UtcNow.AddDays(1),
+                true,
+                TipoVotacion.Publico,
+                dtos,
+                3,
+                EstadoVotacion.Abierta
+            );
 
-            var resultados = await context.DimensionesDeValor.Where(d => d.Id_votacion == idVotacion).ToListAsync();
+            var resultados = await context.DimensionesDeValor
+                .Where(d => d.Id_votacion == idVotacion)
+                .ToListAsync();
+
             Assert.AreEqual(2, resultados.Count);
             Assert.IsTrue(resultados.Any(r => r.Peso == 30));
+            Assert.IsTrue(resultados.Any(r => r.Nombre == "Nuevo"));
         }
-
 
         [TestCleanup]
         public void Cleanup()
@@ -99,5 +133,4 @@ namespace Votify.Core.Tests.Votacion
             context.Dispose();
         }
     }
-    
 }
