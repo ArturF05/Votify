@@ -79,6 +79,45 @@
         <div><label style="color:red">@mensaje2</label></div>
     </div>
 
+    <div class="separador-criterios"></div>
+
+    <section class="bloque-criterios">
+        <h3 class="titulo-criterios">Criterios</h3>
+
+        <div class="lista-criterios">
+            @foreach (var c in criterios)
+            {
+                <div class="criterio-item">
+                    <div class="criterio-texto">
+                        <span class="criterio-nombre">@c.Nombre</span>
+                        <span class="criterio-descripcion">@c.Descripcion</span>
+                    </div>
+
+                    <div class="criterio-acciones">
+                        <span class="criterio-descripcion">Peso (%):</span>
+                        <input type="text" class="criterio-peso" @bind="c.Peso" />
+                        <button type="button" class="boton-secundario" @onclick='() => QuitarCriterio(c.Id)'>Quitar</button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div><label style="color:black">@mensajeNoCriterio</label></div>
+
+        <div class="criterio-formulario">
+            <input type="text" placeholder="Nombre" @bind="nombreCriterio" class="input-criterio" />
+            <input type="text" placeholder="Descripción" @bind="descripcionCriterio" class="input-criterio" />
+            <button type="button" class="boton-principal" @onclick="GuardarCriterio">Añadir</button>
+        </div>
+
+        <div>
+            <div><label style="color:red">@mensajeErrorCriterio</label></div>
+        </div>
+
+    </section>
+
+
+
     <div class="botones">
         <div>
             <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar</button>
@@ -90,6 +129,8 @@
 </div>
 
 @code {
+    [Parameter]
+    public Guid id { get; set; }
     private int permiteAutoVoto = 1;
     private DateTime inicioVotacion = DateTime.Now;
     private DateTime finVotacion = DateTime.Now.AddHours(1);
@@ -100,14 +141,24 @@
     private TipoVotacion tipoVotacion = TipoVotacion.Publico;
     private string mensaje = "";
     private string mensaje2 = "";
+    private string mensajeErrorCriterio = "";
+    private string mensajeNoCriterio = "";
+    private string nombreCriterio = "";
+    private string descripcionCriterio = "";
+    private int pesoCriterio = 0;
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Votify.Core.Entities.Votacion> votaciones = new();
+    List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
     private Votify.Core.Entities.Evento? evento;
+    private Votify.Core.Entities.Votacion votacion;
     private Guid idUsuario;
+    private bool cargado = false;
 
-
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender || cargado)
+            return;
+
         var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
 
         if (!resultado.Success || resultado.Value == Guid.Empty)
@@ -127,6 +178,18 @@
                          && eur.UsuarioId == idUsuario
                          && eur.Rol.Nombre == "Organizador"))
             .ToListAsync();
+
+        votacion = await contexto.Votacion.FirstOrDefaultAsync(e => e.Id == id);
+
+        if (votacion == null)
+            throw new Exception("No existe la votación");
+
+        criterios = await contexto.DimensionesDeValor
+            .Where(d => d.Id_votacion == votacion.Id)
+            .ToListAsync();
+
+        if (!criterios.Any())
+            mensajeNoCriterio = "Esta votación no tiene criterios";
     }
 
     private async Task ponerTiempos()
@@ -233,5 +296,46 @@
         {
             mensaje = $"Error: {ex.Message}";
         }
+    }
+
+    private void GuardarCriterio()
+    {
+        if (nombreCriterio == "")
+        {
+            mensajeErrorCriterio = "No se puede añadir el criterio: Debes asignar un nombre al criterio";
+            return;
+        }
+
+        if (descripcionCriterio == "")
+        {
+            mensajeErrorCriterio = "No se puede añadir el criterio: Debes asignar una descripción al criterio";
+            return;
+        }
+
+        if (criterios.Any(c => c.Nombre == nombreCriterio))
+        {
+            mensajeErrorCriterio = "No se puede añadir el criterio: Ya existe un criterio con ese nombre";
+            return;
+        }
+
+        criterios.Add(new DimensionesDeValor
+        {
+            Id = Guid.NewGuid(),
+            Id_votacion = votacion.Id,
+            Nombre = nombreCriterio,
+            Descripcion = descripcionCriterio,
+            Peso = 0
+        });
+
+        nombreCriterio = "";
+        descripcionCriterio = "";
+        mensajeErrorCriterio = "";
+        mensajeNoCriterio = "";
+        pesoCriterio = 0;
+    }
+
+    private void QuitarCriterio(Guid idCriterio)
+    {
+        criterios.RemoveAll(c => c.Id == idCriterio);
     }
 }
