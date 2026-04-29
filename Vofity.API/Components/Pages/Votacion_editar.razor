@@ -112,63 +112,65 @@
         </div>
 
     </section>
+    @if (tipoVotacion != TipoVotacion.Publico)
+    {
+        <div class="jurado-section">
+            <div class="jurado-column">
+                <h3>Usuarios disponibles</h3>
 
-    <div class="jurado-section">
-        <div class="jurado-column">
-            <h3>Usuarios disponibles</h3>
+                <div class="buscador-jurado">
+                    <input type="text"
+                           placeholder="Buscar por nombre..."
+                           @bind="busquedaUsuario"
+                           @bind:event="oninput" />
+                    <span>🔍</span>
+                </div>
 
-            <div class="buscador-jurado">
-                <input type="text"
-                placeholder="Buscar por nombre..."
-                @bind="busquedaUsuario"
-                @bind:event="oninput" />
-                <span>🔍</span>
-            </div>
-
-            <div class="lista-jurado">
-                @foreach (var usuario in UsuariosDisponiblesFiltrados)
-                {
-                    <div class="fila-jurado">
-                        <span>@usuario.Nombre</span>
-
-                        <button type="button"
-                        class="boton-add-jurado"
-                        @onclick="() => AnadirJurado(usuario)">
-                            +
-                        </button>
-                    </div>
-                }
-            </div>
-        </div>
-
-        <div class="jurado-column">
-            <h3>Miembros del jurado seleccionados</h3>
-
-            <div class="lista-jurado seleccionados">
-                @if (!juradoSeleccionado.Any())
-                {
-                    <div class="jurado-vacio">
-                        No hay miembros seleccionados
-                    </div>
-                }
-                else
-                {
-                    @foreach (var usuario in juradoSeleccionado)
+                <div class="lista-jurado">
+                    @foreach (var usuario in UsuariosDisponiblesFiltrados)
                     {
                         <div class="fila-jurado">
                             <span>@usuario.Nombre</span>
 
                             <button type="button"
-                            class="boton-remove-jurado"
-                            @onclick="() => QuitarJurado(usuario)">
-                                🗑
+                                    class="boton-add-jurado"
+                                    @onclick="() => AnadirJurado(usuario)">
+                                +
                             </button>
                         </div>
                     }
-                }
+                </div>
+            </div>
+
+            <div class="jurado-column">
+                <h3>Miembros del jurado seleccionados</h3>
+
+                <div class="lista-jurado seleccionados">
+                    @if (!juradoSeleccionado.Any())
+                    {
+                        <div class="jurado-vacio">
+                            No hay miembros seleccionados
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var usuario in juradoSeleccionado)
+                        {
+                            <div class="fila-jurado">
+                                <span>@usuario.Nombre</span>
+
+                                <button type="button"
+                                        class="boton-remove-jurado"
+                                        @onclick="() => QuitarJurado(usuario)">
+                                    🗑
+                                </button>
+                            </div>
+                        }
+                    }
+                </div>
             </div>
         </div>
-    </div>
+    }
 
     <div class="botones">
         <div>
@@ -358,6 +360,7 @@
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion,
                 Num_Proy = NumProy ?? 0,
+                Jurados = juradoSeleccionado.Select(u => u.Id).ToList(),
                 Criterios = criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
                 {
                     Id = c.Id,

@@ -99,6 +99,7 @@ namespace Votify.API.Controllers
                     dto.FechaFin,
                     dto.PermiteAutoVoto,
                     dto.TipoVotacion,
+                    dto.Jurados,
                     dto.Criterios,
                     dto.Num_Proy
                 );

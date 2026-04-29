@@ -112,9 +112,13 @@
     private int permiteAutoVoto = -1;
     private string noHayResultados = "";
     private Guid idUsuario;
+    private bool cargado = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender || cargado)
+            return;
+
         var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
 
         if (!resultado.Success || resultado.Value == Guid.Empty)
@@ -136,6 +140,9 @@
                     eur.Rol.Nombre == "Organizador"))
             .ToListAsync();
         HayVotaciones();
+
+        cargado = true;
+        StateHasChanged();
     }
 
     private async Task EsEnter(KeyboardEventArgs e)
