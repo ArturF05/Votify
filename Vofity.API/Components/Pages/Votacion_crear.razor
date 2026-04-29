@@ -116,7 +116,65 @@
 
     </section>
 
+    @if (tipoVotacion != TipoVotacion.Publico)
+    {
+        <div class="jurado-section">
+            <div class="jurado-column">
+                <h3>Usuarios disponibles</h3>
 
+                <div class="buscador-jurado">
+                    <input type="text"
+                           placeholder="Buscar por nombre..."
+                           @bind="busquedaUsuario"
+                           @bind:event="oninput" />
+                    <span>🔍</span>
+                </div>
+
+                <div class="lista-jurado">
+                    @foreach (var usuario in UsuariosDisponiblesFiltrados)
+                    {
+                        <div class="fila-jurado">
+                            <span>@usuario.Nombre</span>
+
+                            <button type="button"
+                                    class="boton-add-jurado"
+                                    @onclick="() => AnadirJurado(usuario)">
+                                +
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="jurado-column">
+                <h3>Miembros del jurado seleccionados</h3>
+
+                <div class="lista-jurado seleccionados">
+                    @if (!juradoSeleccionado.Any())
+                    {
+                        <div class="jurado-vacio">
+                            No hay miembros seleccionados
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var usuario in juradoSeleccionado)
+                        {
+                            <div class="fila-jurado">
+                                <span>@usuario.Nombre</span>
+
+                                <button type="button"
+                                        class="boton-remove-jurado"
+                                        @onclick="() => QuitarJurado(usuario)">
+                                    🗑
+                                </button>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="botones">
         <div>
@@ -129,8 +187,6 @@
 </div>
 
 @code {
-    [Parameter]
-    public Guid id { get; set; }
     private int permiteAutoVoto = 1;
     private DateTime inicioVotacion = DateTime.Now;
     private DateTime finVotacion = DateTime.Now.AddHours(1);
@@ -150,9 +206,21 @@
     List<Votify.Core.Entities.Votacion> votaciones = new();
     List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
     private Votify.Core.Entities.Evento? evento;
-    private Votify.Core.Entities.Votacion votacion;
     private Guid idUsuario;
     private bool cargado = false;
+
+    private string busquedaUsuario = "";
+
+    private List<Usuario> usuariosDisponibles = new();
+    private List<Usuario> juradoSeleccionado = new();
+
+    private List<Usuario> UsuariosDisponiblesFiltrados =>
+        usuariosDisponibles
+            .Where(u => !juradoSeleccionado.Any(j => j.Id == u.Id))
+            .Where(u =>
+                string.IsNullOrWhiteSpace(busquedaUsuario)
+                || (u.Nombre ?? "").Contains(busquedaUsuario, StringComparison.OrdinalIgnoreCase))
+            .ToList();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -179,17 +247,14 @@
                          && eur.Rol.Nombre == "Organizador"))
             .ToListAsync();
 
-        votacion = await contexto.Votacion.FirstOrDefaultAsync(e => e.Id == id);
-
-        if (votacion == null)
-            throw new Exception("No existe la votación");
-
-        criterios = await contexto.DimensionesDeValor
-            .Where(d => d.Id_votacion == votacion.Id)
+        usuariosDisponibles = await contexto.Usuario
+            .AsNoTracking()
+            .Where(u => u.Id != idUsuario)
+            .OrderBy(u => u.Nombre)
             .ToListAsync();
 
-        if (!criterios.Any())
-            mensajeNoCriterio = "Esta votación no tiene criterios";
+        cargado = true;
+        StateHasChanged();
     }
 
     private async Task ponerTiempos()
@@ -269,6 +334,11 @@
                 mensaje = "Se tiene que poder votar mínimo 1 proyecto";
                 return;
             }
+            if (criterios.Sum(c => c.Peso) != 100)
+            {
+                mensajeErrorCriterio = "La suma de los pesos debe ser 100";
+                return;
+            }
             evento = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == Id_evento);
             var dto = new CrearVotacionDTOs
             {
@@ -277,7 +347,15 @@
                 FechaFin = finVotacion.ToUniversalTime(),
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion,
-                Num_Proy=numProy
+                Num_Proy = numProy,
+                Jurados = juradoSeleccionado.Select(u => u.Id).ToList(),
+                Criterios = criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
+                {
+                    Id = c.Id,
+                    Nombre = c.Nombre,
+                    Descripcion = c.Descripcion,
+                    Peso = c.Peso
+                }).ToList()
             };
             var response = await Http.PostAsJsonAsync("api/v1/votaciones", dto);
 
@@ -321,7 +399,7 @@
         criterios.Add(new DimensionesDeValor
         {
             Id = Guid.NewGuid(),
-            Id_votacion = votacion.Id,
+            Id_votacion = Guid.Empty,
             Nombre = nombreCriterio,
             Descripcion = descripcionCriterio,
             Peso = 0
@@ -337,5 +415,18 @@
     private void QuitarCriterio(Guid idCriterio)
     {
         criterios.RemoveAll(c => c.Id == idCriterio);
+    }
+
+    private void AnadirJurado(Usuario usuario)
+    {
+        if (!juradoSeleccionado.Any(u => u.Id == usuario.Id))
+        {
+            juradoSeleccionado.Add(usuario);
+        }
+    }
+
+    private void QuitarJurado(Usuario usuario)
+    {
+        juradoSeleccionado.RemoveAll(u => u.Id == usuario.Id);
     }
 }
