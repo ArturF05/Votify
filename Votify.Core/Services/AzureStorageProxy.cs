@@ -13,7 +13,7 @@ namespace Votify.Core.Services
 
         public async Task<string> SubirArchivoAsync(Stream contenidoArchivo, string nombreArchivo)
         {
-            // 🔐 CONTROL (esto es el Proxy GoF)
+           
             if (contenidoArchivo == null || contenidoArchivo.Length == 0)
                 throw new Exception("Archivo vacío");
 
@@ -27,13 +27,13 @@ namespace Votify.Core.Services
             if (!extensionesPermitidas.Contains(ext))
                 throw new Exception("Tipo de archivo no permitido");
 
-            // 👉 delega al real
+            //delega al real
             return await _realService.SubirArchivoAsync(contenidoArchivo, nombreArchivo);
         }
 
         public async Task EliminarArchivoAsync(string url)
         {
-            // opcional: control extra
+            // ocontrol extra
             if (string.IsNullOrEmpty(url))
                 return;
 
