@@ -126,7 +126,14 @@ namespace Votify.Core.Services
             {
                 var idVoto = Guid.NewGuid();
                 decimal puntuacionTotal = 0m;
-                var votosCriterio = new List<VotoCriterio>();
+                var voto = new Voto
+                {
+                    Id = idVoto,
+                    Id_votacion = idVotacion,
+                    Id_proyecto = v.IdProyecto,
+                    Id_votante = dto.IdVotante,
+                    Fecha_voto = DateTime.UtcNow
+                };
 
                 if (v.Puntuaciones == null || !v.Puntuaciones.Any())
                 {
@@ -143,12 +150,13 @@ namespace Votify.Core.Services
                             throw new Exception("Falta la puntuación de algún criterio.");
 
                         puntuacionTotal += puntuacion.Nota * (criterio.Peso / 100m);
-                        votosCriterio.Add(new VotoCriterio
+                        voto.VotosCriterio.Add(new VotoCriterio
                         {
                             Id = Guid.NewGuid(),
                             Id_voto = idVoto,
                             Id_criterio = criterio.Id,
                             Nota = puntuacion.Nota,
+                            Voto = voto,
                             Comentario = string.IsNullOrWhiteSpace(puntuacion.Comentario)
                                 ? null
                                 : puntuacion.Comentario.Trim()
@@ -156,16 +164,8 @@ namespace Votify.Core.Services
                     }
                 }
 
-                return new Voto
-                {
-                    Id = idVoto,
-                    Id_votacion = idVotacion,
-                    Id_proyecto = v.IdProyecto,
-                    Id_votante = dto.IdVotante,
-                    Puntuacion = puntuacionTotal,
-                    Fecha_voto = DateTime.UtcNow,
-                    VotosCriterio = votosCriterio
-                };
+                voto.Puntuacion = puntuacionTotal;
+                return voto;
             }).ToList();
 
             await votoRepository.GuardarVotosAsync(votos);

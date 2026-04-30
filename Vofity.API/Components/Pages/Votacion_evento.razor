@@ -607,7 +607,9 @@
         }
         catch (Exception ex)
         {
-            mensaje = ex.Message; 
+            mensaje = ex.InnerException == null
+                ? ex.Message
+                : $"{ex.Message} Detalle: {ex.InnerException.Message}";
         }
     }
 
