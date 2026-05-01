@@ -232,6 +232,12 @@
         {
             dashboard = await Http.GetFromJsonAsync<DashboardEventoDTO>($"api/eventos/{id}/dashboard");
 
+            if (Ranking.Any())
+            {
+                proyectoSeleccionadoId = Ranking.First().ProyectoId;
+                await CargarSintesisIA(proyectoSeleccionadoId);
+            }
+
             if (dashboard?.Proyectos?.Any() == true)
             {
                 proyectoSeleccionadoId = dashboard.ProyectoGanadorId != Guid.Empty

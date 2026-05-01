@@ -80,7 +80,12 @@ namespace Votify.Core.Services
             var json = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
-                throw new Exception($"Error Gemini: {json}");
+            {
+                return new SintesisIAResultadoDTO
+                {
+                    sintesis = "No se pudo generar la síntesis porque se ha superado el límite gratuito de Gemini. Inténtalo de nuevo más tarde."
+                };
+            }
 
             using var doc = JsonDocument.Parse(json);
 
