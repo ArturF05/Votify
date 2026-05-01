@@ -8,9 +8,7 @@
     background: linear-gradient(135deg, #fffbf7 0%, #fff8f0 100%);
 }
 
-/* =======================
-   LOADING
-======================= */
+
 
 .loading-container {
     display: flex;
