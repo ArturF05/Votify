@@ -121,62 +121,86 @@
             </section>
         </div>
 
-        <section class="comentarios-section">
-            <h3 class="section-title">
-                <span class="title-icon">&#128172;</span>
-                Feedback de Proyectos
-            </h3>
+        <div class="feedback-sintesis-grid">
 
-            <div class="selector-wrapper">
-                <label for="proyecto-select">Ver comentarios de:</label>
-                <select id="proyecto-select" @bind="proyectoSeleccionadoId">
-                    @foreach (var p in Ranking)
+            <section class="comentarios-section">
+                <h3 class="section-title">
+                    <span class="title-icon">&#128172;</span>
+                    Feedback de Proyectos
+                </h3>
+
+                <div class="selector-wrapper">
+                    <label for="proyecto-select">Ver comentarios de:</label>
+                    <select id="proyecto-select"
+                            value="@proyectoSeleccionadoId"
+                            @onchange="OnProyectoChanged">
+                        @foreach (var p in Ranking)
+                        {
+                            <option value="@p.ProyectoId">@p.TituloProyecto</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="lista-comentarios">
+                    @if (ProyectoSeleccionado?.Criterios?.Any(c => c.Comentarios.Any()) == true)
                     {
-                        <option value="@p.ProyectoId">@p.TituloProyecto</option>
-                    }
-                </select>
-            </div>
-
-            <div class="lista-comentarios">
-                @if (ProyectoSeleccionado?.Criterios?.Any(c => c.Comentarios.Any()) == true)
-                {
-                    @foreach (var criterio in ProyectoSeleccionado.Criterios)
-                    {
-                        <div class="criterio-feedback-card">
-                            <div class="criterio-feedback-header">
-                                <div>
-                                    <strong>@criterio.Nombre</strong>
-                                    <span>@criterio.PuntuacionMedia.ToString("0.##") / 10 media</span>
-                                </div>
-                                <span class="criterio-peso-badge">@criterio.Peso%</span>
-                            </div>
-
-                            @if (criterio.Comentarios.Any())
-                            {
-                                @foreach (var comentario in criterio.Comentarios)
-                                {
-                                    <div class="comentario-card">
-                                        <span class="comentario-icon">&#128100;</span>
-                                        <p>@comentario</p>
+                        @foreach (var criterio in ProyectoSeleccionado.Criterios)
+                        {
+                            <div class="criterio-feedback-card">
+                                <div class="criterio-feedback-header">
+                                    <div>
+                                        <strong>@criterio.Nombre</strong>
+                                        <span>@criterio.PuntuacionMedia.ToString("0.##") / 10 media</span>
                                     </div>
+                                    <span class="criterio-peso-badge">@criterio.Peso%</span>
+                                </div>
+
+                                @if (criterio.Comentarios.Any())
+                                {
+                                    @foreach (var comentario in criterio.Comentarios)
+                                    {
+                                        <div class="comentario-card">
+                                            <span class="comentario-icon">&#128100;</span>
+                                            <p>@comentario</p>
+                                        </div>
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                <p class="comentario-vacio">No hay comentarios para este criterio.</p>
-                            }
+                                else
+                                {
+                                    <p class="comentario-vacio">No hay comentarios para este criterio.</p>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <span class="empty-icon">&#128172;</span>
+                            <p>No hay comentarios para mostrar.</p>
                         </div>
                     }
-                }
-                else
-                {
-                    <div class="empty-state">
-                        <span class="empty-icon">&#128172;</span>
-                        <p>No hay comentarios para mostrar.</p>
-                    </div>
-                }
-            </div>
-        </section>
+                </div>
+            </section>
+
+            <section class="sintesis-ia-section">
+                <h3 class="section-title">
+                    <span class="title-icon sintesis-icon">&#10024;</span>
+                    Síntesis de Comentarios (IA)
+                </h3>
+
+                <div class="sintesis-ia-card">
+                    @if (sintesisIA == null)
+                    {
+                        <p class="comentario-vacio">Selecciona un proyecto para generar la síntesis.</p>
+                    }
+                    else
+                    {
+                        <p>@sintesisIA.sintesis</p>
+                    }
+                </div>
+            </section>
+
+        </div>
     }
 </div>
 
@@ -194,6 +218,9 @@
 
     private ProyectoDashboardDTO? ProyectoSeleccionado => Ranking
         .FirstOrDefault(p => p.ProyectoId == proyectoSeleccionadoId);
+
+    private SintesisIAResultadoDTO? sintesisIA;
+    private string mensajeSintesis = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -231,4 +258,28 @@
     };
 
     private async Task Volver() => await JS.InvokeVoidAsync("history.back");
+
+    private async Task OnProyectoChanged(ChangeEventArgs e)
+    {
+        proyectoSeleccionadoId = Guid.Parse(e.Value.ToString());
+
+        await CargarSintesisIA(proyectoSeleccionadoId);
+    }
+
+    private async Task CargarSintesisIA(Guid idProyecto)
+    {
+        sintesisIA = null;
+        mensajeSintesis = "";
+
+        try
+        {
+            sintesisIA = await Http.GetFromJsonAsync<SintesisIAResultadoDTO>(
+                $"api/v1/proyecto/{idProyecto}/sintesis-ia"
+            );
+        }
+        catch
+        {
+            mensajeSintesis = "No se pudo generar la síntesis con IA.";
+        }
+    }
 }

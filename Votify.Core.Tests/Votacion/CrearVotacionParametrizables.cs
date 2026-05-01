@@ -85,6 +85,8 @@ namespace Votify.Core.Tests.Votacion
         {
             var inicio = DateTime.Now.AddDays(1);
             var fin = DateTime.Now.AddDays(5);
+            var jurados = new List<Guid>();
+            var criterios = new List<CrearCriterioDTO>();
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
                 () => votacionService.CrearVotacion(
@@ -93,7 +95,9 @@ namespace Votify.Core.Tests.Votacion
                     fin,
                     true,
                     TipoVotacion.Publico,
-                    0
+                    0,
+                    jurados,
+                    criterios
                 )
             );
 

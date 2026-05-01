@@ -161,7 +161,7 @@
         noHayResultados = "";
         if (tipoVotacion == -1 && Id_evento == Guid.Empty && permiteAutoVoto == -1)
         {
-            votaciones = await contexto.Votacion
+            /*votaciones = await contexto.Votacion
             .Where(v => contexto.EventoUsuarioRol
                 .Include(eur => eur.Rol)
                 .Any(eur =>
@@ -169,7 +169,8 @@
                     eur.UsuarioId == idUsuario &&
                     eur.Rol.Nombre == "Organizador"))
             .ToListAsync();
-            HayVotaciones();
+            HayVotaciones();*/
+            votaciones = await contexto.Votacion.ToListAsync();
         }
         else
         {

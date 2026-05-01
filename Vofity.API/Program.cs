@@ -42,6 +42,8 @@ builder.Services.AddHttpClient<ILogin, LoginService>(client =>
     client.BaseAddress = new Uri("https://localhost:7053");
 });
 
+builder.Services.AddHttpClient<GeminiIAService>();
+
 // HttpClient
 builder.Services.AddScoped(sp =>
 {

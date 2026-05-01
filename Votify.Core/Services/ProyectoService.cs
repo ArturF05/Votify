@@ -1,5 +1,8 @@
-﻿using Votify.Core.Entities;
+﻿using System;
+using Votify.Core.DTOs;
+using Votify.Core.Entities;
 using Votify.Core.Interfaces;
+
 
 namespace Votify.Core.Services
 {
@@ -7,10 +10,13 @@ namespace Votify.Core.Services
     {
         private readonly IProyectoRepository _proyectoRepository;
         private readonly IEventoRepository _eventoRepository;
+        private readonly GeminiIAService geminiIAService;
 
-        public ProyectoService(IProyectoRepository proyectoRepository,IEventoRepository eventoRepository){
+        public ProyectoService(IProyectoRepository proyectoRepository,IEventoRepository eventoRepository, GeminiIAService geminiIAService)
+        {
             _proyectoRepository = proyectoRepository;
             _eventoRepository = eventoRepository;
+            this.geminiIAService = geminiIAService;
         }
 
         public async Task<bool> CrearProyecto(string nombre, string descripcion, Guid idEvento, Guid idCreador){
@@ -50,6 +56,13 @@ namespace Votify.Core.Services
             });
 
             return await _proyectoRepository.CrearProyectoAsync(proyecto);
+        }
+
+        public async Task<SintesisIAResultadoDTO> GenerarSintesisIA(Guid idProyecto)
+        {
+            var criterios = await _proyectoRepository.ObtenerComentariosPorCriterioDeProyecto(idProyecto);
+
+            return await geminiIAService.GenerarSintesisComentariosAsync(criterios);
         }
     }
 }

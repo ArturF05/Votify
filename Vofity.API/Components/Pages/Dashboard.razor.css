@@ -743,3 +743,48 @@
     .podium-item:nth-child(3) {
         animation-delay: 0.3s;
     }
+
+.feedback-sintesis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin-bottom: 28px;
+}
+
+.sintesis-ia-section {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 32px;
+    border: 2px solid #c084fc;
+    box-shadow: 0 10px 40px rgba(126, 34, 206, 0.08);
+    animation: fadeIn 0.4s ease-out 0.35s both;
+}
+
+.sintesis-icon {
+    color: #a855f7;
+}
+
+.sintesis-ia-card {
+    background: linear-gradient(135deg, #faf5ff 0%, #fdfbff 100%);
+    border: 2px solid #ddd6fe;
+    border-radius: 18px;
+    padding: 24px;
+    color: #374151;
+    line-height: 1.7;
+    font-size: 1rem;
+    min-height: 230px;
+}
+
+    .sintesis-ia-card p {
+        margin: 0 0 18px 0;
+    }
+
+        .sintesis-ia-card p:last-child {
+            margin-bottom: 0;
+        }
+
+@media (max-width: 900px) {
+    .feedback-sintesis-grid {
+        grid-template-columns: 1fr;
+    }
+}
