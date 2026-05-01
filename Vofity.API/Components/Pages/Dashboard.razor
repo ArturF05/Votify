@@ -189,9 +189,13 @@
                 </h3>
 
                 <div class="sintesis-ia-card">
-                    @if (sintesisIA == null)
+                    @if (!string.IsNullOrWhiteSpace(mensajeSintesis))
                     {
-                        <p class="comentario-vacio">Selecciona un proyecto para generar la síntesis.</p>
+                        <p class="comentario-vacio">@mensajeSintesis</p>
+                    }
+                    else if (sintesisIA == null)
+                    {
+                        <p class="comentario-vacio">Generando una síntesis...</p>
                     }
                     else
                     {
@@ -277,9 +281,9 @@
                 $"api/v1/proyecto/{idProyecto}/sintesis-ia"
             );
         }
-        catch
+        catch (Exception ex)
         {
-            mensajeSintesis = "No se pudo generar la síntesis con IA.";
+            mensajeSintesis = $"No se pudo generar la síntesis con IA: {ex.Message}";
         }
     }
 }

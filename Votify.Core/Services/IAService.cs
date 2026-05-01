@@ -36,17 +36,23 @@ namespace Votify.Core.Services
 
             var entradaJson = JsonSerializer.Serialize(criterios);
 
-            var prompt = $"""
+            var prompt = $$"""
             Eres un asistente que resume comentarios de evaluación de proyectos.
 
             Recibirás un JSON con criterios de evaluación y comentarios asociados.
-            Genera una síntesis breve y objetiva.
-            No inventes información.
-            No menciones criterios sin comentarios salvo que sea necesario.
-            Máximo 4 frases en la síntesis general.
+            Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
 
-            JSON:
-            {entradaJson}
+            {
+                "sintesis": "Texto breve de máximo 4 frases",
+                "pros": ["punto positivo 1", "punto positivo 2"],
+                "contras": ["aspecto de mejora 1", "aspecto de mejora 2"]
+            }
+
+            No inventes información.
+            No añadas texto fuera del JSON.
+
+            JSON de entrada:
+            {{entradaJson}}
             """;
 
             var request = new
@@ -68,7 +74,7 @@ namespace Votify.Core.Services
             };
 
             var url =
-                $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={apiKey}";
+                $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={apiKey}";
 
             var response = await http.PostAsJsonAsync(url, request);
             var json = await response.Content.ReadAsStringAsync();
@@ -79,16 +85,40 @@ namespace Votify.Core.Services
             using var doc = JsonDocument.Parse(json);
 
             var textoJson = doc.RootElement
-                .GetProperty("candidates")[0]
-                .GetProperty("content")
-                .GetProperty("parts")[0]
-                .GetProperty("text")
-                .GetString();
+    .GetProperty("candidates")[0]
+    .GetProperty("content")
+    .GetProperty("parts")[0]
+    .GetProperty("text")
+    .GetString();
 
-            return JsonSerializer.Deserialize<SintesisIAResultadoDTO>(
-                textoJson ?? "{}",
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            ) ?? new SintesisIAResultadoDTO();
+            Console.WriteLine("RESPUESTA IA:");
+            Console.WriteLine(textoJson);
+
+            if (string.IsNullOrWhiteSpace(textoJson))
+            {
+                return new SintesisIAResultadoDTO
+                {
+                    sintesis = "No se pudo generar una síntesis."
+                };
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<SintesisIAResultadoDTO>(
+                    textoJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                ) ?? new SintesisIAResultadoDTO
+                {
+                    sintesis = "No se pudo interpretar la respuesta de la IA."
+                };
+            }
+            catch
+            {
+                return new SintesisIAResultadoDTO
+                {
+                    sintesis = textoJson
+                };
+            }
         }
     }
 }
