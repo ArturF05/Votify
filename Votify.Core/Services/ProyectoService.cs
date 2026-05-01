@@ -10,13 +10,13 @@ namespace Votify.Core.Services
     {
         private readonly IProyectoRepository _proyectoRepository;
         private readonly IEventoRepository _eventoRepository;
-        private readonly GeminiIAService geminiIAService;
+        private readonly IAService ollamaIAService;
 
-        public ProyectoService(IProyectoRepository proyectoRepository,IEventoRepository eventoRepository, GeminiIAService geminiIAService)
+        public ProyectoService(IProyectoRepository proyectoRepository,IEventoRepository eventoRepository, IAService ollamaIAService)
         {
             _proyectoRepository = proyectoRepository;
             _eventoRepository = eventoRepository;
-            this.geminiIAService = geminiIAService;
+            this.ollamaIAService = ollamaIAService;
         }
 
         public async Task<bool> CrearProyecto(string nombre, string descripcion, Guid idEvento, Guid idCreador){
@@ -62,7 +62,7 @@ namespace Votify.Core.Services
         {
             var criterios = await _proyectoRepository.ObtenerComentariosPorCriterioDeProyecto(idProyecto);
 
-            return await geminiIAService.GenerarSintesisComentariosAsync(criterios);
+            return await ollamaIAService.GenerarSintesisComentariosAsync(criterios);
         }
     }
 }
