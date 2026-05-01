@@ -414,7 +414,7 @@
     }
 
     private string GetProxyUrl(string url)
-        => $"/api/miniaturas/proxy?url={Uri.EscapeDataString(url)}";
+        => $"/api/miniaturas/from-url?url={Uri.EscapeDataString(url)}";
 
     private static string GetIconoSvg(string tipo) => tipo switch
     {

@@ -11,7 +11,7 @@ public class MiniaturaController : ControllerBase
         _httpClientFactory = httpClientFactory;
     }
 
-    [HttpGet("proxy")]
+    [HttpGet("from-url")]
     public async Task<IActionResult> Proxy([FromQuery] string url)
     {
         if (string.IsNullOrWhiteSpace(url))

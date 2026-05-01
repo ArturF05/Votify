@@ -24,7 +24,10 @@ namespace Votify.Infrastructure.Repositorios
         }
         public async Task<List<Voto>> ObtenerPorVotacionYUsuarioAsync(Guid votacionId, Guid usuarioId)
         {
-            return await contexto.Voto.Where(v => v.Id_votacion == votacionId && v.Id_votante == usuarioId).ToListAsync();
+            return await contexto.Voto
+                .Include(v => v.VotosCriterio)
+                .Where(v => v.Id_votacion == votacionId && v.Id_votante == usuarioId)
+                .ToListAsync();
         }
 
         public async Task<List<Votacion>?> BuscarPorNombreAsync(Guid Id_evento, int tipoVotacion, int permiteAutoVoto, bool verFinalizadas)
@@ -98,6 +101,14 @@ namespace Votify.Infrastructure.Repositorios
         {
             contexto.Votacion.Remove(votacion);
             await contexto.SaveChangesAsync();
+        }
+        public async Task<Votacion?> ObtenerUltimaPorEventoAsync(Guid eventoId)
+        {
+            return await contexto.Votacion
+                .Include(v => v.DimensionesDeValores)
+                .Where(v => v.Id_evento == eventoId)
+                .OrderByDescending(v => v.FechaFin)
+                .FirstOrDefaultAsync();
         }
     }
 }

@@ -26,9 +26,16 @@ builder.Services.AddScoped<IDimensionRepository,DimensionRepository>();
 builder.Services.AddScoped<IEventoUsuarioRolRepository, EventoUsuarioRolRepository>();
 builder.Services.AddScoped<UsuarioSesion>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
-builder.Services.AddScoped<IAzureStorage, AzureStorageService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
 builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<AzureStorageService>(); 
+
+builder.Services.AddScoped<IAzureStorage>(sp =>
+{
+    var real = sp.GetRequiredService<AzureStorageService>();
+    return new AzureStorageProxy(real);
+});
 // Login
 builder.Services.AddHttpClient<ILogin, LoginService>(client =>
 {
