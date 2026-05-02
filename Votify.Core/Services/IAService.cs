@@ -106,7 +106,7 @@ JSON de entrada:
             {
                 return new SintesisIAResultadoDTO
                 {
-                    sintesis = texto
+                    sintesis = "No se pudo conectar con Ollama. Asegúrate de que está iniciado antes de generar la síntesis."
                 };
             }
         }
