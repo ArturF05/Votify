@@ -55,7 +55,7 @@ JSON de entrada:
 {{entradaJson}}
 """;
 
-            var request = new
+            var request = new 
             {
                 model = "llama3.2",
                 prompt = prompt,
