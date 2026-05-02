@@ -13,10 +13,12 @@ namespace Votify.Core.Services
     public class IAService
     {
         private readonly HttpClient http;
+        private readonly IConfiguration config;
 
-        public IAService(HttpClient http)
+        public IAService(HttpClient http, IConfiguration config)
         {
             this.http = http;
+            this.config = config;
         }
 
         public async Task<SintesisIAResultadoDTO> GenerarSintesisComentariosAsync(List<CriterioDashboardDTO> criterios)
@@ -57,14 +59,16 @@ JSON de entrada:
 
             var request = new 
             {
-                model = "llama3.2",
+                model = config["Ollama:Model"] ?? "llama3.2",
                 prompt = prompt,
                 stream = false,
                 format = "json"
             };
 
+            var baseUrl = config["Ollama:BaseUrl"] ?? "http://localhost:11434";
+
             var response = await http.PostAsJsonAsync(
-                "http://localhost:11434/api/generate",
+                $"{baseUrl}/api/generate",
                 request
             );
 
