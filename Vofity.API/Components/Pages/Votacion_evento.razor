@@ -428,7 +428,10 @@
     protected override async Task OnInitializedAsync()
     {
         evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
-        votacion = await contexto.Votacion.Where(vot => vot.Id_evento == evento.Id && vot.FechaFin.CompareTo(DateTime.UtcNow) > 0 && vot.FechaInicio.CompareTo(DateTime.UtcNow) <= 0).FirstOrDefaultAsync();
+        votacion = await contexto.Votacion
+    .FirstOrDefaultAsync(vot =>
+        vot.Id_evento == evento.Id &&
+        vot.EstadoVotacion == EstadoVotacion.Abierta);
         NumProy = votacion.NumProy;
 
 

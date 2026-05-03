@@ -30,7 +30,6 @@
 </div>
 
 <PageTitle>Gestionar Votaciones</PageTitle>
-
 <div class="barra-busqueda">
     <label style="vertical-align:text-bottom">Evento: </label>
     <select @bind="Id_evento" @bind:event="oninput" @onchange="BuscarVotaciones">
@@ -76,7 +75,7 @@
             }
             else
             {
-                @foreach (var vot in votaciones.Where(vot => (vot.FechaFin.CompareTo(DateTime.UtcNow) > 0 && !verFinalizadas) || (vot.FechaFin.CompareTo(DateTime.UtcNow) <= 0 && verFinalizadas)))
+                @foreach (var vot in votaciones.Where(vot => verFinalizadas ? vot.EstadoVotacion == EstadoVotacion.Finalizada : vot.EstadoVotacion != EstadoVotacion.Finalizada))
                 {
                     <tr>
                         <td>@eventos.FirstOrDefault(e => e.Id == vot.Id_evento)?.Nombre</td>
@@ -132,6 +131,7 @@
 
         idUsuario = resultado.Value;
 
+        await ActualizarEstadosVotaciones();
         eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).Include(e => e.Proyectos).ToListAsync();
 
         votaciones = await contexto.Votacion
@@ -144,9 +144,43 @@
             .ToListAsync();
         HayVotaciones();
 
+    }
+    private async Task ActualizarEstadosVotaciones()
+    {
+        var ahora = DateTime.UtcNow;
+        var ahoraLocal = DateTime.Now;
+
+        var listaVotaciones = await contexto.Votacion.ToListAsync();
+
+
+        foreach (var votacion in listaVotaciones)
+        {
+         
+
+            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
+                 votacion.EstadoVotacion == EstadoVotacion.Pausada ||
+                 votacion.EstadoVotacion == EstadoVotacion.Cerrada) &&
+                votacion.FechaFin <= ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Finalizada;
+            }
+            else if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
+                     votacion.FechaInicio <= ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Abierta;
+            }
+
+        
+        }
         cargado = true;
         StateHasChanged();
+        await contexto.SaveChangesAsync();
     }
+
+
+        
+    
+    
 
     private async Task EsEnter(KeyboardEventArgs e)
     {
@@ -233,7 +267,7 @@
     }
     private void HayVotaciones()
     {
-        votacionesActuales = votaciones.Where(vot => (vot.FechaFin > DateTime.UtcNow && !verFinalizadas) || (vot.FechaFin <= DateTime.UtcNow && verFinalizadas)).ToList();
+        votacionesActuales = votaciones.Where(vot => verFinalizadas? vot.EstadoVotacion == EstadoVotacion.Finalizada: vot.EstadoVotacion != EstadoVotacion.Finalizada).ToList();
         if (votacionesActuales.Count() == 0)
             if (!verFinalizadas) noHayResultados = "No hay votaciones que no hayan finalizado";
             else noHayResultados = "No hay votaciones finalizadas";

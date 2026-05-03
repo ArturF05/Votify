@@ -97,11 +97,11 @@
                     </select>
                 </div>
                 <div class="campo campo-columna">
-                    <label>Inicio de la votación*:</label>
+                    <label>Inicio automático*:</label>
                     <input type="datetime-local" @bind-value="votaciones[i].Inicio" @bind-value:event="onchange" />
                 </div>
                 <div class="campo campo-columna">
-                    <label>Fin de la votación*:</label>
+                    <label>Fin automático*:</label>
                     <input type="datetime-local" @bind-value="votaciones[i].Fin" @bind-value:event="onchange" />
                 </div>
                 <div class="campo campo-columna">
@@ -298,7 +298,8 @@
                     FechaFin = votaciones[i].Fin.ToUniversalTime(),
                     PermiteAutoVoto = votaciones[i].PermiteAutoVoto == 1,
                     TipoVotacion = votaciones[i].Tipo,
-                    Num_Proy = votaciones[i].NumProy
+                    Num_Proy = votaciones[i].NumProy,
+                    EstadoVotacion = EstadoVotacion.Cerrada
                     
                 };
                 crearVotacionDTOs.Add(dtoVotacion);

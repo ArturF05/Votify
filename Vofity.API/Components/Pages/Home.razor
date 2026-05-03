@@ -3,6 +3,7 @@
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using Votify.Infrastructure.Data
+@using Votify.Core.Entities
 @inject AppDbContext contexto
 @inject HttpClient Http
 @inject ProtectedSessionStorage sessionStorage
@@ -53,6 +54,7 @@
     List<Votify.Core.Entities.Evento> eventosParticipando = new();
     List<Votify.Core.Entities.Evento> eventosDisponibles = new();
 
+    private string debugInfo = "";
     private string mensaje = "";
     private Guid idUsuario;
     private Votify.Core.Entities.Usuario? usuarioActual;
@@ -60,7 +62,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-
+        await ActualizarEstadosVotaciones();
         try
         {
             ProtectedBrowserStorageResult <Guid> resultado;
@@ -126,6 +128,38 @@
             mensaje = $"Error cargando Home: {ex.Message}";
             Console.WriteLine($"[HOME ERROR] {ex}");
         }
+    }
+    private async Task ActualizarEstadosVotaciones()
+    {
+        var ahora = DateTime.UtcNow;
+
+        var votaciones = await contexto.Votacion.ToListAsync();
+
+        foreach (var votacion in votaciones)
+        {
+            Console.WriteLine($"Votación {votacion.Id}");
+            Console.WriteLine($"Estado antes: {votacion.EstadoVotacion}");
+            Console.WriteLine($"Inicio: {votacion.FechaInicio}");
+            Console.WriteLine($"Fin: {votacion.FechaFin}");
+            Console.WriteLine($"Ahora: {ahora}");
+
+            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
+                 votacion.EstadoVotacion == EstadoVotacion.Pausada ||
+                 votacion.EstadoVotacion == EstadoVotacion.Cerrada) &&
+                votacion.FechaFin <= ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Finalizada;
+            }
+            else if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
+                     votacion.FechaInicio <= ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Abierta;
+            }
+
+            Console.WriteLine($"Estado después: {votacion.EstadoVotacion}");
+        }
+
+        await contexto.SaveChangesAsync();
     }
 
     private async Task Apuntarse(Guid eventoId)

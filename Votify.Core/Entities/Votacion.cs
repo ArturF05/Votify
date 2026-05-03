@@ -18,5 +18,6 @@ public abstract class Votacion
     public List<DimensionesDeValor> DimensionesDeValores { get; set; } = new();
     public Resultado? Resultados { get; set; }
     public int? NumProy { get; set; }
-   
+    public EstadoVotacion EstadoVotacion { get; set; } = EstadoVotacion.Cerrada;
+
 }

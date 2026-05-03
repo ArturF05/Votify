@@ -10,7 +10,7 @@ namespace Votify.Core.Factories
 {
     internal class ConcreteVotacionFactory : VotacionFactory
     {
-        public override Votacion CrearVotacion(DateTime fechaInicio, DateTime fechaFin, bool permiteAutoVoto, Guid Id_evento, TipoVotacion tipoVotacion,int NumProy)
+        public override Votacion CrearVotacion(DateTime fechaInicio, DateTime fechaFin, bool permiteAutoVoto, Guid Id_evento, TipoVotacion tipoVotacion,int NumProy, EstadoVotacion estadoVotacion)
          {
             switch (tipoVotacion)
             {
@@ -23,6 +23,7 @@ namespace Votify.Core.Factories
                         FechaInicio = fechaInicio.ToUniversalTime(),
                         FechaFin = fechaFin.ToUniversalTime(),
                         NumProy= NumProy,
+                        EstadoVotacion=estadoVotacion
 
                     };
 
@@ -35,6 +36,7 @@ namespace Votify.Core.Factories
                         FechaInicio = fechaInicio.ToUniversalTime(),
                         FechaFin = fechaFin.ToUniversalTime(),
                         NumProy = NumProy,
+                        EstadoVotacion=estadoVotacion
                     };
 
                 case TipoVotacion.Mixto:
@@ -46,6 +48,7 @@ namespace Votify.Core.Factories
                         FechaInicio = fechaInicio.ToUniversalTime(),
                         FechaFin = fechaFin.ToUniversalTime(),
                         NumProy = NumProy,
+                        EstadoVotacion=estadoVotacion
 
                     };
                 default:

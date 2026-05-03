@@ -45,11 +45,38 @@
         @onclick='() => SeleccionarTipo(TipoVotacion.Jurado)'>
             Jurado
         </button>
-
+    
         <button type="button"
         class="boton-votacion @(tipoVotacion == TipoVotacion.Mixto ? "activo" : "")"
         @onclick='() => SeleccionarTipo(TipoVotacion.Mixto)'>
             Mixto
+        </button>
+    </div>
+    <label> Estado Votacion: @estadoVotacion </label>
+    <div class="grupo-botones-estados">
+        <button type="button"
+                class="boton-control abrir"
+                disabled="@(estadoVotacion != EstadoVotacion.Cerrada)"
+                @onclick='() => SeleccionarEstado(EstadoVotacion.Abierta)'>
+            ▷ Abrir
+        </button>
+        <button type="button"
+                class="boton-control detener"
+                disabled="@(estadoVotacion == EstadoVotacion.Pausada || estadoVotacion == EstadoVotacion.Cerrada)"
+                @onclick='() => SeleccionarEstado(EstadoVotacion.Pausada)'>
+            ⏸ Pausar
+        </button>
+        <button type="button"
+                class="boton-control reanudar"
+                disabled="@(estadoVotacion != EstadoVotacion.Pausada)"
+                @onclick='() => SeleccionarEstado(EstadoVotacion.Abierta)'>
+            ▷ Reanudar
+        </button>
+        <button type="button"
+                class="boton-control cerrar"
+                disabled="@(estadoVotacion == EstadoVotacion.Cerrada)"
+                @onclick='() => SeleccionarEstado(EstadoVotacion.Cerrada)'>
+            ⊙ Cerrar
         </button>
     </div>
     <div class="campo">
@@ -182,11 +209,18 @@
             <button type="button" class="boton-principal" @onclick="GuardarVotacion">Guardar Cambios</button>
         </div>
     </div>
+    @if (!string.IsNullOrEmpty(debugInfo))
+    {
+        <div style="background:#fff3cd; padding:10px; border-radius:8px; margin-bottom:10px;">
+            @debugInfo
+        </div>
+    }
 </div>
 
 @code {
     [Parameter]
     public Guid id { get; set; }
+    private string debugInfo = "";
     private Votify.Core.Entities.Votacion votacion;
     private int? NumProy = 0;
     private int permiteAutoVoto = 1;
@@ -203,6 +237,7 @@
     private string nombreCriterio = "";
     private string descripcionCriterio = "";
     private int pesoCriterio = 0;
+    private EstadoVotacion estadoVotacion=0;
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Votify.Core.Entities.Votacion> votaciones = new();
     List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
@@ -264,13 +299,44 @@
             .OrderBy(u => u.Nombre)
             .ToListAsync();
     }
+    private async Task ActualizarEstadosVotaciones()
+    {
+        var ahora = DateTime.UtcNow;
 
+        var votaciones = await contexto.Votacion.ToListAsync();
+
+        foreach (var votacion in votaciones)
+        {
+            debugInfo = $"FechaFin: {votacion.FechaFin} | " +
+            $"Kind: {votacion.FechaFin.Kind} | " +
+            $"Ahora UTC: {DateTime.UtcNow} | " +
+            $"Ahora Local: {DateTime.Now}";
+
+            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
+                 votacion.EstadoVotacion == EstadoVotacion.Pausada ||
+                 votacion.EstadoVotacion == EstadoVotacion.Cerrada) &&
+                votacion.FechaFin <= ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Finalizada;
+            }
+            else if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
+                     votacion.FechaInicio <= ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Abierta;
+            }
+
+            Console.WriteLine($"Estado después: {votacion.EstadoVotacion}");
+        }
+
+        await contexto.SaveChangesAsync();
+    }
     public async Task SetVotacion(Votify.Core.Entities.Votacion votacion)
     {
         Id_evento = votacion.Id_evento;
         inicioVotacion = votacion.FechaInicio.ToLocalTime();
         finVotacion = votacion.FechaFin.ToLocalTime();
         NumProy = votacion.NumProy;
+        estadoVotacion = votacion.EstadoVotacion;
 
         if (votacion is VotacionPublico)
             tipoVotacion = TipoVotacion.Publico;
@@ -294,6 +360,10 @@
     void SeleccionarTipo(TipoVotacion tipo)
     {
         tipoVotacion = tipo;
+    }
+    void SeleccionarEstado(EstadoVotacion estado)
+    {
+        estadoVotacion = estado;
     }
     void Cancelar()
     {
@@ -362,6 +432,7 @@
                 TipoVotacion = tipoVotacion,
                 Num_Proy = NumProy ?? 0,
                 Jurados = juradoSeleccionado.Select(u => u.Id).ToList(),
+                EstadoVotacion=estadoVotacion,
                 Criterios = criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
                 {
                     Id = c.Id,
