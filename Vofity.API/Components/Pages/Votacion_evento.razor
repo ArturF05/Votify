@@ -15,6 +15,7 @@
 @inject IVotacion VotacionService
 @inject UsuarioSesion usuarioSesion
 
+    
 <style>
     ﻿.votacion-evento-page {
         width: 100%;
@@ -71,8 +72,8 @@
     }
 
         .proyecto-card.deshabilitado {
-            opacity: 0.6; 
-            pointer-events: none; 
+            opacity: 0.6;
+            pointer-events: none;
         }
 
         .proyecto-card:hover {
@@ -99,7 +100,7 @@
         border-radius: 999px;
         cursor: pointer;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
         transition: all 0.2s ease;
     }
@@ -117,6 +118,7 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+
     .estrella-img {
         width: 22px;
         height: 22px;
@@ -243,6 +245,14 @@
         padding: 0.7rem 0.8rem;
     }
 
+    .criterio-voto-contenido {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+    }
+
     .criterio-nombre-voto {
         font-size: 0.95rem;
         font-weight: 500;
@@ -301,7 +311,6 @@
             color: #8b93a1;
         }
 </style>
-
 <div class="votacion-evento-page">
     @if (evento == null)
     {
@@ -353,7 +362,14 @@
                             @foreach (var criterio in criterios)
                             {
                                 <div class="criterio-fila">
-                                    <span class="criterio-nombre-voto">@criterio.Nombre</span>
+                                    <div class="criterio-voto-contenido">
+                                        <span class="criterio-nombre-voto">@criterio.Nombre</span>
+
+                                        <textarea @bind="comentariosPorCriterio[proyecto.Id][criterio.Id]"
+                                                  placeholder="@(yaVoto ? "" : "Comentario sobre este criterio...")"
+                                                  class="textarea-comentario">
+                                                        </textarea>
+                                    </div>
 
                                     <input type="number"
                                            min="0"
@@ -362,14 +378,6 @@
                                            value="@puntuacionesPorProyecto[proyecto.Id][criterio.Id]"
                                            @oninput="(e) => notaValida(e, proyecto.Id, criterio.Id)" />
                                 </div>
-                            }
-                            @if (proyectosSeleccionados.Contains(proyecto.Id)){
-                            <div class="comentario-container">
-                                <textarea @bind="comentariosPorProyecto[proyecto.Id]"
-                                          placeholder="@(yaVoto ? "" : "Escribe tu comentario aquí...")"
-                                          class="textarea-comentario">
-                        </textarea>
-                            </div>
                             }
                         </div>
                     }
@@ -410,7 +418,7 @@
     private Guid idVotante;
     private int? NumProy = 0;
     private string mensaje = "";
-    private Dictionary<Guid, string> comentariosPorProyecto = new();
+    private Dictionary<Guid, Dictionary<Guid, string>> comentariosPorCriterio = new();
     private Votify.Core.Entities.Usuario usuario;
     private bool yaVoto = false;
     private List<DimensionesDeValor> criterios = new();
@@ -431,7 +439,7 @@
         {
             NumProy = votacion.NumProy;
             idVotacion = votacion.Id;
-            mensaje = $"DEBUG -> NumProy = {NumProy}";
+            mensaje = $"Se pueden votar {NumProy} proyectos";
         }
         if (evento == null)
         {
@@ -443,16 +451,19 @@
 
         foreach (var proyecto in evento.Proyectos)
         {
-            if (!comentariosPorProyecto.ContainsKey(proyecto.Id))
-                comentariosPorProyecto[proyecto.Id] = "";
-
             if (!puntuacionesPorProyecto.ContainsKey(proyecto.Id))
                 puntuacionesPorProyecto[proyecto.Id] = new Dictionary<Guid, int>();
+
+            if (!comentariosPorCriterio.ContainsKey(proyecto.Id))
+                comentariosPorCriterio[proyecto.Id] = new Dictionary<Guid, string>();
 
             foreach (var criterio in criterios)
             {
                 if (!puntuacionesPorProyecto[proyecto.Id].ContainsKey(criterio.Id))
                     puntuacionesPorProyecto[proyecto.Id][criterio.Id] = 0;
+
+                if (!comentariosPorCriterio[proyecto.Id].ContainsKey(criterio.Id))
+                    comentariosPorCriterio[proyecto.Id][criterio.Id] = "";
             }
         }
 
@@ -474,7 +485,14 @@
                     foreach (var voto in votos)
                     {
                         proyectosSeleccionados.Add(voto.Id_proyecto);
-                        comentariosPorProyecto[voto.Id_proyecto] = voto.Comentario ?? "";
+
+                        if (!comentariosPorCriterio.ContainsKey(voto.Id_proyecto))
+                            comentariosPorCriterio[voto.Id_proyecto] = new Dictionary<Guid, string>();
+
+                        foreach (var votoCriterio in voto.VotosCriterio)
+                        {
+                            comentariosPorCriterio[voto.Id_proyecto][votoCriterio.Id_criterio] = votoCriterio.Comentario ?? "";
+                        }
                     }
                 }
                 StateHasChanged();
@@ -502,7 +520,6 @@
             if (proyectosSeleccionados.Count < NumProy)
             {
                 proyectosSeleccionados.Add(idProyecto);
-                comentariosPorProyecto[idProyecto] = "";
             }
         }
     }
@@ -575,13 +592,11 @@
             Votos = proyectosSeleccionados.Select(idProyecto => new VotoDetalleDTO
             {
                 IdProyecto = idProyecto,
-                Comentario = comentariosPorProyecto.ContainsKey(idProyecto)
-                    ? comentariosPorProyecto[idProyecto]
-                    : string.Empty,
                 Puntuaciones = criterios.Select(c => new PuntuacionCriterioDTO
                 {
                     IdCriterio = c.Id,
-                    Nota = puntuacionesPorProyecto[idProyecto][c.Id]
+                    Nota = puntuacionesPorProyecto[idProyecto][c.Id],
+                    Comentario = comentariosPorCriterio[idProyecto][c.Id]
                 }).ToList()
             }).ToList(),
             IdEvento = evento.Id
@@ -595,7 +610,9 @@
         }
         catch (Exception ex)
         {
-            mensaje = ex.Message; 
+            mensaje = ex.InnerException == null
+                ? ex.Message
+                : $"{ex.Message} Detalle: {ex.InnerException.Message}";
         }
     }
 

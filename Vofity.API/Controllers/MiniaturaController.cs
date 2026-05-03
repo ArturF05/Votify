@@ -2,7 +2,7 @@
 
 [ApiController]
 [Route("api/miniaturas")]
-public class MiniaturaController : ControllerBase // Cambiado a ControllerBase por ser API
+public class MiniaturaController : ControllerBase 
 {
     private readonly IHttpClientFactory _httpClientFactory;
 
@@ -11,7 +11,7 @@ public class MiniaturaController : ControllerBase // Cambiado a ControllerBase p
         _httpClientFactory = httpClientFactory;
     }
 
-    [HttpGet("proxy")]
+    [HttpGet("from-url")]
     public async Task<IActionResult> Proxy([FromQuery] string url)
     {
         if (string.IsNullOrWhiteSpace(url))
@@ -49,4 +49,6 @@ public class MiniaturaController : ControllerBase // Cambiado a ControllerBase p
             return StatusCode(500, "Error interno al procesar la imagen");
         }
     }
+
+    
 }

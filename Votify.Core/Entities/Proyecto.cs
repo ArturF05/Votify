@@ -17,5 +17,7 @@ public class Proyecto
     public String Descripcion { get; set; }
     public Guid Id_creador { get; set; }
     public List<ProyectoParticipantes> ProyectoParticipantes { get; set; }
+    public ICollection<Material> Materiales { get; set; }
+
 
 }

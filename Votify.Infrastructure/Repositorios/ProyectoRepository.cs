@@ -23,10 +23,24 @@ namespace Votify.Infrastructure.Repositorios
             await contexto.SaveChangesAsync();
             return true;
         }
-
+        public async Task<List<Proyecto>> ObtenerPorUsuarioAsync(Guid usuarioId)
+        {
+            return await contexto.Proyecto
+                .Where(p => p.Id_creador == usuarioId)
+                .Include(p => p.Materiales) 
+                .ToListAsync();
+        }
         public async Task<List<Proyecto>> ObtenerPorIdAsync(List<Guid> idsProyectos)
         {
             return await contexto.Proyecto.Include(p => p.ProyectoParticipantes).Where(p => idsProyectos.Contains(p.Id)).ToListAsync();
+        }
+        public async Task<List<Proyecto>> ObtenerPorEventoIdAsync(Guid eventoId)
+        {
+            return await contexto.Proyecto
+                .Where(p => p.Id_evento == eventoId)
+                .Include(p => p.Materiales)
+                .Include(p => p.ProyectoParticipantes)
+                .ToListAsync();
         }
     }
 }

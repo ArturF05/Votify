@@ -113,6 +113,8 @@ namespace Votify.Infrastructure.Repositorios
                 .ToListAsync();
 
             return await contexto.Voto
+                .Include(v => v.VotosCriterio)
+                    .ThenInclude(vc => vc.Criterio)
                 .Where(v => idsProyectos.Contains(v.Id_proyecto))
                 .ToListAsync();
         }
@@ -120,6 +122,7 @@ namespace Votify.Infrastructure.Repositorios
         public async Task<Votacion?> ObtenerVotacionPorEventoAsync(Guid eventoId)
         {
             return await contexto.Votacion
+                .Include(v => v.DimensionesDeValores)
                 .Where(v => v.Id_evento == eventoId && v.FechaFin <= DateTime.UtcNow)
                 .OrderByDescending(v => v.FechaFin)
                 .FirstOrDefaultAsync();

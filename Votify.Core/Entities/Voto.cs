@@ -24,7 +24,9 @@ public class Voto
     public Categoria? Categoria { get; set; }
     [ForeignKey(nameof(Id_votante))]
     public Usuario Usuario { get; set; }
+
     [ForeignKey(nameof(Id_votacion))]
     public Votacion Votacion { get; set; }
     public string? Comentario { get; set; }
+    public List<VotoCriterio> VotosCriterio { get; set; } = new();
 }

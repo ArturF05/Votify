@@ -125,7 +125,16 @@ namespace Votify.Core.Services
                 throw new Exception("La votación no tiene criterios definidos.");
             var votos = dto.Votos.Select(v =>
             {
+                var idVoto = Guid.NewGuid();
                 decimal puntuacionTotal = 0m;
+                var voto = new Voto
+                {
+                    Id = idVoto,
+                    Id_votacion = idVotacion,
+                    Id_proyecto = v.IdProyecto,
+                    Id_votante = dto.IdVotante,
+                    Fecha_voto = DateTime.UtcNow
+                };
 
                 if (v.Puntuaciones == null || !v.Puntuaciones.Any())
                 {
@@ -142,19 +151,22 @@ namespace Votify.Core.Services
                             throw new Exception("Falta la puntuación de algún criterio.");
 
                         puntuacionTotal += puntuacion.Nota * (criterio.Peso / 100m);
+                        voto.VotosCriterio.Add(new VotoCriterio
+                        {
+                            Id = Guid.NewGuid(),
+                            Id_voto = idVoto,
+                            Id_criterio = criterio.Id,
+                            Nota = puntuacion.Nota,
+                            Voto = voto,
+                            Comentario = string.IsNullOrWhiteSpace(puntuacion.Comentario)
+                                ? null
+                                : puntuacion.Comentario.Trim()
+                        });
                     }
                 }
 
-                return new Voto
-                {
-                    Id = Guid.NewGuid(),
-                    Id_votacion = idVotacion,
-                    Id_proyecto = v.IdProyecto,
-                    Id_votante = dto.IdVotante,
-                    Comentario = string.IsNullOrWhiteSpace(v.Comentario) ? null : v.Comentario.Trim(),
-                    Puntuacion = puntuacionTotal,
-                    Fecha_voto = DateTime.UtcNow
-                };
+                voto.Puntuacion = puntuacionTotal;
+                return voto;
             }).ToList();
 
             await votoRepository.GuardarVotosAsync(votos);
@@ -167,7 +179,7 @@ namespace Votify.Core.Services
             return await votacionRepository.BuscarPorNombreAsync(Id_evento, tipoVotacion, permiteAutoVoto, verFinalizadas);
         }
 
-        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy,EstadoVotacion estadoVotacion)
+        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy, List<Guid> Jurados, EstadoVotacion estadoVotacion, List<CrearCriterioDTO> criterios)
         {
             if (Id_evento == Guid.Empty)
                 throw new Exception("El evento es obligatorio");
@@ -179,10 +191,42 @@ namespace Votify.Core.Services
             var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion,NumProy,estadoVotacion);
 
             await votacionRepository.CrearVotacionAsync(nuevaVotacion);
+
+            var idVotacion = nuevaVotacion.Id;
+
+            foreach (var criterioDto in criterios)
+            {
+                var nuevoCriterio = new DimensionesDeValor
+                {
+                    Id = criterioDto.Id == Guid.Empty ? Guid.NewGuid() : criterioDto.Id,
+                    Id_votacion = idVotacion,
+                    Nombre = criterioDto.Nombre,
+                    Descripcion = criterioDto.Descripcion,
+                    Peso = criterioDto.Peso
+                };
+                await dimensionRepository.CrearCriterioAsync(nuevoCriterio);
+            }
+
+            foreach (var idUsuarioJurado in Jurados)
+            {
+                var idRolJurado = await eventoUsuarioRolRepository.ObtenerIdRolJuradoAsync();
+                if (idRolJurado == Guid.Empty)
+                    throw new Exception("No existe el rol Jurado");
+
+                var nuevoJurado = new EventoUsuarioRol
+                {
+                    EventoId = Id_evento,
+                    UsuarioId = idUsuarioJurado,
+                    RolId = idRolJurado
+                };
+
+                await eventoUsuarioRolRepository.CrearAsync(nuevoJurado);
+            }
         }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios,int NumProy,EstadoVotacion estadoVotacion)
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<Guid> Jurados, EstadoVotacion estadoVotacion, List<CrearCriterioDTO> criterios,int NumProy)
         {
             var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);
+
             if (votacionActual == null)
                 throw new Exception("La votación no existe");
             System.Diagnostics.Debug.WriteLine($"Tipo actual real: {votacionActual.GetType().Name}");
@@ -256,6 +300,39 @@ namespace Votify.Core.Services
             foreach (var criterio in criteriosABorrar)
             {
                 await dimensionRepository.EliminarCriterioAsync(criterio);
+            }
+
+            var juradosExistentes = await eventoUsuarioRolRepository.ObtenerJuradosPorEventoAsync(Id_evento);
+
+            foreach (var idUsuarioJurado in Jurados)
+            {
+                var existente = juradosExistentes
+                    .FirstOrDefault(j => j.UsuarioId == idUsuarioJurado);
+
+                var idRolJurado = await eventoUsuarioRolRepository.ObtenerIdRolJuradoAsync();
+                if (idRolJurado == Guid.Empty)
+                    throw new Exception("No existe el rol Jurado");
+
+                if (existente == null)
+                {
+                    var nuevoJurado = new EventoUsuarioRol
+                    {
+                        EventoId = Id_evento,
+                        UsuarioId = idUsuarioJurado,
+                        RolId = idRolJurado
+                    };
+
+                    await eventoUsuarioRolRepository.CrearAsync(nuevoJurado);
+                }
+            }
+
+            var juradosABorrar = juradosExistentes
+                .Where(j => !Jurados.Any(id => id == j.UsuarioId))
+                .ToList();
+
+            foreach (var jurado in juradosABorrar)
+            {
+                await eventoUsuarioRolRepository.EliminarAsync(jurado);
             }
         }
 

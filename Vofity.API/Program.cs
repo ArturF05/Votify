@@ -11,7 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Servicios
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IEvento, EventoService>();
@@ -27,8 +26,16 @@ builder.Services.AddScoped<IDimensionRepository,DimensionRepository>();
 builder.Services.AddScoped<IEventoUsuarioRolRepository, EventoUsuarioRolRepository>();
 builder.Services.AddScoped<UsuarioSesion>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
-builder.Services.AddScoped<UsuarioSesion>();
-builder.Services.AddScoped<IAzureStorage, AzureStorageService>();
+builder.Services.AddScoped<IMaterialService, MaterialService>();
+builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<AzureStorageService>(); 
+
+builder.Services.AddScoped<IAzureStorage>(sp =>
+{
+    var real = sp.GetRequiredService<AzureStorageService>();
+    return new AzureStorageProxy(real);
+});
 // Login
 builder.Services.AddHttpClient<ILogin, LoginService>(client =>
 {
@@ -38,21 +45,21 @@ builder.Services.AddHttpClient<ILogin, LoginService>(client =>
 // HttpClient
 builder.Services.AddScoped(sp =>
 {
-    return new HttpClient { BaseAddress = new Uri("https://localhost:7053") }; // Your actual server port
+    return new HttpClient { BaseAddress = new Uri("https://localhost:7053") }; // El puerto del servidor que se usa
 });
 
 // AppDbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddSignalR(options =>
-{
-    options.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
-});
-builder.Services.AddServerSideBlazor()
-    .AddCircuitOptions(o =>
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents(options =>
     {
-        o.DetailedErrors = true;
+        options.DetailedErrors = true;
+    })
+    .AddHubOptions(options =>
+    {
+        options.MaximumReceiveMessageSize = 20 * 1024 * 1024;
     });
 builder.Services.AddControllers();
 var app = builder.Build();

@@ -10,5 +10,9 @@ namespace Votify.Core.Interfaces
     public interface IEventoUsuarioRolRepository
     {
         Task<List<EventoUsuarioRol>> ObtenerPorEventoYUsuario(Guid eventoId, Guid usuarioId);
+        Task<List<EventoUsuarioRol>> ObtenerJuradosPorEventoAsync(Guid eventoId);
+        Task CrearAsync(EventoUsuarioRol eventoUsuarioRol);
+        Task EliminarAsync(EventoUsuarioRol eventoUsuarioRol);
+        Task<Guid> ObtenerIdRolJuradoAsync();
     }
 }
