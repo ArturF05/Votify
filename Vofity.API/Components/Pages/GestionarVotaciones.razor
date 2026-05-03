@@ -172,14 +172,15 @@
 
         
         }
-
+        cargado = true;
+        StateHasChanged();
         await contexto.SaveChangesAsync();
     }
 
 
-        cargado = true;
-        StateHasChanged();
-    }
+        
+    
+    
 
     private async Task EsEnter(KeyboardEventArgs e)
     {

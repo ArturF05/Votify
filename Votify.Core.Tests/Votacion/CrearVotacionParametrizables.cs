@@ -47,6 +47,7 @@ namespace Votify.Core.Tests.Votacion
                 usuarioRepository,
                 usuarioRolRepository
             );
+           
 
             DateTime hoy = DateTime.UtcNow;
             Guid categoriaId = Guid.NewGuid();
@@ -89,7 +90,26 @@ namespace Votify.Core.Tests.Votacion
         public async Task CrearVotacion_NumProyectosNoValido_LanzaExcepcion()
         {
             var inicio = DateTime.UtcNow.AddDays(1);
+            var jurados = new List<Guid>();
             var fin = DateTime.UtcNow.AddDays(5);
+            var idExistente = Guid.NewGuid();
+            var dtos = new List<CrearCriterioDTO>
+            {
+                new CrearCriterioDTO
+                {
+                    Id = idExistente,
+                    Nombre = "Viejo",
+                    Descripcion = "Actualizado",
+                    Peso = 30
+                },
+                new CrearCriterioDTO
+                {
+                    Id = Guid.Empty,
+                    Nombre = "Nuevo",
+                    Descripcion = "Nuevo criterio",
+                    Peso = 70
+                }
+            };
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
                 () => votacionService.CrearVotacion(
@@ -99,7 +119,9 @@ namespace Votify.Core.Tests.Votacion
                     true,
                     TipoVotacion.Publico,
                     0,
-                    EstadoVotacion.Abierta
+                    jurados,
+                    EstadoVotacion.Abierta,
+                    dtos
                 )
             );
 

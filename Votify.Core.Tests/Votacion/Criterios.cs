@@ -75,6 +75,7 @@ namespace Votify.Core.Tests.Votacion
         public async Task EditarVotacion_ActualizaCriteriosEnBaseDeDatos()
         {
             var idExistente = Guid.NewGuid();
+            var jurados = new List<Guid>();
 
             context.DimensionesDeValor.Add(new DimensionesDeValor
             {
@@ -112,15 +113,13 @@ namespace Votify.Core.Tests.Votacion
                 DateTime.UtcNow.AddDays(1),
                 true,
                 TipoVotacion.Publico,
+                jurados,
+                EstadoVotacion.Abierta,
                 dtos,
-                3,
-                EstadoVotacion.Abierta
+                3
             );
 
-            var resultados = await context.DimensionesDeValor
-                .Where(d => d.Id_votacion == idVotacion)
-                .ToListAsync();
-            var jurados = new List<Guid>();
+            
 
             await votacionService.EditarVotacion(idVotacion, idEvento, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, jurados,EstadoVotacion.Abierta, dtos, 3);
 
