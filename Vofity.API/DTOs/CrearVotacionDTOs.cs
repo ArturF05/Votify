@@ -13,6 +13,7 @@ namespace Votify.API.DTOs
         public List<Votify.Core.DTOs.CrearCriterioDTO> Criterios { get; set; } = new();
         public List<Guid> Jurados { get; set; } = new();
         public int Num_Proy { get; set; }
+        public bool VerRes {  get; set; }
         public EstadoVotacion EstadoVotacion { get; set; }
     }
 }

@@ -89,9 +89,16 @@
                         </button>
                     </div>
                 </div>
-                <div class="campo">
+                <div class="campo campo-columna">
                     <label>Permitir Autovoto*:</label>
                     <select @bind="votaciones[i].PermiteAutoVoto">
+                        <option value="1">Sí</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+                <div class="campo campo-columna">
+                    <label>Permitir ver resultados en vivo*:</label>
+                    <select @bind="votaciones[i].VerRes">
                         <option value="1">Sí</option>
                         <option value="0">No</option>
                     </select>
@@ -202,6 +209,7 @@
             Tipo = TipoVotacion.Publico,
             Inicio = DateTime.Now,
             Fin = DateTime.Now.AddDays(1),
+            VerRes=1,
             PermiteAutoVoto = 1
         });
     }
@@ -299,8 +307,9 @@
                     PermiteAutoVoto = votaciones[i].PermiteAutoVoto == 1,
                     TipoVotacion = votaciones[i].Tipo,
                     Num_Proy = votaciones[i].NumProy,
+                    VerRes = votaciones[i].VerRes==1,
                     EstadoVotacion = EstadoVotacion.Cerrada
-                    
+
                 };
                 crearVotacionDTOs.Add(dtoVotacion);
             }
@@ -341,6 +350,7 @@
         public DateTime Inicio { get; set; }
         public DateTime Fin { get; set; }
         public int PermiteAutoVoto { get; set; }
-        public int NumProy { get; set; } = 1; 
+        public int NumProy { get; set; } = 1;
+        public int VerRes { get; set; } = 1;
     }
 }

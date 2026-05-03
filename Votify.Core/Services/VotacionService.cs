@@ -179,7 +179,7 @@ namespace Votify.Core.Services
             return await votacionRepository.BuscarPorNombreAsync(Id_evento, tipoVotacion, permiteAutoVoto, verFinalizadas);
         }
 
-        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy, List<Guid> Jurados, EstadoVotacion estadoVotacion, List<CrearCriterioDTO> criterios)
+        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy, List<Guid> Jurados, EstadoVotacion estadoVotacion,bool verRes, List<CrearCriterioDTO> criterios)
         {
             if (Id_evento == Guid.Empty)
                 throw new Exception("El evento es obligatorio");
@@ -188,7 +188,7 @@ namespace Votify.Core.Services
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
             if (NumProy < 1)
                 throw new Exception("Se tiene que poder votar mínimo 1 proyecto");
-            var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion,NumProy,estadoVotacion);
+            var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion,NumProy,verRes,estadoVotacion);
 
             await votacionRepository.CrearVotacionAsync(nuevaVotacion);
 
@@ -223,7 +223,7 @@ namespace Votify.Core.Services
                 await eventoUsuarioRolRepository.CrearAsync(nuevoJurado);
             }
         }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<Guid> Jurados, EstadoVotacion estadoVotacion, List<CrearCriterioDTO> criterios,int NumProy)
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<Guid> Jurados, EstadoVotacion estadoVotacion, List<CrearCriterioDTO> criterios,bool verRes,int NumProy)
         {
             var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);
 
@@ -247,6 +247,7 @@ namespace Votify.Core.Services
                 votacionActual.PermiteAutoVoto = permiteAutoVoto;
                 votacionActual.NumProy = NumProy;
                 votacionActual.EstadoVotacion = estadoVotacion;
+                votacionActual.VerRes = verRes;
 
                 await votacionRepository.EditarVotacionAsync(votacionActual);
             }
@@ -259,6 +260,7 @@ namespace Votify.Core.Services
                     Id_evento,
                     tipoVotacion,
                     NumProy,
+                    verRes,
                     estadoVotacion
                 );
 

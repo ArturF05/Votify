@@ -86,6 +86,13 @@
             <option value="0">No</option>
         </select>
     </div>
+    <div class="campo campo-columna">
+        <label>Permitir ver resultados en vivo*:</label>
+        <select @bind="verRes">
+            <option value="1">Sí</option>
+            <option value="0">No</option>
+        </select>
+    </div>
     <div class="campo">
         <label>Inicio de la votación*:</label>
         <input type="datetime-local" @bind-value="inicioVotacion" @bind-value:event="onchange" />
@@ -243,7 +250,7 @@
     List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
     private Votify.Core.Entities.Evento? evento;
     private Guid idUsuarioActual = Guid.Empty;
-
+    private int verRes = 1;
     private string busquedaUsuario = "";
 
     private List<Usuario> usuariosDisponibles = new();
@@ -337,6 +344,7 @@
         finVotacion = votacion.FechaFin.ToLocalTime();
         NumProy = votacion.NumProy;
         estadoVotacion = votacion.EstadoVotacion;
+        verRes = votacion.VerRes ? 1 : 0;
 
         if (votacion is VotacionPublico)
             tipoVotacion = TipoVotacion.Publico;
@@ -364,6 +372,10 @@
     void SeleccionarEstado(EstadoVotacion estado)
     {
         estadoVotacion = estado;
+    }
+    void VerResultados(int verRes)
+    {
+        this.verRes = verRes;
     }
     void Cancelar()
     {
@@ -431,6 +443,7 @@
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion,
                 Num_Proy = NumProy ?? 0,
+                VerRes=verRes==1,
                 Jurados = juradoSeleccionado.Select(u => u.Id).ToList(),
                 EstadoVotacion=estadoVotacion,
                 Criterios = criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
@@ -514,7 +527,7 @@
             Descripcion = descripcionCriterio,
             Peso = 0
         });
-
+        
         nombreCriterio = "";
         descripcionCriterio = "";
         mensajeErrorCriterio = "";

@@ -228,6 +228,7 @@ namespace Votify.Core.Tests.Votacion
                 3,
                 JuradosVacios,
                 estado,
+                true,
                 CriteriosVacios
             );
         }
@@ -491,6 +492,7 @@ namespace Votify.Core.Tests.Votacion
                     3,
                     JuradosVacios,
                     EstadoVotacion.Abierta,
+                    true,
                     CriteriosVacios
                 )
             );
@@ -585,6 +587,7 @@ namespace Votify.Core.Tests.Votacion
                 JuradosVacios,
                 EstadoVotacion.Abierta,
                 CriteriosVacios,
+                true,
                 3
             );
 
@@ -609,6 +612,7 @@ namespace Votify.Core.Tests.Votacion
                     JuradosVacios,
                     EstadoVotacion.Abierta,
                     CriteriosVacios,
+                    true,
                     3
                 )
             );
@@ -630,6 +634,7 @@ namespace Votify.Core.Tests.Votacion
                     JuradosVacios,
                     EstadoVotacion.Abierta,
                     CriteriosVacios,
+                    true,
                     3
                 )
             );
@@ -651,6 +656,7 @@ namespace Votify.Core.Tests.Votacion
                     JuradosVacios,
                     EstadoVotacion.Abierta,
                     CriteriosVacios,
+                    true,
                     3
                 )
             );
@@ -674,6 +680,7 @@ namespace Votify.Core.Tests.Votacion
                 JuradosVacios,
                 EstadoVotacion.Abierta,
                 CriteriosVacios,
+                true,
                 3
             );
 
@@ -700,6 +707,7 @@ namespace Votify.Core.Tests.Votacion
                 JuradosVacios,
                 EstadoVotacion.Abierta,
                 CriteriosVacios,
+                true,
                 3
             );
 
@@ -723,6 +731,7 @@ namespace Votify.Core.Tests.Votacion
                 JuradosVacios,
                 EstadoVotacion.Abierta,
                 CriteriosVacios,
+                true,
                 3
             );
 

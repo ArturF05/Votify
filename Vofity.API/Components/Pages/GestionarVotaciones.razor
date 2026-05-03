@@ -15,21 +15,22 @@
 @rendermode InteractiveServer
 
 <div class="titulo-y-finalizadas">
-    @if (!verFinalizadas)
+    @if (!verResultados)
     {
-        <h2 class="titulo">Votaciones no finalizadas</h2>
+        <h2 class="titulo">Gestionar votaciones</h2>
     }
     else
     {
-        <h2 class="titulo">Votaciones finalizadas</h2>
+        <h2 class="titulo">Resultados de votaciones</h2>
     }
 
-    <button class="boton-finalizadas" @onclick="VerFinalizadas">
+    <button class="boton-finalizadas" @onclick="CambiarModoResultados">
         @boton
     </button>
 </div>
 
 <PageTitle>Gestionar Votaciones</PageTitle>
+
 <div class="barra-busqueda">
     <label style="vertical-align:text-bottom">Evento: </label>
     <select @bind="Id_evento" @bind:event="oninput" @onchange="BuscarVotaciones">
@@ -39,6 +40,7 @@
             <option value="@evento.Id">@evento.Nombre</option>
         }
     </select>
+
     <label style="vertical-align:text-bottom">Tipo de votación: </label>
     <select @bind="tipoVotacion" @bind:event="oninput" @onchange="BuscarVotaciones">
         <option value="-1">Todos</option>
@@ -46,6 +48,7 @@
         <option value="1">Jurado</option>
         <option value="2">Mixta</option>
     </select>
+
     <label style="vertical-align:text-bottom">Permite AutoVoto: </label>
     <select @bind="permiteAutoVoto" @bind:event="oninput" @onchange="BuscarVotaciones">
         <option value="-1">Ambos</option>
@@ -63,19 +66,27 @@
                 <th>Permite autovoto</th>
                 <th>Fecha Inicio</th>
                 <th>Fecha Fin</th>
-                <th hidden="@(verFinalizadas)">Editar</th>
-                <th hidden="@(!verFinalizadas)"></th>
-                <th hidden="@(!verFinalizadas)">Resultados del evento</th>
+                <th hidden="@(verResultados)">Editar</th>
+                <th hidden="@(!verResultados)">Resultados del evento</th>
             </tr>
         </thead>
+
         <tbody>
             @if (votaciones == null)
             {
-                <label>Cargando Votaciones ...</label>
+                <tr>
+                    <td colspan="6">Cargando Votaciones ...</td>
+                </tr>
             }
             else
             {
-                @foreach (var vot in votaciones.Where(vot => verFinalizadas ? vot.EstadoVotacion == EstadoVotacion.Finalizada : vot.EstadoVotacion != EstadoVotacion.Finalizada))
+                @foreach (var vot in votaciones.Where(vot =>
+                    verResultados
+                        ? vot.EstadoVotacion == EstadoVotacion.Abierta
+                          || vot.EstadoVotacion == EstadoVotacion.Pausada
+                          || vot.EstadoVotacion == EstadoVotacion.Finalizada
+                        : vot.EstadoVotacion == EstadoVotacion.Abierta
+                          || vot.EstadoVotacion == EstadoVotacion.Pausada))
                 {
                     <tr>
                         <td>@eventos.FirstOrDefault(e => e.Id == vot.Id_evento)?.Nombre</td>
@@ -83,32 +94,49 @@
                         <td>@vot.PermiteAutoVoto</td>
                         <td>@vot.FechaInicio.ToLocalTime()</td>
                         <td>@vot.FechaFin.ToLocalTime()</td>
-                        <td><button class="boton-editar" hidden="@(verFinalizadas)" @onclick='() => EditarVotacion(vot)'>Editar</button></td>
-                        <td>
-                            <div class="tooltip-wrapper">
-                                <button class="boton-editar" hidden="@(!verFinalizadas)" @onclick='() => VerResultados(vot)' disabled="@(!puedeVerResultados(vot))">Resultados</button>@if(!puedeVerResultados(vot)){
-                                <span class="tooltip-text">@ObtenerMotivoBloqueo(vot)</span>
-                            }
-                        </div>
-                    </td>
-                </tr>
-            }
-                        }
 
+                        <td hidden="@(verResultados)">
+                            <button class="boton-editar" @onclick='() => EditarVotacion(vot)'>
+                                Editar
+                            </button>
+                        </td>
+
+                        <td hidden="@(!verResultados)">
+                            <div class="tooltip-wrapper">
+                                <button class="boton-editar"
+                                        @onclick='() => VerDashboard(vot)'
+                                        disabled="@(!PuedeVerResultados(vot))">
+                                    Resultados
+                                </button>
+
+                                @if (!PuedeVerResultados(vot))
+                                {
+                                    <span class="tooltip-text">@ObtenerMotivoBloqueo(vot)</span>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
         </tbody>
     </table>
 
     <label class="noHayResult">@noHayResultados</label>
 </div>
 
-<a href="/CrearVotacion" class="botonLink">Crear Votacion nueva</a>
+@if (!verResultados)
+{
+    <a href="/CrearVotacion" class="botonLink">Crear Votacion nueva</a>
+}
 
 @code {
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Votify.Core.Entities.Votacion> votaciones = new();
     List<Votify.Core.Entities.Votacion> votacionesActuales = new();
-    private bool verFinalizadas = false;
-    private string boton = "Mostrar votaciones finalizadas";
+
+    private bool verResultados = false;
+    private string boton = "Ver resultados";
+
     private Guid Id_evento = Guid.Empty;
     private int tipoVotacion = -1;
     private int permiteAutoVoto = -1;
@@ -132,101 +160,79 @@
         idUsuario = resultado.Value;
 
         await ActualizarEstadosVotaciones();
-        eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).Include(e => e.Proyectos).ToListAsync();
 
-        votaciones = await contexto.Votacion
-            .Where(v => contexto.EventoUsuarioRol
-                .Include(eur => eur.Rol)
-                .Any(eur =>
-                    eur.EventoId == v.Id_evento &&
-                    eur.UsuarioId == idUsuario &&
-                    eur.Rol.Nombre == "Organizador"))
+        eventos = await contexto.Evento
+            .AsNoTracking()
+            .Include(e => e.Categoria)
+            .Include(e => e.Proyectos)
             .ToListAsync();
-        HayVotaciones();
 
+        await BuscarVotaciones();
+
+        cargado = true;
+        StateHasChanged();
     }
+
     private async Task ActualizarEstadosVotaciones()
     {
         var ahora = DateTime.UtcNow;
-        var ahoraLocal = DateTime.Now;
 
         var listaVotaciones = await contexto.Votacion.ToListAsync();
 
-
         foreach (var votacion in listaVotaciones)
         {
-         
-
-            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
-                 votacion.EstadoVotacion == EstadoVotacion.Pausada ||
-                 votacion.EstadoVotacion == EstadoVotacion.Cerrada) &&
-                votacion.FechaFin <= ahora)
-            {
-                votacion.EstadoVotacion = EstadoVotacion.Finalizada;
-            }
-            else if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
-                     votacion.FechaInicio <= ahora)
+            if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
+                votacion.FechaInicio <= ahora)
             {
                 votacion.EstadoVotacion = EstadoVotacion.Abierta;
             }
-
-        
         }
-        cargado = true;
-        StateHasChanged();
+
         await contexto.SaveChangesAsync();
-    }
-
-
-        
-    
-    
-
-    private async Task EsEnter(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-        {
-            await BuscarVotaciones();
-        }
     }
 
     private async Task BuscarVotaciones()
     {
         noHayResultados = "";
-        if (tipoVotacion == -1 && Id_evento == Guid.Empty && permiteAutoVoto == -1)
-        {
-            votaciones = await contexto.Votacion
+
+        var query = contexto.Votacion
             .Where(v => contexto.EventoUsuarioRol
                 .Include(eur => eur.Rol)
                 .Any(eur =>
                     eur.EventoId == v.Id_evento &&
                     eur.UsuarioId == idUsuario &&
-                    eur.Rol.Nombre == "Organizador"))
-            .ToListAsync();
-            HayVotaciones();
-        }
-        else
+                    (
+                        eur.Rol.Nombre == "Organizador" ||
+                        (verResultados && eur.Rol.Nombre == "Participante")
+                    )))
+            .AsQueryable();
+
+        if (Id_evento != Guid.Empty)
         {
-            var url = $"api/v1/votaciones/buscar?id_evento={Id_evento}&tipoVotacion={tipoVotacion}&permiteAutoVoto={permiteAutoVoto}&verFinalizadas={verFinalizadas}";
-            try
-            {
-
-                var resultado = await Http.GetFromJsonAsync<List<Votify.Core.Entities.Votacion>>(url);
-                votaciones = resultado ?? new List<Votify.Core.Entities.Votacion>();
-            }
-            catch (HttpRequestException ex)
-            {
-                var response = await Http.GetAsync(url);
-                var contenido = await response.Content.ReadAsStringAsync();
-                Console.WriteLine("ERROR API: " + contenido);
-                Console.WriteLine("STATUS: " + response.StatusCode);
-            }
-
-            if (votaciones.Count == 0)
-                noHayResultados = "No hay votaciones que cumplan los filtros de búsqueda";
-            else
-                noHayResultados = "";
+            query = query.Where(v => v.Id_evento == Id_evento);
         }
+
+        if (tipoVotacion != -1)
+        {
+            if (tipoVotacion == 0)
+                query = query.Where(v => v is VotacionPublico);
+
+            if (tipoVotacion == 1)
+                query = query.Where(v => v is VotacionJurado);
+
+            if (tipoVotacion == 2)
+                query = query.Where(v => v is VotacionMixta);
+        }
+
+        if (permiteAutoVoto != -1)
+        {
+            bool permite = permiteAutoVoto == 1;
+            query = query.Where(v => v.PermiteAutoVoto == permite);
+        }
+
+        votaciones = await query.ToListAsync();
+
+        HayVotaciones();
 
         StateHasChanged();
     }
@@ -235,44 +241,74 @@
     {
         nav.NavigateTo($"/EditarVotacion/{vot.Id}");
     }
-    private bool puedeVerResultados(Votify.Core.Entities.Votacion votacion)
+
+    private bool PuedeVerResultados(Votify.Core.Entities.Votacion votacion)
     {
         return ObtenerMotivoBloqueo(votacion) == null;
     }
 
     private string? ObtenerMotivoBloqueo(Votify.Core.Entities.Votacion votacion)
     {
-        var votacionesAux = votaciones.Where(vot => (vot.Id_evento == votacion.Id_evento));
         var evento = eventos.FirstOrDefault(e => e.Id == votacion.Id_evento);
+
         if (evento == null)
             return "El evento no existe";
+
         if (evento.Proyectos == null || evento.Proyectos.Count == 0)
             return "No se han presentado proyectos para este evento";
-        if (!votacionesAux.All(v => v.FechaFin <= DateTime.UtcNow))
-            return "Todavía hay votaciones activas para este evento";
+
+        if (votacion.EstadoVotacion == EstadoVotacion.Finalizada)
+            return null;
+
+        if (votacion.EstadoVotacion == EstadoVotacion.Abierta ||
+            votacion.EstadoVotacion == EstadoVotacion.Pausada)
+        {
+            if (!votacion.VerRes)
+                return "Los resultados no están disponibles mientras la votación no haya finalizado";
+        }
+
         return null;
     }
-    private void VerResultados(Votify.Core.Entities.Votacion vot)
+
+    private void VerDashboard(Votify.Core.Entities.Votacion vot)
     {
         nav.NavigateTo($"/Dashboard/{vot.Id_evento}");
     }
 
-    private async Task VerFinalizadas()
+    private async Task CambiarModoResultados()
     {
-        verFinalizadas = !verFinalizadas;
-        if (verFinalizadas) boton = "Mostrar votaciones no finalizadas";
-        else boton = "Mostrar votaciones finalizadas";
+        verResultados = !verResultados;
+
+        boton = verResultados
+            ? "Gestionar votaciones"
+            : "Ver resultados";
+
         await BuscarVotaciones();
     }
+
     private void HayVotaciones()
     {
-        votacionesActuales = votaciones.Where(vot => verFinalizadas? vot.EstadoVotacion == EstadoVotacion.Finalizada: vot.EstadoVotacion != EstadoVotacion.Finalizada).ToList();
-        if (votacionesActuales.Count() == 0)
-            if (!verFinalizadas) noHayResultados = "No hay votaciones que no hayan finalizado";
-            else noHayResultados = "No hay votaciones finalizadas";
-        else if (string.IsNullOrEmpty(noHayResultados) || noHayResultados == "No hay votaciones que no hayan finalizado")
+        votacionesActuales = votaciones.Where(vot =>
+            verResultados
+                ? vot.EstadoVotacion == EstadoVotacion.Abierta
+                  || vot.EstadoVotacion == EstadoVotacion.Pausada
+                  || vot.EstadoVotacion == EstadoVotacion.Finalizada
+                : vot.EstadoVotacion == EstadoVotacion.Abierta
+                  || vot.EstadoVotacion == EstadoVotacion.Pausada
+        ).ToList();
+
+        if (votacionesActuales.Count == 0)
+        {
+            noHayResultados = verResultados
+                ? "No hay votaciones con resultados disponibles"
+                : "No hay votaciones abiertas o pausadas";
+        }
+        else
+        {
             noHayResultados = "";
+        }
     }
+
     private string ObtenerTipoVotacion(Votify.Core.Entities.Votacion vot)
     {
         if (vot is VotacionPublico) return "Público";
