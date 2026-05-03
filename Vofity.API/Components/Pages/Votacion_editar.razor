@@ -147,11 +147,18 @@
             <button type="button" class="boton-principal" @onclick="GuardarVotacion">Guardar Cambios</button>
         </div>
     </div>
+    @if (!string.IsNullOrEmpty(debugInfo))
+    {
+        <div style="background:#fff3cd; padding:10px; border-radius:8px; margin-bottom:10px;">
+            @debugInfo
+        </div>
+    }
 </div>
 
 @code {
     [Parameter]
     public Guid id { get; set; }
+    private string debugInfo = "";
     private Votify.Core.Entities.Votacion votacion;
     private int? NumProy = 0;
     private int permiteAutoVoto = 1;
@@ -190,6 +197,37 @@
             mensajeNoCriterio = "Esta votación no tiene criterios";
 
         await SetVotacion(votacion);
+    }
+    private async Task ActualizarEstadosVotaciones()
+    {
+        var ahora = DateTime.UtcNow;
+
+        var votaciones = await contexto.Votacion.ToListAsync();
+
+        foreach (var votacion in votaciones)
+        {
+            debugInfo = $"FechaFin: {votacion.FechaFin} | " +
+            $"Kind: {votacion.FechaFin.Kind} | " +
+            $"Ahora UTC: {DateTime.UtcNow} | " +
+            $"Ahora Local: {DateTime.Now}";
+
+            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
+                 votacion.EstadoVotacion == EstadoVotacion.Pausada ||
+                 votacion.EstadoVotacion == EstadoVotacion.Cerrada) &&
+                votacion.FechaFin <= ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Finalizada;
+            }
+            else if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
+                     votacion.FechaInicio <= ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Abierta;
+            }
+
+            Console.WriteLine($"Estado después: {votacion.EstadoVotacion}");
+        }
+
+        await contexto.SaveChangesAsync();
     }
     public async Task SetVotacion(Votify.Core.Entities.Votacion votacion)
     {

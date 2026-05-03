@@ -28,7 +28,6 @@
 </div>
 
 <PageTitle>Gestionar Votaciones</PageTitle>
-
 <div class="barra-busqueda">
     <label style="vertical-align:text-bottom">Evento: </label>
     <select @bind="Id_evento" @bind:event="oninput" @onchange="BuscarVotaciones">
@@ -109,12 +108,45 @@
     private int tipoVotacion = -1;
     private int permiteAutoVoto = -1;
     private string noHayResultados = "";
+    private string debugInfo = "";
 
     protected override async Task OnInitializedAsync()
     {
+        await ActualizarEstadosVotaciones();
         eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).Include(e => e.Proyectos).ToListAsync();
         votaciones = await contexto.Votacion.ToListAsync();
         HayVotaciones();
+
+    }
+    private async Task ActualizarEstadosVotaciones()
+    {
+        var ahora = DateTime.UtcNow;
+        var ahoraLocal = DateTime.Now;
+
+        var listaVotaciones = await contexto.Votacion.ToListAsync();
+
+
+        foreach (var votacion in listaVotaciones)
+        {
+         
+
+            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
+                 votacion.EstadoVotacion == EstadoVotacion.Pausada ||
+                 votacion.EstadoVotacion == EstadoVotacion.Cerrada) &&
+                votacion.FechaFin <= ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Finalizada;
+            }
+            else if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
+                     votacion.FechaInicio <= ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Abierta;
+            }
+
+        
+        }
+
+        await contexto.SaveChangesAsync();
     }
 
     private async Task EsEnter(KeyboardEventArgs e)

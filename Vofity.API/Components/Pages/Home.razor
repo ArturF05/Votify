@@ -54,6 +54,7 @@
     List<Votify.Core.Entities.Evento> eventosParticipando = new();
     List<Votify.Core.Entities.Evento> eventosDisponibles = new();
 
+    private string debugInfo = "";
     private string mensaje = "";
     private Guid idUsuario;
     private Votify.Core.Entities.Usuario? usuarioActual;
@@ -61,7 +62,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        ActualizarEstadosVotaciones();
+        await ActualizarEstadosVotaciones();
         try
         {
             ProtectedBrowserStorageResult <Guid> resultado;
@@ -136,18 +137,26 @@
 
         foreach (var votacion in votaciones)
         {
-            if (votacion.EstadoVotacion == EstadoVotacion.Abierta &&
+            Console.WriteLine($"Votación {votacion.Id}");
+            Console.WriteLine($"Estado antes: {votacion.EstadoVotacion}");
+            Console.WriteLine($"Inicio: {votacion.FechaInicio}");
+            Console.WriteLine($"Fin: {votacion.FechaFin}");
+            Console.WriteLine($"Ahora: {ahora}");
+
+            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
+                 votacion.EstadoVotacion == EstadoVotacion.Pausada ||
+                 votacion.EstadoVotacion == EstadoVotacion.Cerrada) &&
                 votacion.FechaFin <= ahora)
             {
                 votacion.EstadoVotacion = EstadoVotacion.Finalizada;
             }
-
-            if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
-                votacion.FechaInicio <= ahora &&
-                votacion.FechaFin > ahora)
+            else if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
+                     votacion.FechaInicio <= ahora)
             {
                 votacion.EstadoVotacion = EstadoVotacion.Abierta;
             }
+
+            Console.WriteLine($"Estado después: {votacion.EstadoVotacion}");
         }
 
         await contexto.SaveChangesAsync();
