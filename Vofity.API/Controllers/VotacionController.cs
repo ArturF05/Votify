@@ -71,7 +71,10 @@ namespace Votify.API.Controllers
                     dto.TipoVotacion,
                     dto.Num_Proy,
                     dto.PermiteComentarios,
-                    dto.ComentariosObligatorios
+                    dto.ComentariosObligatorios,
+                    dto.Jurados,
+                    dto.EstadoVotacion,
+                    dto.Criterios
                 );
                 await context.SaveChangesAsync();
                 await transaccion.CommitAsync();
@@ -101,6 +104,8 @@ namespace Votify.API.Controllers
                     dto.FechaFin,
                     dto.PermiteAutoVoto,
                     dto.TipoVotacion,
+                    dto.Jurados,
+                    dto.EstadoVotacion,
                     dto.Criterios,
                     dto.Num_Proy,
                     dto.PermiteComentarios,

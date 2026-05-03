@@ -10,5 +10,6 @@ namespace Votify.Core.DTOs
     {
         public Guid IdCriterio { get; set; }
         public int Nota { get; set; }
+        public string Comentario { get; set; } = "";
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Votify.API.DTOs;
+using Votify.Core.DTOs;
 using Votify.Core.Entities;
 using Votify.Core.Interfaces;
 using Votify.Core.Services;
@@ -39,9 +40,11 @@ namespace Votify.API.Controllers
                     dto.UsuarioCreadorId
                 );
                 await context.SaveChangesAsync();
+                var criterios = new List<CrearCriterioDTO>();
+                var jurados = new List<Guid>();
                 for (int i = 0; i < dto.dTOsVotacion.Count; i++)
                     {
-                        await votacionService.CrearVotacion(evento.Id, dto.dTOsVotacion[i].FechaInicio, dto.dTOsVotacion[i].FechaFin, dto.dTOsVotacion[i].PermiteAutoVoto, dto.dTOsVotacion[i].TipoVotacion, dto.dTOsVotacion[i].Num_Proy, dto.dTOsVotacion[i].PermiteComentarios, dto.dTOsVotacion[i].ComentariosObligatorios);
+                        await votacionService.CrearVotacion(evento.Id, dto.dTOsVotacion[i].FechaInicio, dto.dTOsVotacion[i].FechaFin, dto.dTOsVotacion[i].PermiteAutoVoto, dto.dTOsVotacion[i].TipoVotacion, dto.dTOsVotacion[i].Num_Proy, dto.dTOsVotacion[i].PermiteComentarios, dto.dTOsVotacion[i].ComentariosObligatorios, jurados, dto.dTOsVotacion[i].EstadoVotacion, criterios);
                         await context.SaveChangesAsync();
                 }
                 await context.SaveChangesAsync();

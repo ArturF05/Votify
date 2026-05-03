@@ -50,6 +50,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+       
+
+        await ActualizarEstadosVotaciones();
+
+
         ProtectedBrowserStorageResult<Guid> resultado;
         try
         {
@@ -85,6 +90,36 @@
         }
         StateHasChanged();
     }
+    private async Task ActualizarEstadosVotaciones()
+    {
+        var ahora = DateTime.UtcNow;
+        var ahoraLocal = DateTime.Now;
+
+        var listaVotaciones = await contexto.Votacion.ToListAsync();
+
+
+        foreach (var votacion in listaVotaciones)
+        {
+
+         
+            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
+                             votacion.EstadoVotacion == EstadoVotacion.Pausada ||
+                             votacion.EstadoVotacion == EstadoVotacion.Cerrada) &&
+                            votacion.FechaFin <= ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Finalizada;
+            }
+            else if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
+                     votacion.FechaInicio <= ahora)
+            {
+                votacion.EstadoVotacion = EstadoVotacion.Abierta;
+            }
+
+        
+        }
+
+        await contexto.SaveChangesAsync();
+    }
 
     private void irAEvento(Votify.Core.Entities.Evento evento)
     {
@@ -93,7 +128,7 @@
     private async Task ponerParametros(Votify.Core.Entities.Evento evento, int indice)
     {
         idVotacion = Guid.Empty;
-        votacion = await contexto.Votacion.Where(vot => vot.Id_evento == evento.Id && vot.FechaFin.CompareTo(DateTime.UtcNow) > 0 && vot.FechaInicio.CompareTo(DateTime.UtcNow) <= 0).FirstOrDefaultAsync();
+        votacion = await contexto.Votacion.Where(vot => vot.Id_evento == evento.Id && vot.EstadoVotacion==EstadoVotacion.Abierta).FirstOrDefaultAsync();
         if (votacion != null)
         {
             idVotacion = votacion.Id;

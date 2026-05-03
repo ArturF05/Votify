@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Votify.Core.DTOs;
 using Votify.Core.Entities;
 
 namespace Votify.Core.Interfaces
@@ -13,5 +14,7 @@ namespace Votify.Core.Interfaces
         Task<bool> CrearProyectoAsync(Proyecto proyecto);
         Task<List<Proyecto>> ObtenerPorIdAsync(List<Guid> idsProyectos);
         Task<List<Proyecto>> ObtenerPorUsuarioAsync(Guid usuarioId);
+        Task<List<Proyecto>> ObtenerPorEventoIdAsync(Guid eventoId);
+        Task<List<CriterioDashboardDTO>> ObtenerComentariosPorCriterioDeProyecto(Guid idProyecto);
     }
 }

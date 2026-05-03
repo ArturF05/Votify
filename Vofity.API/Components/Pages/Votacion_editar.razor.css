@@ -4,6 +4,7 @@
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
     padding: 2rem;
     border: 1px solid #f1ebe3;
+}
 
     .form-evento h3 {
         margin: 0;
@@ -337,3 +338,151 @@
             grid-template-columns: 1fr;
         }
     }
+
+.jurado-section {
+    border: 1px solid #ffb35c;
+    border-radius: 10px;
+    padding: 22px;
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    background: #fff;
+}
+
+.jurado-column h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #111827;
+}
+
+.buscador-jurado {
+    height: 40px;
+    border: 1px solid #d9dde3;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+
+    .buscador-jurado input {
+        border: none;
+        outline: none;
+        width: 100%;
+        font-size: 14px;
+        background: transparent;
+    }
+
+    .buscador-jurado span {
+        color: #555;
+        font-size: 16px;
+    }
+
+.lista-jurado {
+    height: 230px;
+    overflow-y: auto;
+    border: 1px solid #d9dde3;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.fila-jurado {
+    height: 38px;
+    padding: 0 14px;
+    border-bottom: 1px solid #edf0f2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+    .fila-jurado:last-child {
+        border-bottom: none;
+    }
+
+.boton-add-jurado {
+    border: none;
+    background: transparent;
+    color: #ff8c00;
+    font-size: 22px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+    .boton-add-jurado:hover {
+        transform: scale(1.15);
+    }
+
+.boton-remove-jurado {
+    border: none;
+    background: transparent;
+    color: #ff3b3b;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+    .boton-remove-jurado:hover {
+        transform: scale(1.1);
+    }
+
+.jurado-vacio {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8b95a1;
+    font-size: 14px;
+}
+    }
+
+    .grupo-botones-estados {
+        display: flex;
+        gap: 12px;
+        margin: 14px 0 25px 0;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .boton-control {
+        border: none;
+        border-radius: 999px;
+        padding: 11px 20px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .boton-control.detener {
+            background: linear-gradient(135deg, #f5a623 0%, #ff8c00 100%);
+            color: white;
+        }
+
+        .boton-control.abrir,
+        .boton-control.reanudar {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+        }
+
+        .boton-control.cerrar {
+            background: linear-gradient(135deg, #ff3b3b 0%, #ff1f3d 100%);
+            color: white;
+        }
+
+        .boton-control:hover:not(:disabled) {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        .boton-control:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+            filter: none;
+        }

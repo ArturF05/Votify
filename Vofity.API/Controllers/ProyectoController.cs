@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Votify.Core.DTOs;
 using Votify.Core.Interfaces;
+using Votify.Core.Services;
 
 [ApiController]
 [Route("api/v1/[controller]")]
@@ -30,5 +31,12 @@ public class ProyectoController : ControllerBase
             return StatusCode(201, new { status = "success", message = "Proyecto creado" });
 
         return BadRequest(new { status = "error", message = "No se pudo crear" });
+    }
+
+    [HttpGet("{idProyecto}/sintesis-ia")]
+    public async Task<ActionResult<SintesisIAResultadoDTO>> GenerarSintesisIA(Guid idProyecto)
+    {
+        var resultado = await _proyectoService.GenerarSintesisIA(idProyecto);
+        return Ok(resultado);
     }
 }

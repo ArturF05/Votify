@@ -23,9 +23,11 @@ public class AppDbContext : DbContext
     public DbSet<Evento> Evento { get; set; }
     public DbSet<Categoria> Categoria { get; set; }
     public DbSet<DimensionesDeValor> DimensionesDeValor { get; set; }
+    public DbSet<VotoCriterio> VotoCriterio { get; set; }
     public DbSet<EventoUsuarioRol> EventoUsuarioRol { get; set; }
     public DbSet<Material> Material { get; set; }
     public DbSet<ProyectoParticipantes> ProyectoParticipantes { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,6 +66,7 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
             entity.Property(v => v.NumProy)
                 .HasColumnName("NumProy");
+            entity.Property(v => v.EstadoVotacion).HasColumnName("EstadoVotacion");
         });
 
         modelBuilder.Entity<VotacionJurado>().HasBaseType<Votacion>();
@@ -79,6 +82,26 @@ public class AppDbContext : DbContext
             .HasOne(d => d.Votacion)
             .WithMany(v => v.DimensionesDeValores)
             .HasForeignKey(d => d.Id_votacion);
+
+        modelBuilder.Entity<VotoCriterio>(entity =>
+        {
+            entity.ToTable("VotoCriterio");
+
+            entity.HasKey(vc => vc.Id);
+
+            entity.HasIndex(vc => new { vc.Id_voto, vc.Id_criterio })
+                .IsUnique();
+
+            entity.HasOne(vc => vc.Voto)
+                .WithMany(v => v.VotosCriterio)
+                .HasForeignKey(vc => vc.Id_voto)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(vc => vc.Criterio)
+                .WithMany()
+                .HasForeignKey(vc => vc.Id_criterio)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
         modelBuilder.Entity<ProyectoParticipantes>(entity =>
         {

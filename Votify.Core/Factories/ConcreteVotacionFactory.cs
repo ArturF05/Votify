@@ -10,7 +10,7 @@ namespace Votify.Core.Factories
 {
     internal class ConcreteVotacionFactory : VotacionFactory
     {
-        public override Votacion CrearVotacion(DateTime fechaInicio, DateTime fechaFin, bool permiteAutoVoto, Guid Id_evento, TipoVotacion tipoVotacion,int NumProy, bool permiteComentarios, bool comentariosObligatorios)
+        public override Votacion CrearVotacion(DateTime fechaInicio, DateTime fechaFin, bool permiteAutoVoto, Guid Id_evento, TipoVotacion tipoVotacion,int NumProy, bool permiteComentarios, bool comentariosObligatorios, EstadoVotacion estadoVotacion)
          {
             switch (tipoVotacion)
             {
@@ -25,6 +25,8 @@ namespace Votify.Core.Factories
                         NumProy= NumProy,
                         PermiteComentarios = permiteComentarios,
                         ComentariosObligatorios = comentariosObligatorios
+                        EstadoVotacion=estadoVotacion
+
                     };
 
                 case TipoVotacion.Jurado:
@@ -38,6 +40,7 @@ namespace Votify.Core.Factories
                         NumProy = NumProy,
                         PermiteComentarios = permiteComentarios,
                         ComentariosObligatorios = comentariosObligatorios
+                        EstadoVotacion=estadoVotacion
                     };
 
                 case TipoVotacion.Mixto:
@@ -51,6 +54,7 @@ namespace Votify.Core.Factories
                         NumProy = NumProy,
                         PermiteComentarios = permiteComentarios,
                         ComentariosObligatorios = comentariosObligatorios
+                        EstadoVotacion=estadoVotacion
 
                     };
                 default:

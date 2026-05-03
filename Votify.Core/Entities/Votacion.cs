@@ -20,5 +20,6 @@ public abstract class Votacion
     public int NumProy { get; set; }
     public bool PermiteComentarios { get; set; }
     public bool ComentariosObligatorios { get; set; }
-   
+    public EstadoVotacion EstadoVotacion { get; set; } = EstadoVotacion.Cerrada;
+
 }

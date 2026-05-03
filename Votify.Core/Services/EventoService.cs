@@ -114,7 +114,7 @@ namespace Votify.Core.Services
             if (votacion == null)
                 throw new Exception("Este evento no tiene votación");
 
-            var hoy = DateTime.Now;
+            var hoy = DateTime.UtcNow;
 
             if (votacion.FechaFin > hoy)
                 throw new Exception("Todavía no se puede acceder al dashboard porque la votación no ha finalizado");
@@ -128,13 +128,39 @@ namespace Votify.Core.Services
                 .Select(p => new ProyectoDashboardDTO
                 {
                     ProyectoId = p.Id,
-                    NombreProyecto = p.Titulo,
+                    TituloProyecto = p.Titulo,
                     PuntuacionTotal = votos
                         .Where(v => v.Id_proyecto == p.Id)
                         .Sum(v => v.Puntuacion),
                     Comentarios = votos
                         .Where(v => v.Id_proyecto == p.Id && !string.IsNullOrWhiteSpace(v.Comentario))
                         .Select(v => v.Comentario!)
+                        .ToList(),
+                    Criterios = votacion.DimensionesDeValores
+                        .OrderBy(c => c.Nombre)
+                        .Select(c =>
+                        {
+                            var votosCriterio = votos
+                                .Where(v => v.Id_proyecto == p.Id)
+                                .SelectMany(v => v.VotosCriterio)
+                                .Where(vc => vc.Id_criterio == c.Id)
+                                .ToList();
+
+                            return new CriterioDashboardDTO
+                            {
+                                CriterioId = c.Id,
+                                Nombre = c.Nombre,
+                                Descripcion = c.Descripcion,
+                                Peso = c.Peso,
+                                PuntuacionMedia = votosCriterio.Any()
+                                    ? (decimal)votosCriterio.Average(vc => vc.Nota)
+                                    : 0m,
+                                Comentarios = votosCriterio
+                                    .Where(vc => !string.IsNullOrWhiteSpace(vc.Comentario))
+                                    .Select(vc => vc.Comentario!)
+                                    .ToList()
+                            };
+                        })
                         .ToList()
                 })
                 .OrderByDescending(p => p.PuntuacionTotal)
@@ -147,8 +173,23 @@ namespace Votify.Core.Services
                 EventoId = evento.Id,
                 NombreEvento = evento.Nombre,
                 ProyectoGanadorId = ganador.ProyectoId,
-                NombreProyectoGanador = ganador.NombreProyecto,
+                TituloProyectoGanador = ganador.TituloProyecto,
                 PuntuacionProyectoGanador = ganador.PuntuacionTotal,
+                Criterios = votacion.DimensionesDeValores
+                    .OrderBy(c => c.Nombre)
+                    .Select(c => new CriterioDashboardDTO
+                    {
+                        CriterioId = c.Id,
+                        Nombre = c.Nombre,
+                        Descripcion = c.Descripcion,
+                        Peso = c.Peso,
+                        PuntuacionMedia = votos
+                            .SelectMany(v => v.VotosCriterio)
+                            .Where(vc => vc.Id_criterio == c.Id)
+                            .DefaultIfEmpty()
+                            .Average(vc => vc == null ? 0m : vc.Nota)
+                    })
+                    .ToList(),
                 Proyectos = proyectosDashboard
             };
         }

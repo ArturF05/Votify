@@ -1,0 +1,7 @@
+## Requisito para síntesis IA con Ollama
+Para usar la síntesis de comentarios mediante IA es necesario tener Ollama instalado.
+
+Instalar Ollama en tu máquina a través de este enlace -> https://ollama.com/download
+Ejecutar el installer
+Una vez ejecutado, abrir la terminal del sistema y ejecutar -> ollama pull llama3.2
+Ejecutar Ollama en la terminal del sistema antes de ejecutar la aplicación en Visual Studio -> ollama serve
