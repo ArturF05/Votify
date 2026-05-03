@@ -43,46 +43,48 @@ namespace Votify.Core.Services
         public async Task<bool> RegistrarVotoAsync(Guid idVotacion, EmitirVotoDTO dto)
         {
             if (dto == null)
-                throw new Exception("Error interno: El DTO del voto es nulo.");
+                throw new Exception("El DTO del voto es nulo.");
 
             if (dto.IdVotante == Guid.Empty)
-                throw new Exception("Error interno: El id del votante está vacío.");
+                throw new Exception("El id del votante está vacío.");
 
             var votacion = await votacionRepository.ObtenerPorIdAsync(idVotacion);
             if (votacion == null)
-                throw new Exception("Error interno: La votación no existe.");
-
-            int numProy = votacion.NumProy;
-
-            if (dto.Votos == null)
-                throw new Exception($"Debes votar exactamente {numProy} proyectos.");
-
-            if (dto.Votos.Count > numProy)
-                throw new Exception("No puedes votar más proyectos que el máximo permitido.");
-
-            var idsProyectos = dto.Votos.Select(v => v.IdProyecto).ToList();
-
-            if (idsProyectos.Distinct().Count() != idsProyectos.Count)
-                throw new Exception("No puedes votar dos veces al mismo proyecto.");
-
+                throw new Exception("La votación no existe.");
             var ahoraUtc = DateTime.UtcNow;
             if (ahoraUtc < votacion.FechaInicio || ahoraUtc > votacion.FechaFin)
                 throw new Exception("La votación no está activa.");
             if (await YaVotoAsync(idVotacion, dto.IdVotante))
                 throw new Exception("Ya has votado en esta votación.");
+            int numProy = votacion.NumProy;
+
+            if (dto.Votos == null)
+                throw new Exception($"Debes votar hasta {numProy} proyectos.");
+            var idsProyectos = dto.Votos.Select(v => v.IdProyecto).ToList();
 
             var proyectos = await proyectoRepository.ObtenerPorIdAsync(idsProyectos);
+
+            bool esPropio = proyectos.Any(p =>
+    p.ProyectoParticipantes.Any(pp => pp.Id_usuario == dto.IdVotante)
+);
+            if (!votacion.PermiteAutoVoto && esPropio)
+                throw new Exception("No se permite el autovoto en esta votación.");
+            if (dto.Votos.Count > numProy)
+                throw new Exception("No puedes votar más proyectos que el máximo permitido.");
+
+
+            if (idsProyectos.Distinct().Count() != idsProyectos.Count)
+                throw new Exception("No puedes votar dos veces al mismo proyecto.");
+
+
+
 
             if (proyectos.Count != idsProyectos.Count)
                 throw new Exception($"No se han encontrado los {numProy} proyectos que debías votar.");
 
             if (proyectos.Any(p => p.Id_evento != votacion.Id_evento))
                 throw new Exception("Algún proyecto no pertenece al evento.");
-            bool esPropio = proyectos.Any(p =>
-                p.ProyectoParticipantes.Any(pp => pp.Id_usuario == dto.IdVotante)
-            );
-            if (!votacion.PermiteAutoVoto && esPropio)
-                throw new Exception("No se permite el autovoto en esta votación.");
+
 
             Usuario usuario = await usuarioRepository.ObtenerPorIdAsync(dto.IdVotante);
             string? rolUsuario = usuario.Rol.Nombre;
@@ -221,7 +223,7 @@ namespace Votify.Core.Services
                 await eventoUsuarioRolRepository.CrearAsync(nuevoJurado);
             }
         }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, bool permiteComentarios, bool comentariosObligatorios, List<Guid> Jurados, EstadoVotacion estadoVotacion, List<CrearCriterioDTO> criterios,int NumProy)
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios, int NumProy, bool permiteComentarios, bool comentariosObligatorios, List<Guid> Jurados, EstadoVotacion estadoVotacion)
         {
             var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);
 

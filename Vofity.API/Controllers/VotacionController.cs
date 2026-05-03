@@ -104,12 +104,13 @@ namespace Votify.API.Controllers
                     dto.FechaFin,
                     dto.PermiteAutoVoto,
                     dto.TipoVotacion,
-                    dto.Jurados,
-                    dto.EstadoVotacion,
                     dto.Criterios,
                     dto.Num_Proy,
                     dto.PermiteComentarios,
-                    dto.ComentariosObligatorios
+                    dto.ComentariosObligatorios,
+                    dto.Jurados,
+                    dto.EstadoVotacion
+
                 );
 
                 return Ok(new { mensaje = "Evento editado correctamente" });

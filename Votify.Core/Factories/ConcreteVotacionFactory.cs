@@ -24,7 +24,7 @@ namespace Votify.Core.Factories
                         FechaFin = fechaFin.ToUniversalTime(),
                         NumProy= NumProy,
                         PermiteComentarios = permiteComentarios,
-                        ComentariosObligatorios = comentariosObligatorios
+                        ComentariosObligatorios = comentariosObligatorios,
                         EstadoVotacion=estadoVotacion
 
                     };
@@ -39,7 +39,7 @@ namespace Votify.Core.Factories
                         FechaFin = fechaFin.ToUniversalTime(),
                         NumProy = NumProy,
                         PermiteComentarios = permiteComentarios,
-                        ComentariosObligatorios = comentariosObligatorios
+                        ComentariosObligatorios = comentariosObligatorios,
                         EstadoVotacion=estadoVotacion
                     };
 
@@ -53,7 +53,7 @@ namespace Votify.Core.Factories
                         FechaFin = fechaFin.ToUniversalTime(),
                         NumProy = NumProy,
                         PermiteComentarios = permiteComentarios,
-                        ComentariosObligatorios = comentariosObligatorios
+                        ComentariosObligatorios = comentariosObligatorios,
                         EstadoVotacion=estadoVotacion
 
                     };

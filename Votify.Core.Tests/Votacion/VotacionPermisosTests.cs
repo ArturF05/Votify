@@ -236,7 +236,8 @@ namespace Votify.Core.Tests.Votaciones
                 Id_evento = idEvento,
                 FechaInicio = ahora.AddHours(-1),
                 FechaFin = ahora.AddHours(2),
-                PermiteAutoVoto = true
+                PermiteAutoVoto = true,
+                NumProy = 3
             };
 
             var votacionPublicaSinAutovoto = new VotacionPublico
@@ -245,7 +246,8 @@ namespace Votify.Core.Tests.Votaciones
                 Id_evento = idEvento,
                 FechaInicio = ahora.AddHours(-1),
                 FechaFin = ahora.AddHours(2),
-                PermiteAutoVoto = false
+                PermiteAutoVoto = false,
+                NumProy = 3
             };
 
             var votacionPublica = new VotacionPublico
@@ -254,7 +256,8 @@ namespace Votify.Core.Tests.Votaciones
                 Id_evento = idEvento,
                 FechaInicio = ahora.AddHours(-1),
                 FechaFin = ahora.AddHours(2),
-                PermiteAutoVoto = true
+                PermiteAutoVoto = true,
+                NumProy = 3
             };
 
             var votacionJurado = new VotacionJurado
@@ -263,7 +266,8 @@ namespace Votify.Core.Tests.Votaciones
                 Id_evento = idEvento,
                 FechaInicio = ahora.AddHours(-1),
                 FechaFin = ahora.AddHours(2),
-                PermiteAutoVoto = false
+                PermiteAutoVoto = false,
+                NumProy = 3
             };
 
             var votacionMixta = new VotacionMixta
@@ -272,7 +276,8 @@ namespace Votify.Core.Tests.Votaciones
                 Id_evento = idEvento,
                 FechaInicio = ahora.AddHours(-1),
                 FechaFin = ahora.AddHours(2),
-                PermiteAutoVoto = false
+                PermiteAutoVoto = false,
+                NumProy = 3
             };
             var criterio = new DimensionesDeValor
             {

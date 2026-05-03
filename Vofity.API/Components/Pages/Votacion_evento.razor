@@ -365,11 +365,13 @@
                                 <div class="criterio-fila">
                                     <div class="criterio-voto-contenido">
                                         <span class="criterio-nombre-voto">@criterio.Nombre</span>
-
-                                        <textarea @bind="comentariosPorCriterio[proyecto.Id][criterio.Id]"
-                                                  placeholder="@(yaVoto ? "" : "Comentario sobre este criterio...")"
-                                                  class="textarea-comentario">
-                                                        </textarea>
+                                        @if (votacion!= null && votacion.PermiteComentarios)
+                                        {
+                                            <textarea @bind="comentariosPorCriterio[proyecto.Id][criterio.Id]"
+                                                      placeholder="@(yaVoto ? "" : "Comentario sobre este criterio...")"
+                                                          class="textarea-comentario">
+                                            </textarea>
+                                        }
                                     </div>
 
                                     <input type="number"
@@ -433,7 +435,6 @@
     .FirstOrDefaultAsync(vot =>
         vot.Id_evento == evento.Id &&
         vot.EstadoVotacion == EstadoVotacion.Abierta);
-        NumProy = votacion.NumProy;
 
         if (votacion != null)
         {
@@ -454,7 +455,7 @@
             if (!puntuacionesPorProyecto.ContainsKey(proyecto.Id))
                 puntuacionesPorProyecto[proyecto.Id] = new Dictionary<Guid, int>();
 
-            if (votacion.PermiteComentarios && !comentariosPorCriterio.ContainsKey(proyecto.Id))
+            if (!comentariosPorCriterio.ContainsKey(proyecto.Id))
                 comentariosPorCriterio[proyecto.Id] = new Dictionary<Guid, string>();
 
             foreach (var criterio in criterios)
@@ -589,7 +590,7 @@
                     mensaje = $"La puntuación en los criterios debe estar entre 0 y 10, el criterio {criterio.Nombre} no lo cumple";
                     return;
                 }
-                if (votacion.ComentariosObligatorios)
+                if (votacion.PermiteComentarios && votacion.ComentariosObligatorios)
                 {
                     if (!comentariosPorCriterio[idProyecto].ContainsKey(criterio.Id) ||
                         string.IsNullOrWhiteSpace(comentariosPorCriterio[idProyecto][criterio.Id]))
@@ -615,7 +616,7 @@
                 {
                     IdCriterio = c.Id,
                     Nota = puntuacionesPorProyecto[idProyecto][c.Id],
-                    Comentario = comentariosPorCriterio[idProyecto][c.Id]
+                    Comentario = votacion.PermiteComentarios? comentariosPorCriterio[idProyecto][c.Id]: null
                 }).ToList()
             }).ToList(),
             IdEvento = evento.Id

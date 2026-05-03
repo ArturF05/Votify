@@ -110,7 +110,7 @@ namespace Votify.Core.Tests.Votacion
 
             
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, jurados,EstadoVotacion.Abierta, dtos, 3);
+            await votacionService.EditarVotacion(idVotacion, idEvento, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3, true, true, jurados, EstadoVotacion.Abierta);
 
             var resultados = await context.DimensionesDeValor.Where(d => d.Id_votacion == idVotacion).ToListAsync();
             Assert.AreEqual(2, resultados.Count);
