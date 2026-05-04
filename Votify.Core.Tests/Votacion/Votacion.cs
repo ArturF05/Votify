@@ -231,6 +231,7 @@ namespace Votify.Core.Tests.Votacion
                 false,
                 JuradosVacios,
                 estado,
+                true,
                 CriteriosVacios
             );
         }

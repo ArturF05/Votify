@@ -66,6 +66,7 @@
 
 .campo input,
 .campo select,
+.campo .select-form,
 .campo textarea {
     width: 100%;
     background-color: #f3f4f6;

@@ -61,6 +61,13 @@
             <option value="0">No</option>
         </select>
     </div>
+    <div class="campo campo-columna">
+        <label>Permitir ver resultados en vivo*:</label>
+        <select @bind="verRes">
+            <option value="1">Sí</option>
+            <option value="0">No</option>
+        </select>
+    </div>
     <div class="campo">
         <label>Número de proyectos votables*:</label>
         <input type="number" @bind="numProy" min="1" />
@@ -224,6 +231,7 @@
     private Votify.Core.Entities.Evento? evento;
     private Guid idUsuario;
     private bool cargado = false;
+    private int verRes = 1;
 
     private string busquedaUsuario = "";
 
@@ -370,6 +378,7 @@
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion,
                 Num_Proy = numProy,
+                VerRes = verRes==1,
                 EstadoVotacion= EstadoVotacion.Cerrada,
                 Jurados = juradoSeleccionado.Select(u => u.Id).ToList(),
                 Criterios = criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
