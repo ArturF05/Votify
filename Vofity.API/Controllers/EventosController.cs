@@ -15,19 +15,28 @@ namespace Votify.API.Controllers
         private readonly IEvento eventoService;
         private readonly IVotacion votacionService;
         private readonly AppDbContext context;
+        private readonly IAzureStorage azureStorage;
 
-        public EventosController(IEvento eventoService, IVotacion votacionService, AppDbContext context)
+        public EventosController(IEvento eventoService, IVotacion votacionService, AppDbContext context, IAzureStorage azureStorage)
         {
             this.eventoService = eventoService;
             this.votacionService = votacionService;
             this.context = context;
+            this.azureStorage = azureStorage;
         }
 
         [HttpPost]
         public async Task<IActionResult> CrearEvento([FromBody] CrearEventoDTOs dto)
         {
             using var transaccion = await context.Database.BeginTransactionAsync();
+            string? imagenUrl = null;
 
+            if (dto.ImagenBytes != null && !string.IsNullOrEmpty(dto.ImagenNombre))
+            {
+                using var ms = new MemoryStream(dto.ImagenBytes);
+
+                imagenUrl = await azureStorage.SubirArchivoAsync(ms, dto.ImagenNombre);
+            }
             try
             {
                 var evento = await eventoService.CrearEvento(
@@ -37,7 +46,8 @@ namespace Votify.API.Controllers
                     dto.Descripcion,
                     dto.FechaFin,
                     dto.Tipo,
-                    dto.UsuarioCreadorId
+                    dto.UsuarioCreadorId,
+                    imagenUrl
                 );
                 await context.SaveChangesAsync();
                 var criterios = new List<CrearCriterioDTO>();
@@ -71,6 +81,14 @@ namespace Votify.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> EditarEvento(Guid id, [FromBody] CrearEventoDTOs dto)
         {
+            string? imagenUrl = null;
+
+            if (dto.ImagenBytes != null && !string.IsNullOrEmpty(dto.ImagenNombre))
+            {
+                using var ms = new MemoryStream(dto.ImagenBytes);
+
+                imagenUrl = await azureStorage.SubirArchivoAsync(ms, dto.ImagenNombre);
+            }
             try
             {
                 await eventoService.EditarEvento(
@@ -79,7 +97,8 @@ namespace Votify.API.Controllers
                     dto.Id_categoria,
                     dto.FechaInicio,
                     dto.Descripcion,
-                    dto.FechaFin
+                    dto.FechaFin,
+                    imagenUrl
                 );
 
                 return Ok(new { mensaje = "Evento editado correctamente" });
@@ -147,7 +166,8 @@ namespace Votify.API.Controllers
                 var resultado = eventos.Select(e => new EventoListadoDto
                 {
                     Id = e.Id,
-                    Nombre = e.Nombre
+                    Nombre = e.Nombre,
+                    ImagenUrl = e.ImagenUrl
                 }).ToList();
 
                 return Ok(resultado);

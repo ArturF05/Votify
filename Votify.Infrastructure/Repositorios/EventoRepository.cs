@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Votify.Core.Entities;
 using Votify.Core.Interfaces;
+using Votify.Core.Services;
 using Votify.Infrastructure.Data;
 
 

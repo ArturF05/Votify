@@ -13,5 +13,7 @@ namespace Votify.API.DTOs
         public string Tipo { get; set; }
         public List<CrearVotacionDTOs> dTOsVotacion { get; set; }
         public Guid UsuarioCreadorId { get; set; }
+        public byte[]? ImagenBytes { get; set; }
+        public string? ImagenNombre { get; set; }
     }
 }

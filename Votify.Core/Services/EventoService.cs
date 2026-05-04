@@ -25,7 +25,7 @@ namespace Votify.Core.Services
         {
             return await eventoRepository.BuscarPorNombreAsync(nombre, Id_Categoria, idUsuario);
         }
-        public async Task<Evento> CrearEvento(string titulo, Guid categoriaId, DateTime fechaInicio, string descripcion, DateTime fechaFin,string tipo, Guid usuarioId)
+        public async Task<Evento> CrearEvento(string titulo, Guid categoriaId, DateTime fechaInicio, string descripcion, DateTime fechaFin,string tipo, Guid usuarioId, string? imagenUrl)
         {
             if (string.IsNullOrWhiteSpace(titulo))
                 throw new Exception("El título es obligatorio");
@@ -34,7 +34,7 @@ namespace Votify.Core.Services
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
 
             Evento nuevoEvento = eventoFactory.CreateEvento(tipo, titulo, descripcion, fechaInicio, fechaFin, categoriaId);
-
+            nuevoEvento.ImagenUrl = imagenUrl;
             var aux = await eventoRepository.CrearEventoAsync(nuevoEvento);
             await eventoRepository.AsignarOrganizadorAsync(nuevoEvento.Id, usuarioId);
             return aux;
@@ -42,7 +42,7 @@ namespace Votify.Core.Services
 
         }
 
-        public async Task EditarEvento(Guid eventoId, string titulo, Guid categoriaId, DateTime fechaInicio, string descripcion, DateTime fechaFin)
+        public async Task EditarEvento(Guid eventoId, string titulo, Guid categoriaId, DateTime fechaInicio, string descripcion, DateTime fechaFin, string? imagenUrl)
         {
             var evento = await eventoRepository.ObtenerEventoPorIdAsync(eventoId);
 
@@ -60,6 +60,7 @@ namespace Votify.Core.Services
             evento.Descripcion = descripcion;
             evento.FechaInicio = DateTime.SpecifyKind(fechaInicio, DateTimeKind.Utc);
             evento.FechaFin = DateTime.SpecifyKind(fechaFin, DateTimeKind.Utc);
+            evento.ImagenUrl = imagenUrl;
 
             await eventoRepository.EditarEventoAsync(evento);
         }

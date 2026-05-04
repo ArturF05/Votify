@@ -30,7 +30,15 @@
             <label>Nombre*:</label>
             <input type="text" class="input-ancho" @bind="nombre" placeholder="Nombre del evento..." />
         </div>
+        <div class="campo campo-columna">
+            <label>Imagen del evento:</label>
+            <InputFile OnChange="OnImagenSeleccionada" accept=".jpg,.jpeg,.png" />
 
+            @if (imagenBytes != null)
+            {
+                <p>Imagen lista: @imagenNombre</p>
+            }
+        </div>
         <div class="form-grid">
             <div class="campo campo-columna">
                 <label>Categoría*:</label>
@@ -168,6 +176,8 @@
     List<Votify.Core.Entities.Evento> eventos = new();
     private Guid idUsuario;
     private Votify.Core.Entities.Usuario? usuarioActual;
+    private byte[]? imagenBytes;
+    private string? imagenNombre;
 
     protected override async Task OnInitializedAsync()
     {
@@ -233,7 +243,34 @@
         votaciones[i].PermiteComentarios = nuevoValor;
         if (nuevoValor == 0) votaciones[i].ComentariosObligatorios = 0;
     }
+    private async Task OnImagenSeleccionada(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        const long max = 5 * 1024 * 1024;
 
+        if (file.Size > max)
+        {
+            mensaje = "Imagen demasiado grande";
+            return;
+        }
+
+        var ext = Path.GetExtension(file.Name).ToLower();
+        var permitidas = new[] { ".jpg", ".jpeg", ".png" };
+
+        if (!permitidas.Contains(ext))
+        {
+            mensaje = "Formato no permitido";
+            return;
+        }
+
+        imagenNombre = file.Name;
+
+        using var stream = file.OpenReadStream(max);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+
+        imagenBytes = ms.ToArray();
+    }
     private async Task GuardarEvento()
     {
         try
@@ -340,7 +377,9 @@
                 FechaFin = fin.ToUniversalTime(),
                 Tipo = tipo,
                 dTOsVotacion = crearVotacionDTOs,
-                UsuarioCreadorId = usuarioActual.Id
+                UsuarioCreadorId = usuarioActual.Id,
+                ImagenBytes = imagenBytes,
+                ImagenNombre = imagenNombre
             };
 
             var responseEvento = await Http.PostAsJsonAsync("api/eventos", dto);

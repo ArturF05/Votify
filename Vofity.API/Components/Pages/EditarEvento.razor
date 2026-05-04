@@ -3,6 +3,7 @@
 @using Microsoft.EntityFrameworkCore
 @using System.Net.Http.Json
 @using Votify.Core.Entities
+@using Votify.Core.Services
 @using Votify.Infrastructure.Data
 @using Votify.API.DTOs
 @using EventoEntidad = Votify.Core.Entities.Evento
@@ -10,6 +11,7 @@
 @inject AppDbContext contexto
 @inject IJSRuntime JS
 @inject HttpClient Http
+@inject AzureStorageService azureStorageService
 
 <div class="editar-evento-page">
     <div class="page-header">
@@ -40,7 +42,6 @@
                     }
                 </select>
             </div>
-
             <div class="campo campo-columna">
                 <label>Fecha de inicio*:</label>
                 <input type="datetime-local" @bind="inicio" />
@@ -54,6 +55,30 @@
             <div class="campo campo-columna">
                 <label>Fecha de cierre*:</label>
                 <input type="datetime-local" @bind="fin" />
+            </div>
+            <div class="campo campo-columna">
+                <label>Imagen del evento:</label>
+                <InputFile OnChange="OnImagenSeleccionada" accept=".jpg,.jpeg,.png" />
+                @if (imagenBytes != null)
+                {
+                    <p>Nueva imagen: @imagenNombre</p>
+                }
+            </div>
+            <div class="campo campo-columna">
+                <label>Imagen antigua:</label>
+                @if (evento != null && !string.IsNullOrEmpty(evento.ImagenUrl))
+                {
+                    <img src="@GetProxyUrl(evento.ImagenUrl)" class="img" />
+                }
+                else
+                {
+                    <label class="labelNI">El evento no tenía imagen</label>
+                }
+                <label>Imagen nueva:</label>
+                @if (imagenNueva != null)
+                {
+                    <img src="@(imagenNueva)" class="img" />
+                }
             </div>
         </div>
 
@@ -88,9 +113,11 @@
     private string mensaje = "";
     private string mensaje2 = "";
     private string tipo = "Hackaton";
-
+    private byte[]? imagenBytes;
+    private string? imagenNombre;
     List<Categoria> categorias = new();
-
+    private string GetProxyUrl(string url) => $"/api/miniaturas/from-url?url={Uri.EscapeDataString(url)}";
+    private string? imagenNueva;
     [Parameter]
     public Guid id { get; set; }
 
@@ -151,6 +178,7 @@
 
         if (response.IsSuccessStatusCode)
         {
+            await azureStorageService.EliminarArchivoAsync(evento.ImagenUrl);
             nav.NavigateTo("/Evento");
         }
         else
@@ -173,7 +201,35 @@
         else
             tipo = "Hackathon";
     }
+    private async Task OnImagenSeleccionada(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        const long max = 5 * 1024 * 1024;
 
+        if (file.Size > max)
+        {
+            mensaje = "Imagen demasiado grande";
+            return;
+        }
+
+        var ext = Path.GetExtension(file.Name).ToLower();
+        var permitidas = new[] { ".jpg", ".jpeg", ".png" };
+
+        if (!permitidas.Contains(ext))
+        {
+            mensaje = "Formato no permitido";
+            return;
+        }
+
+        imagenNombre = file.Name;
+
+        using var stream = file.OpenReadStream(max);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+
+        imagenBytes = ms.ToArray();
+        imagenNueva = $"data:image/png;base64,{Convert.ToBase64String(imagenBytes)}";
+    }
     private async Task GuardarEvento()
     {
         if (evento == null)
@@ -215,13 +271,20 @@
                 Descripcion = descripcion,
                 FechaFin = fin,
                 Tipo = tipo,
-                dTOsVotacion = new List<CrearVotacionDTOs>()
+                dTOsVotacion = new List<CrearVotacionDTOs>(),
+                ImagenBytes = imagenBytes,
+                ImagenNombre = imagenNombre
             };
-
+            bool aux = evento.ImagenUrl == null;
+            string? aux2 = evento.ImagenUrl;
             var response = await Http.PutAsJsonAsync($"api/eventos/{evento.Id}", dto);
 
             if (response.IsSuccessStatusCode)
             {
+                if (imagenBytes != null && !aux)
+                {
+                    await azureStorageService.EliminarArchivoAsync(aux2);
+                }
                 nav.NavigateTo("/Evento");
             }
             else

@@ -40,11 +40,32 @@
 
 .item {
     display: flex;
-    justify-content: space-between;
+    align-items:center;
+    gap: 12px;
     padding: 12px 14px;
     border: 1px solid #eee;
     border-radius: 12px;
     background: #fffdfa;
+}
+.item-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: 12px;
+}
+.item-img {
+    width: 10%;
+    height: 10%;
+    object-fit: cover;
+    display: block;
+    border-radius:10px;
+}
+
+.item-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width:0;
 }
 
 .grid {
@@ -87,9 +108,15 @@
     font-size: 0.85rem;
     color: #6b7280;
 }
-
+.card-img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
 .btn {
-    margin-top: auto;
+    margin-left: auto;
     background: linear-gradient(135deg, #F5A623, #FF8C00);
     color: white;
     border: none;

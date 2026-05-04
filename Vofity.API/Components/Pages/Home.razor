@@ -22,7 +22,15 @@
             @foreach (var evento in eventosParticipando)
             {
                 <div class="item">
-                    <span>@evento.Nombre</span>
+                    <div class="item-left">
+                    @if (!string.IsNullOrEmpty(evento.ImagenUrl))
+                    {
+                        <img src="@GetProxyUrl(evento.ImagenUrl)" class="item-img" />
+                    }
+                    <div class="item-info">
+                        <span class="item-title">@evento.Nombre</span>
+                    </div>
+                    </div>
                     <button class="btn" @onclick='() => Desapuntarse(evento.Id)'>Desapuntarme</button>
                 </div>
             }
@@ -36,9 +44,16 @@
             @foreach (var evento in eventosDisponibles)
             {
                 <div class="card">
+                    @if (!string.IsNullOrEmpty(evento.ImagenUrl))
+                    {
+                        <img src="@GetProxyUrl(evento.ImagenUrl)" class="card-img" />
+                    }
                     <div class="card-title">@evento.Nombre</div>
                     <div class="card-desc">@evento.Descripcion</div>
-                    <div class="card-dates">Inicio: @evento.FechaInicio · Fin: @evento.FechaFin</div>
+                    <div class="card-dates">
+                        <div>Inicio: @evento.FechaInicio</div>
+                        <div>Fin: @evento.FechaFin</div>
+                    </div>
                     <button class="btn" @onclick='() => Apuntarse(evento.Id)'>Apuntarme</button>
                 </div>
             }
@@ -58,7 +73,7 @@
     private string mensaje = "";
     private Guid idUsuario;
     private Votify.Core.Entities.Usuario? usuarioActual;
-
+    private string GetProxyUrl(string url)=> $"/api/miniaturas/from-url?url={Uri.EscapeDataString(url)}";
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;

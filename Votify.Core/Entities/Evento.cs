@@ -27,4 +27,5 @@ public class Evento
     public bool Archivado {  get; set; }
 
     public ICollection<EventoUsuarioRol> EventoUsuarioRoles { get; set; }
+    public string? ImagenUrl { get; set; }
 }

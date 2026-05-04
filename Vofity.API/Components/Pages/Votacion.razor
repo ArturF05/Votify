@@ -30,8 +30,15 @@
             @foreach (var evento in eventos)
             {
                 <button class="evento-card" @onclick="() => irAEvento(evento)" disabled="@(deshabilitar[indice])">
-                    <div class="evento-nombre">@evento.Nombre</div>
-                    <div>@puedeVotar[indice]</div>
+                    @if (!string.IsNullOrEmpty(evento.ImagenUrl))
+                    {
+                        <img src="@GetProxyUrl(evento.ImagenUrl)" class="evento-img" />
+                    }
+                    <div class="evento-body">
+                        <div class="evento-nombre">@evento.Nombre</div>
+                        <div>@puedeVotar[indice]</div>
+                    </div>
+
                 </button>
                 indice++;
             }
@@ -47,7 +54,7 @@
     private Votify.Core.Entities.Usuario usuario;
     private List<string> puedeVotar = new();
     private List<bool> deshabilitar = new();
-
+    private string GetProxyUrl(string url) => $"/api/miniaturas/from-url?url={Uri.EscapeDataString(url)}";
     protected override async Task OnInitializedAsync()
     {
        

@@ -58,7 +58,7 @@ namespace Votify.Core.Services
                 throw new Exception("Ya has votado en esta votación.");
             int numProy = votacion.NumProy;
 
-            if (dto.Votos == null)
+            if (dto.Votos == null || dto.Votos.Count == 0)
                 throw new Exception($"Debes votar hasta {numProy} proyectos.");
             var idsProyectos = dto.Votos.Select(v => v.IdProyecto).ToList();
 
