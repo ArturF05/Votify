@@ -370,6 +370,7 @@
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion,
                 Num_Proy = numProy,
+                EstadoVotacion= EstadoVotacion.Cerrada,
                 Jurados = juradoSeleccionado.Select(u => u.Id).ToList(),
                 Criterios = criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
                 {
