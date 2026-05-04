@@ -365,8 +365,8 @@
     public async Task SetVotacion(Votify.Core.Entities.Votacion votacion)
     {
         Id_evento = votacion.Id_evento;
-        inicioVotacion = votacion.FechaInicio.ToLocalTime();
-        finVotacion = votacion.FechaFin.ToLocalTime();
+        inicioVotacion = UtcFromDbToLocal(votacion.FechaInicio);
+        finVotacion = UtcFromDbToLocal(votacion.FechaFin);
         NumProy = votacion.NumProy;
         permiteAutoVoto = votacion.PermiteAutoVoto ? 1 : 0;
         permiteComentarios = votacion.PermiteComentarios ? 1 : 0;
@@ -406,6 +406,37 @@
         if ((permiteAutoVotoAUX != nuevoValor)) mensaje5 = "Atención, el cambio en permitir autovoto no es retroactivo";
         else mensaje5 = "";
         permiteAutoVoto = nuevoValor;
+    }
+    private static TimeZoneInfo ZonaEspaña()
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("Europe/Madrid");
+        }
+        catch
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time");
+        }
+    }
+
+    private static DateTime UtcFromDbToLocal(DateTime utc)
+    {
+        var zona = ZonaEspaña();
+
+        return TimeZoneInfo.ConvertTimeFromUtc(
+            DateTime.SpecifyKind(utc, DateTimeKind.Utc),
+            zona
+        );
+    }
+
+    private static DateTime LocalInputToUtc(DateTime local)
+    {
+        var zona = ZonaEspaña();
+
+        return TimeZoneInfo.ConvertTimeToUtc(
+            DateTime.SpecifyKind(local, DateTimeKind.Unspecified),
+            zona
+        );
     }
     private void cambioPermiteComentarios(ChangeEventArgs e)
     {
@@ -491,8 +522,8 @@
             var dto = new CrearVotacionDTOs
             {
                 Id_evento = Id_evento,
-                FechaInicio = inicioVotacion.ToUniversalTime(),
-                FechaFin = finVotacion.ToUniversalTime(),
+                FechaInicio = LocalInputToUtc(inicioVotacion),
+                FechaFin = LocalInputToUtc(finVotacion),
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion,
                 Num_Proy = NumProy,

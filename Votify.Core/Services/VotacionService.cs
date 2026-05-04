@@ -242,8 +242,8 @@ namespace Votify.Core.Services
             if (votacionActual.Tipo == tipoVotacion)
             {
                 votacionActual.Id_evento = Id_evento;
-                votacionActual.FechaInicio = DateTime.SpecifyKind(inicioVotacion, DateTimeKind.Local).ToUniversalTime();
-                votacionActual.FechaFin = DateTime.SpecifyKind(finVotacion, DateTimeKind.Local).ToUniversalTime();
+                votacionActual.FechaInicio = DateTime.SpecifyKind(inicioVotacion, DateTimeKind.Utc);
+                votacionActual.FechaFin = DateTime.SpecifyKind(finVotacion, DateTimeKind.Utc);
                 votacionActual.PermiteAutoVoto = permiteAutoVoto;
                 votacionActual.NumProy = NumProy;
                 votacionActual.PermiteComentarios = permiteComentarios;
