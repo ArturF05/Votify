@@ -134,8 +134,45 @@
                 <div class="grupo-botones-votacion">
                     <button type="button" class="boton-votacion" @onclick='() => quitarVotacion(i)' disabled="@(votaciones.Count<=1)">Quitar votación</button>
                 </div>
+
+                <div class="separador-criterios"></div>
+
+                <section class="bloque-criterios">
+                    <h3 class="titulo-criterios">Criterios</h3>
+
+                    <div class="lista-criterios">
+                        @foreach (var c in votaciones[i].Criterios)
+                        {
+                            <div class="criterio-item">
+                                <div class="criterio-texto">
+                                    <span class="criterio-nombre">@c.Nombre</span>
+                                    <span class="criterio-descripcion">@c.Descripcion</span>
+                                </div>
+
+                                <div class="criterio-acciones">
+                                    <span class="criterio-descripcion">Peso (%):</span>
+                                    <input type="text" class="criterio-peso" @bind="c.Peso" />
+                                    <button type="button" class="boton-secundario" @onclick='() => QuitarCriterio(i, c.Id)'>Quitar</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div><label style="color:black">@mensajeNoCriterio</label></div>
+
+                    <div class="criterio-formulario">
+                        <input type="text" placeholder="Nombre" @bind="nombreCriterio" class="input-criterio" />
+                        <input type="text" placeholder="Descripción" @bind="descripcionCriterio" class="input-criterio" />
+                        <button type="button" class="boton-principal" @onclick="() => GuardarCriterio(i)">Añadir</button>
+                    </div>
+
+                    <div>
+                        <div><label style="color:red">@mensajeErrorCriterio</label></div>
+                    </div>
+
+                </section>
             }
-            <div class="grupo-botones-votacion">
+            <div class="grupo-botones-votacion boton-add-votacion-wrapper">
                 <button type="button" class="boton-votacion" @onclick="otraVotacion" disabled="@(votaciones.Count >= 3)">Añadir votación</button>
             </div>
 
@@ -171,9 +208,15 @@
     private string descripcion = "";
     private string mensaje = "";
     private string mensaje2 = "";
+    private string mensajeErrorCriterio = "";
+    private string mensajeNoCriterio = "";
+    private string nombreCriterio = "";
+    private string descripcionCriterio = "";
+    private int pesoCriterio = 0;
     private string tipo = "Hackathon";
     List<Categoria> categorias = new();
     List<Votify.Core.Entities.Evento> eventos = new();
+    List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
     private Guid idUsuario;
     private Votify.Core.Entities.Usuario? usuarioActual;
     private byte[]? imagenBytes;
@@ -350,7 +393,19 @@
                     return;
                 }
                 if (votaciones[i].PermiteComentarios == 0) votaciones[i].ComentariosObligatorios = 0;
+                if (!votaciones[i].Criterios.Any())
+                {
+                    mensajeErrorCriterio = $"La votación {i + 1} debe tener al menos un criterio";
+                    return;
+                }
+
+                if (votaciones[i].Criterios.Sum(c => c.Peso) != 100)
+                {
+                    mensajeErrorCriterio = $"La suma de los pesos de la votación {i + 1} debe ser 100";
+                    return;
+                }
             }
+            
             List<CrearVotacionDTOs> crearVotacionDTOs = new();
             for (int i = 0; i < votaciones.Count; i++)
             {
@@ -363,7 +418,14 @@
                     Num_Proy = votaciones[i].NumProy,
                     EstadoVotacion = EstadoVotacion.Cerrada,
                     PermiteComentarios = votaciones[i].PermiteComentarios == 1,
-                    ComentariosObligatorios = votaciones[i].ComentariosObligatorios == 1
+                    ComentariosObligatorios = votaciones[i].ComentariosObligatorios == 1,
+                    Criterios = votaciones[i].Criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
+                    {
+                        Id = c.Id,
+                        Nombre = c.Nombre,
+                        Descripcion = c.Descripcion,
+                        Peso = c.Peso
+                    }).ToList(),
 
                 };
                 crearVotacionDTOs.Add(dtoVotacion);
@@ -401,6 +463,48 @@
             mensaje = $"Error: {ex.Message}";
         }
     }
+
+    private void GuardarCriterio(int indexVotacion)
+    {
+        if (nombreCriterio == "")
+        {
+            mensajeErrorCriterio = "No se puede añadir el criterio: Debes asignar un nombre al criterio";
+            return;
+        }
+
+        if (descripcionCriterio == "")
+        {
+            mensajeErrorCriterio = "No se puede añadir el criterio: Debes asignar una descripción al criterio";
+            return;
+        }
+
+        if (votaciones[indexVotacion].Criterios.Any(c => c.Nombre == nombreCriterio))
+        {
+            mensajeErrorCriterio = "No se puede añadir el criterio: Ya existe un criterio con ese nombre en esta votación";
+            return;
+        }
+
+        votaciones[indexVotacion].Criterios.Add(new DimensionesDeValor
+            {
+                Id = Guid.NewGuid(),
+                Id_votacion = Guid.Empty,
+                Nombre = nombreCriterio,
+                Descripcion = descripcionCriterio,
+                Peso = 0
+            });
+
+        nombreCriterio = "";
+        descripcionCriterio = "";
+        mensajeErrorCriterio = "";
+        mensajeNoCriterio = "";
+        pesoCriterio = 0;
+    }
+
+    private void QuitarCriterio(int indexVotacion, Guid idCriterio)
+    {
+        votaciones[indexVotacion].Criterios.RemoveAll(c => c.Id == idCriterio);
+    }
+
     class VotacionForm
     {
         public TipoVotacion Tipo { get; set; }
@@ -409,6 +513,7 @@
         public int PermiteAutoVoto { get; set; }
         public int PermiteComentarios { get; set; }
         public int ComentariosObligatorios { get; set; }
-        public int NumProy { get; set; } = 1; 
+        public int NumProy { get; set; } = 1;
+        public List<DimensionesDeValor> Criterios { get; set; } = new();
     }
 }
