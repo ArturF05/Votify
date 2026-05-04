@@ -121,9 +121,9 @@ namespace Votify.Core.Tests.Votacion
                     0,
                     true,
                     true,
+                    true,
                     jurados,
                     EstadoVotacion.Abierta,
-                    true,
                     dtos
                 )
             );

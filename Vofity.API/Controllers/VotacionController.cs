@@ -72,9 +72,9 @@ namespace Votify.API.Controllers
                     dto.Num_Proy,
                     dto.PermiteComentarios,
                     dto.ComentariosObligatorios,
+                    dto.VerRes,
                     dto.Jurados,
                     dto.EstadoVotacion,
-                    dto.VerRes,
                     dto.Criterios
                 );
                 await context.SaveChangesAsync();
@@ -109,8 +109,8 @@ namespace Votify.API.Controllers
                     dto.Num_Proy,
                     dto.PermiteComentarios,
                     dto.ComentariosObligatorios,
-                    dto.Jurados,
                     dto.VerRes,
+                    dto.Jurados,
                     dto.EstadoVotacion
 
                 );

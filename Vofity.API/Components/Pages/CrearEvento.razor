@@ -280,9 +280,8 @@
             PermiteAutoVoto = 1,
             NumProy = 1,
             PermiteComentarios = 1,
-            ComentariosObligatorios = 0
+            ComentariosObligatorios = 0,
             VerRes=1,
-            PermiteAutoVoto = 1
         });
     }
     private void quitarVotacion(int numeroVotacion)
@@ -436,8 +435,7 @@
                         Peso = c.Peso
                     }).ToList(),
 
-                    VerRes = votaciones[i].VerRes==1,
-                    EstadoVotacion = EstadoVotacion.Cerrada
+                    VerRes = votaciones[i].VerRes==1
 
                 };
                 crearVotacionDTOs.Add(dtoVotacion);
