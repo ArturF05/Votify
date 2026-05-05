@@ -16,7 +16,7 @@
 @inject IVotacion VotacionService
 @inject UsuarioSesion usuarioSesion
 
-    
+
 <style>
     ﻿.votacion-evento-page {
         width: 100%;
@@ -141,6 +141,60 @@
         font-weight: 700;
         color: #1a1a1a;
         line-height: 1.35;
+    }
+
+    .materiales-proyecto {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-top: 0.85rem;
+    }
+
+    .material-link {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        border: 1px solid #e7d7c8;
+        border-radius: 10px;
+        background: #fffaf4;
+        color: #7a4b12;
+        padding: 0.5rem 0.65rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-decoration: none;
+        line-height: 1.15;
+        transition: all 0.2s ease;
+    }
+
+        .material-link:hover {
+            background: #f28c28;
+            border-color: #f28c28;
+            color: white;
+        }
+
+    .material-texto {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .material-imagen {
+        background: #f0f9ff;
+        border-color: #bae6fd;
+        color: #0369a1;
+    }
+
+    .material-video {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #b91c1c;
+    }
+
+    .material-enlace {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
     }
 
     .acciones {
@@ -344,18 +398,38 @@
                     <div class="proyecto-top">
                         <button class="boton-favorito" @onclick="() => Favorito(proyecto.Id)" disabled="@yaVoto">
                             <img src="@(proyectosSeleccionados.Contains(proyecto.Id)
-                                ? "/EsFavorito.jpg"
-                                : "/Estrella.png")"
-                                 alt="Símbolo Favorito"
-                                 class="estrella-img" />
-                        </button>
-                    </div>
+                                                                 ? "/EsFavorito.jpg"
+                                                                 : "/Estrella.png")"
+                         alt="Símbolo Favorito"
+                         class="estrella-img" />
+                </button>
+            </div>
 
                     <div class="proyecto-header">
                         <div class="proyecto-nombre">@proyecto.Titulo</div>
                     </div>
 
-                    @if (proyectosSeleccionados.Contains(proyecto.Id))
+                    @if (proyecto.Materiales?.Any() == true)
+                    {
+                        <div class="materiales-proyecto">
+                            @foreach (var material in proyecto.Materiales)
+                            {
+                                var materialUrl = GetMaterialUrl(material);
+                                if (!string.IsNullOrWhiteSpace(materialUrl))
+                                {
+                                    <a class="material-link @GetMaterialClass(material.Tipo)"
+                                       href="@materialUrl"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       title="@material.Nombre">
+                                        <span class="material-texto">@GetMaterialLabel(material)</span>
+                                    </a>
+                                }
+                            }
+                        </div>
+                    }
+
+            @if (proyectosSeleccionados.Contains(proyecto.Id))
                     {
                         <div class="criterios-proyecto">
                             <hr class="linea-criterios" />
@@ -365,12 +439,12 @@
                                 <div class="criterio-fila">
                                     <div class="criterio-voto-contenido">
                                         <span class="criterio-nombre-voto">@criterio.Nombre</span>
-                                        @if (votacion!= null && votacion.PermiteComentarios)
+                                        @if (votacion != null && votacion.PermiteComentarios)
                                         {
                                             <textarea @bind="comentariosPorCriterio[proyecto.Id][criterio.Id]"
                                                       placeholder="@(yaVoto ? "" : "Comentario sobre este criterio...")"
-                                                          class="textarea-comentario">
-                                            </textarea>
+                                                      class="textarea-comentario">
+                                                                </textarea>
                                         }
                                     </div>
 
@@ -411,7 +485,7 @@
     }
 </div>
 
-@code{
+@code {
     private Votify.Core.Entities.Evento? evento;
     [Parameter]
     public Guid id { get; set; }
@@ -430,7 +504,17 @@
 
     protected override async Task OnInitializedAsync()
     {
-        evento = await contexto.Evento.Include(e => e.Proyectos).FirstOrDefaultAsync(e => e.Id == id);
+        evento = await contexto.Evento
+            .Include(e => e.Proyectos)
+                .ThenInclude(p => p.Materiales)
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (evento == null)
+        {
+            mensaje = "No se ha encontrado el evento.";
+            return;
+        }
+
         votacion = await contexto.Votacion
     .FirstOrDefaultAsync(vot =>
         vot.Id_evento == evento.Id &&
@@ -441,11 +525,6 @@
             NumProy = votacion.NumProy;
             idVotacion = votacion.Id;
             mensaje = $"Puedes votar hasta {NumProy} proyectos";
-        }
-        if (evento == null)
-        {
-            mensaje = "No se ha encontrado el evento.";
-            return;
         }
 
         criterios = await contexto.DimensionesDeValor.Where(d => d.Id_votacion == votacion.Id).ToListAsync();
@@ -585,7 +664,7 @@
                     mensaje = $"Falta la puntuación del criterio {criterio.Nombre} en uno de los proyectos.";
                     return;
                 }
-                if (puntuacionesPorProyecto[idProyecto][criterio.Id] >10 || puntuacionesPorProyecto[idProyecto][criterio.Id]<0)
+                if (puntuacionesPorProyecto[idProyecto][criterio.Id] > 10 || puntuacionesPorProyecto[idProyecto][criterio.Id] < 0)
                 {
                     mensaje = $"La puntuación en los criterios debe estar entre 0 y 10, el criterio {criterio.Nombre} no lo cumple";
                     return;
@@ -616,7 +695,7 @@
                 {
                     IdCriterio = c.Id,
                     Nota = puntuacionesPorProyecto[idProyecto][c.Id],
-                    Comentario = votacion.PermiteComentarios? comentariosPorCriterio[idProyecto][c.Id]: null
+                    Comentario = votacion.PermiteComentarios ? comentariosPorCriterio[idProyecto][c.Id] : null
                 }).ToList()
             }).ToList(),
             IdEvento = evento.Id
@@ -668,4 +747,40 @@
 
         puntuacionesPorProyecto[idProyecto][idCriterio] = valor;
     }
+
+    private string GetProxyUrl(string url) => $"/api/miniaturas/from-url?url={Uri.EscapeDataString(url)}";
+
+    private string GetMaterialUrl(Material material)
+    {
+        if (string.IsNullOrWhiteSpace(material.Url))
+            return string.Empty;
+
+        return material.Tipo == "Imagen"
+            ? GetProxyUrl(material.Url)
+            : material.Url;
+    }
+
+    private static string GetMaterialLabel(Material material)
+    {
+        var prefijo = material.Tipo switch
+        {
+            "Imagen" => "Imagen",
+            "Video" => "Video",
+            "Enlace" => "Enlace",
+            "Archivo" => "Archivo",
+            _ => "Material"
+        };
+
+        return string.IsNullOrWhiteSpace(material.Nombre)
+            ? prefijo
+            : $"{prefijo}: {material.Nombre}";
+    }
+
+    private static string GetMaterialClass(string tipo) => tipo switch
+    {
+        "Imagen" => "material-imagen",
+        "Video" => "material-video",
+        "Enlace" => "material-enlace",
+        _ => "material-archivo"
+    };
 }
