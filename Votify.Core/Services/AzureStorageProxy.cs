@@ -19,7 +19,7 @@ namespace Votify.Core.Services
 
             var extensionesPermitidas = new[]
             {
-                ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx", ".zip", ".pptx", ".ppt"
+                ".jpg", ".jpeg", ".png", ".txt", ".pdf", ".doc", ".docx", ".zip", ".pptx", ".ppt"
             };
 
             var ext = Path.GetExtension(nombreArchivo).ToLower();
