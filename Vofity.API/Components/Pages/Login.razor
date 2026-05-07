@@ -18,7 +18,7 @@
             <div class="logo-container">
                 <img src="/Images/Logo.png" alt="Votify Logo" class="logo-img" />
             </div>
-            
+
             <p class="login-subtitle">Tu voz, tu voto, tu decisión</p>
         </div>
 
@@ -48,7 +48,7 @@
             <button type="submit" class="btn-primary" disabled="@isLoading">
                 @if (isLoading)
                 {
-                    
+
                     <span class="spinner"></span>
                     <span>Verificando...</span>
                 }
@@ -81,14 +81,14 @@
             mensaje = "";
             StateHasChanged();
 
-            
+
             var loginCorrecto = await LoginWindow.ValidarUsuarioAsync(modelo.Usuario, modelo.Password);
 
+            loginExitoso = loginCorrecto;
             if (loginCorrecto)
             {
 
                 mensaje = "¡Login correcto!";
-                loginExitoso = true;
                 await sessionStorage.SetAsync("IdUsuario", usuarioSesion.IdUsuario);
                 await sessionStorage.SetAsync("NombreUsuario", usuarioSesion.NombreUsuario);
                 await sessionStorage.SetAsync("Rol", usuarioSesion.Rol);
@@ -99,7 +99,6 @@
             else
             {
                 mensaje = "Usuario o contraseña incorrectos";
-                loginExitoso = false;
             }
         }
         catch (Exception ex)

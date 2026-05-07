@@ -304,13 +304,10 @@
         hayCambios = true;
         if (string.IsNullOrWhiteSpace(nuevoNombre)) { mensajeError = "El nombre es obligatorio"; return; }
 
-        if (nuevoTipo == "Imagen" || nuevoTipo == "Archivo")
+        if ((nuevoTipo == "Imagen" || nuevoTipo == "Archivo") && archivoBytes == null)
         {
-            if (archivoBytes == null)
-            {
-                mensajeError = "Debes seleccionar un archivo";
-                return;
-            }
+            mensajeError = "Debes seleccionar un archivo";
+            return;
         }
         else // Enlace
         {

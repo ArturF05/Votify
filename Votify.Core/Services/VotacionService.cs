@@ -97,28 +97,15 @@ namespace Votify.Core.Services
                 eur.Any(e => e.Rol.Nombre == "Publico" || e.Rol.Nombre == "Participante");
 
             bool esJuradoAsignado = eur.Any(e => e.Rol.Nombre == "Jurado");
-            if (votacion is VotacionPublico)
-            {
-                if (!esPublico)
-                {
-                    throw new Exception("Solo usuarios públicos pueden votar en este evento.");
-                }
-            }
-            else if (votacion is VotacionJurado)
-            {
 
-                if (!esJuradoAsignado)
-                {
-                    throw new Exception("Solo el jurado asignado puede votar.");
-                }
-            }
-            else if (votacion is VotacionMixta)
-            {
-                if (!esPublico && !esJuradoAsignado)
-                {
-                    throw new Exception("Solo usuarios públicos, participantes o jurado asignado pueden votar en este evento.");
-                }
-            }
+            if (votacion is VotacionPublico && !esPublico)
+                throw new Exception("Solo usuarios públicos pueden votar en este evento.");
+
+            if (votacion is VotacionJurado && !esJuradoAsignado)
+                throw new Exception("Solo el jurado asignado puede votar.");
+
+            if (votacion is VotacionMixta && !esPublico && !esJuradoAsignado)
+                throw new Exception("Solo usuarios públicos, participantes o jurado asignado pueden votar en este evento.");
 
             var criterios = await dimensionRepository.ObtenerCriterioPorVotacionAsync(idVotacion);
 
