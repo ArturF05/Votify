@@ -18,8 +18,7 @@ namespace Vofity.API.Controllers
         [HttpGet]
         public async Task<IActionResult> ObtenerCategorias()
         {
-            var categorias = await contexto.Categoria.ToListAsync();
-            return Ok(categorias);
+            return Ok(await contexto.Categoria.ToListAsync());
         }
     }
 }

@@ -49,8 +49,7 @@ namespace Votify.API.Controllers
         {
             try
             {
-                var votaciones = await votacionService.BuscarVotacion(id_evento, tipoVotacion, permiteAutoVoto, verFinalizadas);
-                return Ok(votaciones);
+                return Ok(await votacionService.BuscarVotacion(id_evento, tipoVotacion, permiteAutoVoto, verFinalizadas));
             }
             catch (Exception ex)
             {

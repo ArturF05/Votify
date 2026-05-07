@@ -36,7 +36,6 @@ public class ProyectoController : ControllerBase
     [HttpGet("{idProyecto}/sintesis-ia")]
     public async Task<ActionResult<SintesisIAResultadoDTO>> GenerarSintesisIA(Guid idProyecto)
     {
-        var resultado = await _proyectoService.GenerarSintesisIA(idProyecto);
-        return Ok(resultado);
+        return Ok(await _proyectoService.GenerarSintesisIA(idProyecto));
     }
 }

@@ -148,8 +148,7 @@ namespace Votify.API.Controllers
             {
                 nombre ??= "";
                 var categoria = idCategoria;
-                var eventos = await eventoService.BuscarEvento(nombre, idCategoria, idUsuario);
-                return Ok(eventos);
+                return Ok(await eventoService.BuscarEvento(nombre, idCategoria, idUsuario));
             }
             catch (Exception ex)
             {
@@ -201,8 +200,7 @@ namespace Votify.API.Controllers
         {
             try
             {
-                var resultado = await eventoService.ObtenerDashboardEventoAsync(id);
-                return Ok(resultado);
+                return Ok(await eventoService.ObtenerDashboardEventoAsync(id));
             }
             catch (Exception ex)
             {
