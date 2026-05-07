@@ -20,6 +20,9 @@ namespace Votify.Core.Services
         private readonly IDimensionRepository dimensionRepository;
         private readonly VotacionFactory votacionFactory;
 
+        private const decimal PUNTUACION_DEFECTO = 1m;
+        private const decimal PORCENTAJE_TOTAL = 100m;
+
         public VotacionService(IVotacionRepository votacionRepository, IVotoRepository votoRepository, IProyectoRepository proyectoRepository, IDimensionRepository dimensionRepository, IUsuarioRepository usuarioRepository , IEventoUsuarioRolRepository eventoUsuarioRolRepository)
         {
             this.votacionRepository = votacionRepository;
@@ -136,7 +139,7 @@ namespace Votify.Core.Services
 
                 if (v.Puntuaciones == null || !v.Puntuaciones.Any())
                 {
-                    puntuacionTotal = 1m;
+                    puntuacionTotal = PUNTUACION_DEFECTO;
                 } 
                 else
                 {
@@ -149,7 +152,7 @@ namespace Votify.Core.Services
                             throw new Exception("Falta la puntuación de algún criterio.");
                         if (votacion.PermiteComentarios && votacion.ComentariosObligatorios && (string.IsNullOrEmpty(puntuacion.Comentario) || string.IsNullOrWhiteSpace(puntuacion.Comentario)))
                             throw new Exception("En esta votación, es obligatorio incluir un comentario por cada criterio en cada voto");
-                        puntuacionTotal += puntuacion.Nota * (criterio.Peso / 100m);
+                        puntuacionTotal += puntuacion.Nota * (criterio.Peso / PORCENTAJE_TOTAL);
                         voto.VotosCriterio.Add(new VotoCriterio
                         {
                             Id = Guid.NewGuid(),
