@@ -106,10 +106,7 @@ namespace Votify.Core.Tests.Votacion
                 }
             };
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3, true, true,true, jurados,EstadoVotacion.Abierta);
-
-            
-
+            await votacionService.EditarVotacion(idVotacion, idEvento, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3, true, true, true, jurados, EstadoVotacion.Abierta);
             await votacionService.EditarVotacion(idVotacion, idEvento, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3, true, true,true, jurados, EstadoVotacion.Abierta);
 
             var resultados = await context.DimensionesDeValor.Where(d => d.Id_votacion == idVotacion).ToListAsync();
@@ -272,7 +269,7 @@ namespace Votify.Core.Tests.Votacion
         }
 
         [TestMethod]
-        public async Task DashboardUsuario_CalculaPuntuacionGlobal_MediasPorCriterio_YNumeroDeVotos()
+        public async Task DashboardUsuario_CalculaPuntuacion_MediasCriterio_NumeroVotos()
         {
             var idUsuarioEvaluado = Guid.NewGuid();
             var idVotacion = Guid.NewGuid();
