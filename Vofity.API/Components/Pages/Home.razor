@@ -91,8 +91,9 @@
                 return;
             }
 
-
-            if (!resultado.Success || resultado.Value == Guid.Empty)
+            bool resSuccess = !resultado.Success;
+            bool resIsEmpty = resultado.Value == Guid.Empty;
+            if (resSuccess || resIsEmpty)
             {
                 nav.NavigateTo("/Login");
                 return;
@@ -158,15 +159,16 @@
             Console.WriteLine($"Fin: {votacion.FechaFin}");
             Console.WriteLine($"Ahora: {ahora}");
 
-            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
-                 votacion.EstadoVotacion == EstadoVotacion.Pausada ||
-                 votacion.EstadoVotacion == EstadoVotacion.Cerrada) &&
-                votacion.FechaFin <= ahora)
+            bool votacionIsAbierta = votacion.EstadoVotacion == EstadoVotacion.Abierta;
+            bool votacionIsPausada = votacion.EstadoVotacion == EstadoVotacion.Pausada;
+            bool votacionIsCerrada = votacion.EstadoVotacion == EstadoVotacion.Cerrada;
+            bool isEndDateAfterNow = votacion.FechaFin <= ahora;
+            bool isIniDateBeforeNow = votacion.FechaInicio <= ahora;
+            if ((votacionIsAbierta || votacionIsPausada || votacionIsCerrada) && isEndDateAfterNow)
             {
                 votacion.EstadoVotacion = EstadoVotacion.Finalizada;
             }
-            else if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
-                     votacion.FechaInicio <= ahora)
+            else if (votacionIsCerrada && isIniDateBeforeNow)
             {
                 votacion.EstadoVotacion = EstadoVotacion.Abierta;
             }

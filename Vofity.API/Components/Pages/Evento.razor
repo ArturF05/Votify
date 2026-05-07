@@ -91,7 +91,9 @@
         try
         {
             resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
-            if (!resultado.Success || resultado.Value == Guid.Empty)
+            bool resSuccess = !resultado.Success;
+            bool resIsEmpty = resultado.Value == Guid.Empty;
+            if (resSuccess || resIsEmpty)
             {
                 nav.NavigateTo("/Login");
                 return;
