@@ -361,3 +361,12 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/codex_work/anexo_b_usabilidad/Anexo B - Informe de Usabilidad - completado.docx
+/codex_work/anexo_b_usabilidad/anexo_b_structure.txt
+/codex_work/anexo_b_usabilidad/ejercicio.txt
+/codex_work/anexo_b_usabilidad/practica3.txt
+/docs/adr
+/docs/adr/ADR-004-usar-gemini-para-sintesis-de-comentarios.md
+/docs/adr/ADR-005-definir-contrato-json-para-sintesis-ia.md
+/docs/adr/ADR-006-encapsular-sintesis-ia-en-servicio-de-proyecto.md
+/docs/adr/ADR-007-modelar-ciclo-de-vida-de-votaciones-con-estados.md
