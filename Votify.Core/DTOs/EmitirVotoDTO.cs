@@ -10,6 +10,7 @@ namespace Votify.Core.DTOs
     public class VotoDetalleDTO
     {
         public Guid IdProyecto { get; set; }
+        public Guid IdCategoriaEvento { get; set; }
 
         public List<PuntuacionCriterioDTO> Puntuaciones { get; set; } = new();
     }
