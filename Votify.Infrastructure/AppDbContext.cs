@@ -86,8 +86,14 @@ public class AppDbContext : DbContext
 
             entity.HasKey(c => c.Id);
 
+            entity.Property(c => c.Id)
+                .HasColumnName("id");
+
             entity.Property(c => c.Id_evento)
-                .HasColumnName("Id_evento");
+                .HasColumnName("id_evento");
+
+            entity.Property(c => c.Nombre)
+                .HasColumnName("nombre");
 
             entity.HasOne(c => c.Evento)
                 .WithMany(e => e.CategoriasEvento)
@@ -99,13 +105,13 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("DimensionesDeValor");
 
+            entity.Property(d => d.Id_categoria_evento)
+                .HasColumnName("id_categoria_evento");
+
             entity.HasOne(d => d.Votacion)
                 .WithMany(v => v.DimensionesDeValores)
                 .HasForeignKey(d => d.Id_votacion)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            entity.Property(d => d.Id_categoria_evento)
-                .HasColumnName("Id_categoria_evento");
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(d => d.CategoriaEvento)
                 .WithMany(c => c.Criterios)

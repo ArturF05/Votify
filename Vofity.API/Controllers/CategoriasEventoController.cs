@@ -59,63 +59,41 @@ namespace Votify.API.Controllers
             });
         }
 
-        [HttpGet("{idCategoriaEvento:guid}/criterios")]
-        public async Task<IActionResult> ObtenerCriterios(Guid idEvento, Guid idCategoriaEvento)
-        {
-            var categoriaValida = await contexto.CategoriaEvento
-                .AnyAsync(c => c.Id == idCategoriaEvento && c.Id_evento == idEvento);
-
-            if (!categoriaValida)
-                return NotFound(new { mensaje = "La categoría no pertenece al evento." });
-
-            var criterios = await contexto.DimensionesDeValor
-                .Where(c => c.Id_categoria_evento == idCategoriaEvento)
-                .Select(c => new
-                {
-                    c.Id,
-                    c.Nombre,
-                    c.Descripcion,
-                    c.Peso
-                })
-                .ToListAsync();
-
-            return Ok(criterios);
-        }
-
-        [HttpPost("{idCategoriaEvento:guid}/criterios")]
-        public async Task<IActionResult> CrearCriterio(Guid idEvento, Guid idCategoriaEvento, [FromBody] CrearCriterioCategoriaDTO dto)
+        [HttpPut("{idCategoriaEvento:guid}")]
+        public async Task<IActionResult> EditarCategoriaEvento(Guid idEvento, Guid idCategoriaEvento, [FromBody] CrearCategoriaEventoDTO dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Nombre))
-                return BadRequest(new { mensaje = "El nombre del criterio es obligatorio." });
+                return BadRequest(new { mensaje = "El nombre de la categoría es obligatorio." });
 
-            if (dto.Peso <= 0)
-                return BadRequest(new { mensaje = "El peso del criterio debe ser mayor que 0." });
+            var categoria = await contexto.CategoriaEvento
+                .FirstOrDefaultAsync(c => c.Id == idCategoriaEvento && c.Id_evento == idEvento);
 
-            var categoriaValida = await contexto.CategoriaEvento
-                .AnyAsync(c => c.Id == idCategoriaEvento && c.Id_evento == idEvento);
-
-            if (!categoriaValida)
+            if (categoria == null)
                 return NotFound(new { mensaje = "La categoría no pertenece al evento." });
 
-            var criterio = new DimensionesDeValor
-            {
-                Id = Guid.NewGuid(),
-                Id_categoria_evento = idCategoriaEvento,
-                Nombre = dto.Nombre.Trim(),
-                Descripcion = dto.Descripcion?.Trim() ?? "",
-                Peso = dto.Peso
-            };
-
-            await contexto.DimensionesDeValor.AddAsync(criterio);
+            categoria.Nombre = dto.Nombre.Trim();
             await contexto.SaveChangesAsync();
 
-            return Ok(new
-            {
-                criterio.Id,
-                criterio.Nombre,
-                criterio.Descripcion,
-                criterio.Peso
-            });
+            return Ok(new { categoria.Id, categoria.Nombre });
+        }
+
+        [HttpDelete("{idCategoriaEvento:guid}")]
+        public async Task<IActionResult> EliminarCategoriaEvento(Guid idEvento, Guid idCategoriaEvento)
+        {
+            var categoria = await contexto.CategoriaEvento
+                .FirstOrDefaultAsync(c => c.Id == idCategoriaEvento && c.Id_evento == idEvento);
+
+            if (categoria == null)
+                return NotFound(new { mensaje = "La categoría no pertenece al evento." });
+
+            var tieneVotos = await contexto.Voto.AnyAsync(v => v.Id_categoria == idCategoriaEvento);
+            if (tieneVotos)
+                return BadRequest(new { mensaje = "No se puede eliminar una categoría con votos asociados." });
+
+            contexto.CategoriaEvento.Remove(categoria);
+            await contexto.SaveChangesAsync();
+
+            return Ok(new { mensaje = "Categoría eliminada correctamente." });
         }
     }
 }

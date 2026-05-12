@@ -393,7 +393,7 @@
 
         <div class="estado-card">
             <label>Categoría de votación:</label>
-            <select value="@idCategoriaSeleccionada" @onchange="CategoriaSeleccionada" disabled="@yaVoto">
+            <select value="@idCategoriaSeleccionada" @onchange="CategoriaSeleccionada">
                 <option value="@Guid.Empty">Selecciona una categoría</option>
                 @foreach (var categoria in categoriasEvento)
                 {
@@ -546,8 +546,8 @@
             .OrderBy(c => c.Nombre)
             .ToListAsync();
 
-        idCategoriaSeleccionada = categoriasEvento.FirstOrDefault()?.Id ?? Guid.Empty;
-        await CargarCriteriosCategoria();
+        idCategoriaSeleccionada = Guid.Empty;
+        await CargarCriteriosVotacion();
 
         foreach (var proyecto in evento.Proyectos)
         {
@@ -576,16 +576,18 @@
                 idVotante = resultado.Value;
                 usuarioSesion.IdUsuario = resultado.Value;
                 usuario = await contexto.Usuario.Include(u => u.Rol).Include(u => u.ProyectoParticipantes).FirstOrDefaultAsync(u => u.Id == idVotante);
-                yaVoto = await VotacionService.YaVotoAsync(idVotacion, idVotante);
+                yaVoto = await contexto.Voto.AnyAsync(v =>
+                    v.Id_votacion == idVotacion &&
+                    v.Id_votante == idVotante &&
+                    v.Id_categoria == idCategoriaSeleccionada);
 
                 if (yaVoto)
                 {
-                    mensaje = "Ya has votado en este evento.";
+                    mensaje = "Ya has votado en esta categoría.";
                     List<Voto> votos = await VotacionService.ObtenerVotosUsuarioAsync(idVotacion, idVotante);
-                    idCategoriaSeleccionada = votos.FirstOrDefault(v => v.Id_categoria.HasValue)?.Id_categoria ?? idCategoriaSeleccionada;
-                    await CargarCriteriosCategoria();
+                    await CargarCriteriosVotacion();
 
-                    foreach (var voto in votos)
+                    foreach (var voto in votos.Where(v => v.Id_categoria == idCategoriaSeleccionada))
                     {
                         proyectosSeleccionados.Add(voto.Id_proyecto);
 
@@ -617,12 +619,18 @@
             idCategoria = Guid.Empty;
 
         idCategoriaSeleccionada = idCategoria;
-        await CargarCriteriosCategoria();
+        proyectosSeleccionados.Clear();
+        await CargarCriteriosVotacion();
+        yaVoto = idVotante != Guid.Empty && await contexto.Voto.AnyAsync(v =>
+            v.Id_votacion == idVotacion &&
+            v.Id_votante == idVotante &&
+            v.Id_categoria == idCategoriaSeleccionada);
+        mensaje = yaVoto ? "Ya has votado en esta categoría." : $"Puedes votar hasta {NumProy} proyectos";
     }
 
-    private async Task CargarCriteriosCategoria()
+    private async Task CargarCriteriosVotacion()
     {
-        if (idCategoriaSeleccionada == Guid.Empty)
+        if (votacion == null)
         {
             criterios = new();
             return;
@@ -630,7 +638,7 @@
 
         criterios = await contexto.DimensionesDeValor
             .AsNoTracking()
-            .Where(d => d.Id_categoria_evento == idCategoriaSeleccionada)
+            .Where(d => d.Id_votacion == votacion.Id && d.Id_categoria_evento == idCategoriaSeleccionada)
             .OrderBy(d => d.Nombre)
             .ToListAsync();
 

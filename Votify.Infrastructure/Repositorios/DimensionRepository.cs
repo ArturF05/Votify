@@ -24,11 +24,16 @@ namespace Votify.Infrastructure.Repositorios
                 .Where(d => d.Id_votacion == id)
                 .ToListAsync();
         }
-        public async Task<List<DimensionesDeValor>> ObtenerCriteriosPorCategoriaEventoAsync(Guid idCategoriaEvento)
+        public async Task<List<DimensionesDeValor?>> ObtenerCriteriosPorCategoriaEventoAsync(Guid idVotacion, Guid idCategoriaEvento)
         {
             return await contexto.DimensionesDeValor
-                .Where(d => d.Id_categoria_evento == idCategoriaEvento)
+                .Where(d => d.Id_votacion == idVotacion && d.Id_categoria_evento == idCategoriaEvento)
                 .ToListAsync();
+        }
+        public async Task<bool> TieneVotosAsociadosAsync(Guid idCriterio)
+        {
+            return await contexto.VotoCriterio
+                .AnyAsync(vc => vc.Id_criterio == idCriterio);
         }
         public async Task<bool> CategoriaEventoPerteneceAlEventoAsync(Guid idCategoriaEvento, Guid idEvento)
         {

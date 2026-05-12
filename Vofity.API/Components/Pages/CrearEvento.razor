@@ -87,44 +87,39 @@
                     <div class="criterio-item">
                         <div class="criterio-texto">
                             <span class="criterio-nombre">@categoria.Nombre</span>
-                            <span class="criterio-descripcion">@categoria.Criterios.Count criterios</span>
+                            @foreach (var criterio in categoria.Criterios)
+                            {
+                                <span class="criterio-descripcion">@criterio.Nombre - @criterio.Descripcion (@criterio.Peso%)</span>
+                            }
                         </div>
                         <div class="criterio-acciones">
                             <button type="button" class="boton-secundario" @onclick="() => QuitarCategoriaEvento(categoria.Id)">Quitar</button>
                         </div>
                     </div>
 
+                    <div class="criterio-formulario">
+                        <input type="text" placeholder="Nombre criterio" @bind="nombreCriterio" class="input-criterio" />
+                        <input type="text" placeholder="Descripción" @bind="descripcionCriterio" class="input-criterio" />
+                        <button type="button" class="boton-principal" @onclick="() => GuardarCriterioCategoria(categoria.Id)">Añadir criterio</button>
+                    </div>
+
                     <div class="lista-criterios">
-                        @foreach (var c in categoria.Criterios)
+                        @foreach (var criterio in categoria.Criterios)
                         {
                             <div class="criterio-item">
                                 <div class="criterio-texto">
-                                    <span class="criterio-nombre">@c.Nombre</span>
-                                    <span class="criterio-descripcion">@c.Descripcion</span>
+                                    <span class="criterio-nombre">@criterio.Nombre</span>
+                                    <span class="criterio-descripcion">@criterio.Descripcion</span>
                                 </div>
-
                                 <div class="criterio-acciones">
                                     <span class="criterio-descripcion">Peso (%):</span>
-                                    <input type="text" class="criterio-peso" @bind="c.Peso" />
-                                    <button type="button" class="boton-secundario" @onclick="() => QuitarCriterioCategoria(categoria.Id, c.Id)">Quitar</button>
+                                    <input type="text" class="criterio-peso" @bind="criterio.Peso" />
+                                    <button type="button" class="boton-secundario" @onclick="() => QuitarCriterioCategoria(categoria.Id, criterio.Id)">Quitar</button>
                                 </div>
                             </div>
                         }
                     </div>
                 }
-
-                <div class="criterio-formulario">
-                    <select @bind="idCategoriaCriterio" class="input-criterio">
-                        <option value="@Guid.Empty">Categoría</option>
-                        @foreach (var categoria in categoriasEvento)
-                        {
-                            <option value="@categoria.Id">@categoria.Nombre</option>
-                        }
-                    </select>
-                    <input type="text" placeholder="Nombre criterio" @bind="nombreCriterio" class="input-criterio" />
-                    <input type="text" placeholder="Descripción" @bind="descripcionCriterio" class="input-criterio" />
-                    <button type="button" class="boton-principal" @onclick="GuardarCriterioCategoria">Añadir criterio</button>
-                </div>
 
                 <div><label style="color:red">@mensajeErrorCriterio</label></div>
             </section>
@@ -199,6 +194,7 @@
                 <div class="grupo-botones-votacion">
                     <button type="button" class="boton-votacion" @onclick='() => quitarVotacion(i)' disabled="@(votaciones.Count<=1)">Quitar votación</button>
                 </div>
+
             }
             <div class="grupo-botones-votacion boton-add-votacion-wrapper">
                 <button type="button" class="boton-votacion" @onclick="otraVotacion" disabled="@(votaciones.Count >= 3)">Añadir votación</button>
@@ -242,7 +238,6 @@
     private string nombreCriterio = "";
     private string descripcionCriterio = "";
     private int pesoCriterio = 0;
-    private Guid idCategoriaCriterio = Guid.Empty;
     private string tipo = "Hackathon";
     List<Categoria> categorias = new();
     List<CategoriaEventoForm> categoriasEvento = new();
@@ -461,7 +456,16 @@
                     EstadoVotacion = EstadoVotacion.Cerrada,
                     PermiteComentarios = votaciones[i].PermiteComentarios == 1,
                     ComentariosObligatorios = votaciones[i].ComentariosObligatorios == 1,
-                    Criterios = new(),
+                    Criterios = categoriasEvento
+                        .SelectMany(categoria => categoria.Criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
+                        {
+                            Id = Guid.NewGuid(),
+                            IdCategoriaEvento = categoria.Id,
+                            Nombre = c.Nombre,
+                            Descripcion = c.Descripcion,
+                            Peso = c.Peso
+                        }))
+                        .ToList(),
 
                     VerRes = votaciones[i].VerRes==1
 
@@ -480,10 +484,8 @@
                 {
                     Id = categoria.Id,
                     Nombre = categoria.Nombre,
-                    Criterios = categoria.Criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
+                    Criterios = categoria.Criterios.Select(c => new CrearCriterioCategoriaDTO
                     {
-                        Id = c.Id,
-                        IdCategoriaEvento = categoria.Id,
                         Nombre = c.Nombre,
                         Descripcion = c.Descripcion,
                         Peso = c.Peso
@@ -536,7 +538,6 @@
         };
 
         categoriasEvento.Add(nuevaCategoria);
-        idCategoriaCriterio = nuevaCategoria.Id;
         nombreCategoriaEvento = "";
         mensajeErrorCriterio = "";
     }
@@ -544,25 +545,10 @@
     private void QuitarCategoriaEvento(Guid idCategoria)
     {
         categoriasEvento.RemoveAll(c => c.Id == idCategoria);
-        if (idCategoriaCriterio == idCategoria)
-            idCategoriaCriterio = Guid.Empty;
     }
 
-    private void GuardarCriterioCategoria()
+    private void GuardarCriterioCategoria(Guid idCategoria)
     {
-        if (idCategoriaCriterio == Guid.Empty)
-        {
-            mensajeErrorCriterio = "Selecciona la categoría a la que pertenece el criterio";
-            return;
-        }
-
-        var categoria = categoriasEvento.FirstOrDefault(c => c.Id == idCategoriaCriterio);
-        if (categoria == null)
-        {
-            mensajeErrorCriterio = "La categoría seleccionada no existe";
-            return;
-        }
-
         if (nombreCriterio == "")
         {
             mensajeErrorCriterio = "No se puede añadir el criterio: Debes asignar un nombre al criterio";
@@ -575,6 +561,10 @@
             return;
         }
 
+        var categoria = categoriasEvento.FirstOrDefault(c => c.Id == idCategoria);
+        if (categoria == null)
+            return;
+
         if (categoria.Criterios.Any(c => c.Nombre == nombreCriterio))
         {
             mensajeErrorCriterio = "No se puede añadir el criterio: Ya existe un criterio con ese nombre en esta categoría";
@@ -584,8 +574,8 @@
         categoria.Criterios.Add(new DimensionesDeValor
             {
                 Id = Guid.NewGuid(),
-                Id_votacion = null,
-                Id_categoria_evento = categoria.Id,
+                Id_votacion = Guid.Empty,
+                Id_categoria_evento = idCategoria,
                 Nombre = nombreCriterio,
                 Descripcion = descripcionCriterio,
                 Peso = 0
@@ -600,7 +590,8 @@
 
     private void QuitarCriterioCategoria(Guid idCategoria, Guid idCriterio)
     {
-        categoriasEvento.FirstOrDefault(c => c.Id == idCategoria)?.Criterios.RemoveAll(c => c.Id == idCriterio);
+        var categoria = categoriasEvento.FirstOrDefault(c => c.Id == idCategoria);
+        categoria?.Criterios.RemoveAll(c => c.Id == idCriterio);
     }
 
     class CategoriaEventoForm
@@ -620,6 +611,5 @@
         public int PermiteComentarios { get; set; }
         public int ComentariosObligatorios { get; set; }
         public int NumProy { get; set; } = 1;
-        public List<DimensionesDeValor> Criterios { get; set; } = new();
     }
 }

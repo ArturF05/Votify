@@ -82,6 +82,40 @@
             </div>
         </div>
 
+        <div class="separador-criterios"></div>
+
+        <section class="bloque-criterios">
+            <h3 class="titulo-criterios">Categorías de votación del evento</h3>
+
+            <div class="lista-criterios">
+                @foreach (var categoria in categoriasEvento)
+                {
+                    <div class="criterio-item">
+                        <div class="criterio-texto">
+                            <input type="text" class="input-criterio" @bind="categoria.Nombre" />
+                            @if (categoria.TieneVotos)
+                            {
+                                <span class="criterio-descripcion">Tiene votos asociados</span>
+                            }
+                        </div>
+                        <div class="criterio-acciones">
+                            <button type="button"
+                                    class="boton-secundario"
+                                    disabled="@categoria.TieneVotos"
+                                    @onclick="() => QuitarCategoriaEvento(categoria.Id)">
+                                Quitar
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="criterio-formulario">
+                <input type="text" placeholder="Nombre de categoría" @bind="nombreCategoriaEvento" class="input-criterio" />
+                <button type="button" class="boton-principal" @onclick="AnadirCategoriaEvento">Añadir categoría</button>
+            </div>
+        </section>
+
         <div>
             <div><label style="color:red">@mensaje</label></div>
             <div><label style="color:red">@mensaje2</label></div>
@@ -113,9 +147,11 @@
     private string mensaje = "";
     private string mensaje2 = "";
     private string tipo = "Hackaton";
+    private string nombreCategoriaEvento = "";
     private byte[]? imagenBytes;
     private string? imagenNombre;
     List<Categoria> categorias = new();
+    private List<CategoriaEventoForm> categoriasEvento = new();
     private string GetProxyUrl(string url) => $"/api/miniaturas/from-url?url={Uri.EscapeDataString(url)}";
     private string? imagenNueva;
     [Parameter]
@@ -134,6 +170,28 @@
         }
 
         SetEvento(evento);
+        await CargarCategoriasEvento();
+    }
+
+    private async Task CargarCategoriasEvento()
+    {
+        var categoriasDb = await contexto.CategoriaEvento
+            .AsNoTracking()
+            .Where(c => c.Id_evento == id)
+            .OrderBy(c => c.Nombre)
+            .ToListAsync();
+
+        categoriasEvento = new();
+        foreach (var categoria in categoriasDb)
+        {
+            categoriasEvento.Add(new CategoriaEventoForm
+            {
+                Id = categoria.Id,
+                Nombre = categoria.Nombre,
+                EsNueva = false,
+                TieneVotos = await contexto.Voto.AnyAsync(v => v.Id_categoria == categoria.Id)
+            });
+        }
     }
 
     void Cancelar()
@@ -281,6 +339,8 @@
 
             if (response.IsSuccessStatusCode)
             {
+                await GuardarCategoriasEvento();
+
                 if (imagenBytes != null && !aux)
                 {
                     await azureStorageService.EliminarArchivoAsync(aux2);
@@ -293,5 +353,93 @@
                 mensaje = $"No se pudo editar el evento: {error}";
             }
         }
+    }
+
+    private void AnadirCategoriaEvento()
+    {
+        if (string.IsNullOrWhiteSpace(nombreCategoriaEvento))
+        {
+            mensaje = "El nombre de la categoría es obligatorio";
+            return;
+        }
+
+        if (categoriasEvento.Any(c => c.Nombre.Equals(nombreCategoriaEvento.Trim(), StringComparison.OrdinalIgnoreCase)))
+        {
+            mensaje = "Ya existe una categoría con ese nombre en el evento";
+            return;
+        }
+
+        categoriasEvento.Add(new CategoriaEventoForm
+        {
+            Id = Guid.NewGuid(),
+            Nombre = nombreCategoriaEvento.Trim(),
+            EsNueva = true
+        });
+
+        nombreCategoriaEvento = "";
+        mensaje = "";
+    }
+
+    private void QuitarCategoriaEvento(Guid idCategoria)
+    {
+        var categoria = categoriasEvento.FirstOrDefault(c => c.Id == idCategoria);
+        if (categoria == null)
+            return;
+
+        if (categoria.TieneVotos)
+        {
+            mensaje = "No se puede eliminar una categoría que ya tiene votos asociados";
+            return;
+        }
+
+        categoriasEvento.Remove(categoria);
+    }
+
+    private async Task GuardarCategoriasEvento()
+    {
+        var categoriasDb = await contexto.CategoriaEvento
+            .Where(c => c.Id_evento == id)
+            .ToListAsync();
+
+        foreach (var categoriaForm in categoriasEvento)
+        {
+            var categoriaDb = categoriasDb.FirstOrDefault(c => c.Id == categoriaForm.Id);
+
+            if (categoriaDb == null)
+            {
+                await contexto.CategoriaEvento.AddAsync(new CategoriaEvento
+                {
+                    Id = categoriaForm.Id,
+                    Id_evento = id,
+                    Nombre = categoriaForm.Nombre.Trim()
+                });
+            }
+            else
+            {
+                categoriaDb.Nombre = categoriaForm.Nombre.Trim();
+            }
+        }
+
+        var idsFormulario = categoriasEvento.Select(c => c.Id).ToHashSet();
+        var categoriasABorrar = categoriasDb.Where(c => !idsFormulario.Contains(c.Id)).ToList();
+
+        foreach (var categoria in categoriasABorrar)
+        {
+            var tieneVotos = await contexto.Voto.AnyAsync(v => v.Id_categoria == categoria.Id);
+            if (tieneVotos)
+                throw new Exception($"No se puede eliminar la categoría {categoria.Nombre} porque ya tiene votos asociados.");
+
+            contexto.CategoriaEvento.Remove(categoria);
+        }
+
+        await contexto.SaveChangesAsync();
+    }
+
+    class CategoriaEventoForm
+    {
+        public Guid Id { get; set; }
+        public string Nombre { get; set; } = "";
+        public bool EsNueva { get; set; }
+        public bool TieneVotos { get; set; }
     }
 }

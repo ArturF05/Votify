@@ -8,7 +8,7 @@ public class CategoriaEvento
     [Key]
     public Guid Id { get; set; }
 
-    [Column("Id_evento")]
+    [Column("id_evento")]
     public Guid Id_evento { get; set; }
 
     public string Nombre { get; set; }

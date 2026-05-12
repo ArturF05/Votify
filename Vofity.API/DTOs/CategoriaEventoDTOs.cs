@@ -4,7 +4,7 @@ namespace Votify.API.DTOs
     {
         public Guid Id { get; set; }
         public string Nombre { get; set; }
-        public List<Votify.Core.DTOs.CrearCriterioDTO> Criterios { get; set; } = new();
+        public List<CrearCriterioCategoriaDTO> Criterios { get; set; } = new();
     }
 
     public class CrearCategoriaEventoDTO

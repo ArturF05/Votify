@@ -17,6 +17,7 @@ namespace Votify.Core.Interfaces
         Task ReemplazarVotacionAsync(Votacion original, Votacion nuevaVotacion);
         Task<List<Voto>> ObtenerPorVotacionYUsuarioAsync(Guid votacionId, Guid usuarioId);
         Task<bool> YaVotoAsync(Guid idVotacion, Guid idVotante);
+        Task<bool> YaVotoCategoriaAsync(Guid idVotacion, Guid idVotante, Guid idCategoriaEvento);
         Task<Votacion?> ObtenerUltimaPorEventoAsync(Guid eventoId);
 
     }
