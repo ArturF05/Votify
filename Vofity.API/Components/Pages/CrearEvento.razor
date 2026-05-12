@@ -71,6 +71,64 @@
                 <label>Descripción:</label>
                 <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
             </div>
+
+            <div class="separador-criterios"></div>
+
+            <section class="bloque-criterios campo-completo">
+                <h3 class="titulo-criterios">Categorías de votación</h3>
+
+                <div class="criterio-formulario">
+                    <input type="text" placeholder="Nombre de categoría" @bind="nombreCategoriaEvento" class="input-criterio" />
+                    <button type="button" class="boton-principal" @onclick="GuardarCategoriaEvento">Añadir categoría</button>
+                </div>
+
+                @foreach (var categoria in categoriasEvento)
+                {
+                    <div class="criterio-item">
+                        <div class="criterio-texto">
+                            <span class="criterio-nombre">@categoria.Nombre</span>
+                            <span class="criterio-descripcion">@categoria.Criterios.Count criterios</span>
+                        </div>
+                        <div class="criterio-acciones">
+                            <button type="button" class="boton-secundario" @onclick="() => QuitarCategoriaEvento(categoria.Id)">Quitar</button>
+                        </div>
+                    </div>
+
+                    <div class="lista-criterios">
+                        @foreach (var c in categoria.Criterios)
+                        {
+                            <div class="criterio-item">
+                                <div class="criterio-texto">
+                                    <span class="criterio-nombre">@c.Nombre</span>
+                                    <span class="criterio-descripcion">@c.Descripcion</span>
+                                </div>
+
+                                <div class="criterio-acciones">
+                                    <span class="criterio-descripcion">Peso (%):</span>
+                                    <input type="text" class="criterio-peso" @bind="c.Peso" />
+                                    <button type="button" class="boton-secundario" @onclick="() => QuitarCriterioCategoria(categoria.Id, c.Id)">Quitar</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="criterio-formulario">
+                    <select @bind="idCategoriaCriterio" class="input-criterio">
+                        <option value="@Guid.Empty">Categoría</option>
+                        @foreach (var categoria in categoriasEvento)
+                        {
+                            <option value="@categoria.Id">@categoria.Nombre</option>
+                        }
+                    </select>
+                    <input type="text" placeholder="Nombre criterio" @bind="nombreCriterio" class="input-criterio" />
+                    <input type="text" placeholder="Descripción" @bind="descripcionCriterio" class="input-criterio" />
+                    <button type="button" class="boton-principal" @onclick="GuardarCriterioCategoria">Añadir criterio</button>
+                </div>
+
+                <div><label style="color:red">@mensajeErrorCriterio</label></div>
+            </section>
+
             @for(int index = 0; index<votaciones.Count; index++)
             {
                 int i = index;
@@ -141,43 +199,6 @@
                 <div class="grupo-botones-votacion">
                     <button type="button" class="boton-votacion" @onclick='() => quitarVotacion(i)' disabled="@(votaciones.Count<=1)">Quitar votación</button>
                 </div>
-
-                <div class="separador-criterios"></div>
-
-                <section class="bloque-criterios">
-                    <h3 class="titulo-criterios">Criterios</h3>
-
-                    <div class="lista-criterios">
-                        @foreach (var c in votaciones[i].Criterios)
-                        {
-                            <div class="criterio-item">
-                                <div class="criterio-texto">
-                                    <span class="criterio-nombre">@c.Nombre</span>
-                                    <span class="criterio-descripcion">@c.Descripcion</span>
-                                </div>
-
-                                <div class="criterio-acciones">
-                                    <span class="criterio-descripcion">Peso (%):</span>
-                                    <input type="text" class="criterio-peso" @bind="c.Peso" />
-                                    <button type="button" class="boton-secundario" @onclick='() => QuitarCriterio(i, c.Id)'>Quitar</button>
-                                </div>
-                            </div>
-                        }
-                    </div>
-
-                    <div><label style="color:black">@mensajeNoCriterio</label></div>
-
-                    <div class="criterio-formulario">
-                        <input type="text" placeholder="Nombre" @bind="nombreCriterio" class="input-criterio" />
-                        <input type="text" placeholder="Descripción" @bind="descripcionCriterio" class="input-criterio" />
-                        <button type="button" class="boton-principal" @onclick="() => GuardarCriterio(i)">Añadir</button>
-                    </div>
-
-                    <div>
-                        <div><label style="color:red">@mensajeErrorCriterio</label></div>
-                    </div>
-
-                </section>
             }
             <div class="grupo-botones-votacion boton-add-votacion-wrapper">
                 <button type="button" class="boton-votacion" @onclick="otraVotacion" disabled="@(votaciones.Count >= 3)">Añadir votación</button>
@@ -217,11 +238,14 @@
     private string mensaje2 = "";
     private string mensajeErrorCriterio = "";
     private string mensajeNoCriterio = "";
+    private string nombreCategoriaEvento = "";
     private string nombreCriterio = "";
     private string descripcionCriterio = "";
     private int pesoCriterio = 0;
+    private Guid idCategoriaCriterio = Guid.Empty;
     private string tipo = "Hackathon";
     List<Categoria> categorias = new();
+    List<CategoriaEventoForm> categoriasEvento = new();
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
     private Guid idUsuario;
@@ -401,15 +425,25 @@
                     return;
                 }
                 if (votaciones[i].PermiteComentarios == 0) votaciones[i].ComentariosObligatorios = 0;
-                if (!votaciones[i].Criterios.Any())
+            }
+
+            if (!categoriasEvento.Any())
+            {
+                mensajeErrorCriterio = "Debes crear al menos una categoría de votación";
+                return;
+            }
+
+            foreach (var categoria in categoriasEvento)
+            {
+                if (!categoria.Criterios.Any())
                 {
-                    mensajeErrorCriterio = $"La votación {i + 1} debe tener al menos un criterio";
+                    mensajeErrorCriterio = $"La categoría {categoria.Nombre} debe tener al menos un criterio";
                     return;
                 }
 
-                if (votaciones[i].Criterios.Sum(c => c.Peso) != 100)
+                if (categoria.Criterios.Sum(c => c.Peso) != 100)
                 {
-                    mensajeErrorCriterio = $"La suma de los pesos de la votación {i + 1} debe ser 100";
+                    mensajeErrorCriterio = $"La suma de pesos de la categoría {categoria.Nombre} debe ser 100";
                     return;
                 }
             }
@@ -427,13 +461,7 @@
                     EstadoVotacion = EstadoVotacion.Cerrada,
                     PermiteComentarios = votaciones[i].PermiteComentarios == 1,
                     ComentariosObligatorios = votaciones[i].ComentariosObligatorios == 1,
-                    Criterios = votaciones[i].Criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
-                    {
-                        Id = c.Id,
-                        Nombre = c.Nombre,
-                        Descripcion = c.Descripcion,
-                        Peso = c.Peso
-                    }).ToList(),
+                    Criterios = new(),
 
                     VerRes = votaciones[i].VerRes==1
 
@@ -448,6 +476,19 @@
                 Descripcion = descripcion,
                 FechaFin = fin.ToUniversalTime(),
                 Tipo = tipo,
+                CategoriasEvento = categoriasEvento.Select(categoria => new CategoriaEventoConCriteriosDTO
+                {
+                    Id = categoria.Id,
+                    Nombre = categoria.Nombre,
+                    Criterios = categoria.Criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
+                    {
+                        Id = c.Id,
+                        IdCategoriaEvento = categoria.Id,
+                        Nombre = c.Nombre,
+                        Descripcion = c.Descripcion,
+                        Peso = c.Peso
+                    }).ToList()
+                }).ToList(),
                 dTOsVotacion = crearVotacionDTOs,
                 UsuarioCreadorId = usuarioActual.Id,
                 ImagenBytes = imagenBytes,
@@ -474,8 +515,54 @@
         }
     }
 
-    private void GuardarCriterio(int indexVotacion)
+    private void GuardarCategoriaEvento()
     {
+        if (string.IsNullOrWhiteSpace(nombreCategoriaEvento))
+        {
+            mensajeErrorCriterio = "Debes indicar el nombre de la categoría";
+            return;
+        }
+
+        if (categoriasEvento.Any(c => c.Nombre.Equals(nombreCategoriaEvento.Trim(), StringComparison.OrdinalIgnoreCase)))
+        {
+            mensajeErrorCriterio = "Ya existe una categoría con ese nombre";
+            return;
+        }
+
+        var nuevaCategoria = new CategoriaEventoForm
+        {
+            Id = Guid.NewGuid(),
+            Nombre = nombreCategoriaEvento.Trim()
+        };
+
+        categoriasEvento.Add(nuevaCategoria);
+        idCategoriaCriterio = nuevaCategoria.Id;
+        nombreCategoriaEvento = "";
+        mensajeErrorCriterio = "";
+    }
+
+    private void QuitarCategoriaEvento(Guid idCategoria)
+    {
+        categoriasEvento.RemoveAll(c => c.Id == idCategoria);
+        if (idCategoriaCriterio == idCategoria)
+            idCategoriaCriterio = Guid.Empty;
+    }
+
+    private void GuardarCriterioCategoria()
+    {
+        if (idCategoriaCriterio == Guid.Empty)
+        {
+            mensajeErrorCriterio = "Selecciona la categoría a la que pertenece el criterio";
+            return;
+        }
+
+        var categoria = categoriasEvento.FirstOrDefault(c => c.Id == idCategoriaCriterio);
+        if (categoria == null)
+        {
+            mensajeErrorCriterio = "La categoría seleccionada no existe";
+            return;
+        }
+
         if (nombreCriterio == "")
         {
             mensajeErrorCriterio = "No se puede añadir el criterio: Debes asignar un nombre al criterio";
@@ -488,16 +575,17 @@
             return;
         }
 
-        if (votaciones[indexVotacion].Criterios.Any(c => c.Nombre == nombreCriterio))
+        if (categoria.Criterios.Any(c => c.Nombre == nombreCriterio))
         {
-            mensajeErrorCriterio = "No se puede añadir el criterio: Ya existe un criterio con ese nombre en esta votación";
+            mensajeErrorCriterio = "No se puede añadir el criterio: Ya existe un criterio con ese nombre en esta categoría";
             return;
         }
 
-        votaciones[indexVotacion].Criterios.Add(new DimensionesDeValor
+        categoria.Criterios.Add(new DimensionesDeValor
             {
                 Id = Guid.NewGuid(),
-                Id_votacion = Guid.Empty,
+                Id_votacion = null,
+                Id_categoria_evento = categoria.Id,
                 Nombre = nombreCriterio,
                 Descripcion = descripcionCriterio,
                 Peso = 0
@@ -510,9 +598,16 @@
         pesoCriterio = 0;
     }
 
-    private void QuitarCriterio(int indexVotacion, Guid idCriterio)
+    private void QuitarCriterioCategoria(Guid idCategoria, Guid idCriterio)
     {
-        votaciones[indexVotacion].Criterios.RemoveAll(c => c.Id == idCriterio);
+        categoriasEvento.FirstOrDefault(c => c.Id == idCategoria)?.Criterios.RemoveAll(c => c.Id == idCriterio);
+    }
+
+    class CategoriaEventoForm
+    {
+        public Guid Id { get; set; }
+        public string Nombre { get; set; } = "";
+        public List<DimensionesDeValor> Criterios { get; set; } = new();
     }
 
     class VotacionForm

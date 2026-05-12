@@ -391,6 +391,17 @@
             <p class="subtitulo">Selecciona tus @NumProy proyectos favoritos</p>
         </div>
 
+        <div class="estado-card">
+            <label>Categoría de votación:</label>
+            <select value="@idCategoriaSeleccionada" @onchange="CategoriaSeleccionada" disabled="@yaVoto">
+                <option value="@Guid.Empty">Selecciona una categoría</option>
+                @foreach (var categoria in categoriasEvento)
+                {
+                    <option value="@categoria.Id">@categoria.Nombre</option>
+                }
+            </select>
+        </div>
+
         <div class="proyecto-container">
             @foreach (var proyecto in evento.Proyectos)
             {
@@ -429,7 +440,7 @@
                         </div>
                     }
 
-            @if (proyectosSeleccionados.Contains(proyecto.Id))
+            @if (proyectosSeleccionados.Contains(proyecto.Id) && idCategoriaSeleccionada != Guid.Empty)
                     {
                         <div class="criterios-proyecto">
                             <hr class="linea-criterios" />
@@ -499,6 +510,8 @@
     private Votify.Core.Entities.Usuario usuario;
     private bool yaVoto = false;
     private List<DimensionesDeValor> criterios = new();
+    private List<CategoriaEvento> categoriasEvento = new();
+    private Guid idCategoriaSeleccionada = Guid.Empty;
     private Dictionary<Guid, Dictionary<Guid, int>> puntuacionesPorProyecto = new();
 
 
@@ -527,7 +540,14 @@
             mensaje = $"Puedes votar hasta {NumProy} proyectos";
         }
 
-        criterios = await contexto.DimensionesDeValor.Where(d => d.Id_votacion == votacion.Id).ToListAsync();
+        categoriasEvento = await contexto.CategoriaEvento
+            .AsNoTracking()
+            .Where(c => c.Id_evento == evento.Id)
+            .OrderBy(c => c.Nombre)
+            .ToListAsync();
+
+        idCategoriaSeleccionada = categoriasEvento.FirstOrDefault()?.Id ?? Guid.Empty;
+        await CargarCriteriosCategoria();
 
         foreach (var proyecto in evento.Proyectos)
         {
@@ -562,6 +582,9 @@
                 {
                     mensaje = "Ya has votado en este evento.";
                     List<Voto> votos = await VotacionService.ObtenerVotosUsuarioAsync(idVotacion, idVotante);
+                    idCategoriaSeleccionada = votos.FirstOrDefault(v => v.Id_categoria.HasValue)?.Id_categoria ?? idCategoriaSeleccionada;
+                    await CargarCriteriosCategoria();
+
                     foreach (var voto in votos)
                     {
                         proyectosSeleccionados.Add(voto.Id_proyecto);
@@ -588,6 +611,51 @@
         }
 
     }
+    private async Task CategoriaSeleccionada(ChangeEventArgs e)
+    {
+        if (!Guid.TryParse(e.Value?.ToString(), out var idCategoria))
+            idCategoria = Guid.Empty;
+
+        idCategoriaSeleccionada = idCategoria;
+        await CargarCriteriosCategoria();
+    }
+
+    private async Task CargarCriteriosCategoria()
+    {
+        if (idCategoriaSeleccionada == Guid.Empty)
+        {
+            criterios = new();
+            return;
+        }
+
+        criterios = await contexto.DimensionesDeValor
+            .AsNoTracking()
+            .Where(d => d.Id_categoria_evento == idCategoriaSeleccionada)
+            .OrderBy(d => d.Nombre)
+            .ToListAsync();
+
+        if (evento?.Proyectos == null)
+            return;
+
+        foreach (var proyecto in evento.Proyectos)
+        {
+            if (!puntuacionesPorProyecto.ContainsKey(proyecto.Id))
+                puntuacionesPorProyecto[proyecto.Id] = new Dictionary<Guid, int>();
+
+            if (!comentariosPorCriterio.ContainsKey(proyecto.Id))
+                comentariosPorCriterio[proyecto.Id] = new Dictionary<Guid, string>();
+
+            foreach (var criterio in criterios)
+            {
+                if (!puntuacionesPorProyecto[proyecto.Id].ContainsKey(criterio.Id))
+                    puntuacionesPorProyecto[proyecto.Id][criterio.Id] = 0;
+
+                if (!comentariosPorCriterio[proyecto.Id].ContainsKey(criterio.Id))
+                    comentariosPorCriterio[proyecto.Id][criterio.Id] = "";
+            }
+        }
+    }
+
     private void Favorito(Guid idProyecto)
     {
         if (yaVoto) return;
@@ -629,6 +697,16 @@
         if (idVotacion == Guid.Empty)
         {
             mensaje = "No hay una votación activa para este evento, espera a que haya una para poder votar.";
+            return;
+        }
+        if (idCategoriaSeleccionada == Guid.Empty)
+        {
+            mensaje = "Selecciona una categoría antes de votar.";
+            return;
+        }
+        if (!criterios.Any())
+        {
+            mensaje = "La categoría seleccionada no tiene criterios.";
             return;
         }
         if (proyectosSeleccionados.Count > NumProy)
@@ -691,6 +769,7 @@
             Votos = proyectosSeleccionados.Select(idProyecto => new VotoDetalleDTO
             {
                 IdProyecto = idProyecto,
+                IdCategoriaEvento = idCategoriaSeleccionada,
                 Puntuaciones = criterios.Select(c => new PuntuacionCriterioDTO
                 {
                     IdCriterio = c.Id,

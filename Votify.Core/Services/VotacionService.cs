@@ -107,12 +107,24 @@ namespace Votify.Core.Services
             if (votacion is VotacionMixta && !esPublico && !esJuradoAsignado)
                 throw new Exception("Solo usuarios públicos, participantes o jurado asignado pueden votar en este evento.");
 
-            var criterios = await dimensionRepository.ObtenerCriterioPorVotacionAsync(idVotacion);
-
-            if (criterios == null || criterios.Count == 0)
-                throw new Exception("La votación no tiene criterios definidos.");
-            var votos = dto.Votos.Select(v =>
+            var votos = new List<Voto>();
+            foreach (var v in dto.Votos)
             {
+                if (v.IdCategoriaEvento == Guid.Empty)
+                    throw new Exception("Debes indicar la categoría del evento que estás votando.");
+
+                var categoriaValida = await dimensionRepository
+                    .CategoriaEventoPerteneceAlEventoAsync(v.IdCategoriaEvento, votacion.Id_evento);
+
+                if (!categoriaValida)
+                    throw new Exception("La categoría seleccionada no pertenece al evento de la votación.");
+
+                var criterios = await dimensionRepository
+                    .ObtenerCriteriosPorCategoriaEventoAsync(v.IdCategoriaEvento);
+
+                if (criterios == null || criterios.Count == 0)
+                    throw new Exception("La categoría seleccionada no tiene criterios definidos.");
+
                 var idVoto = Guid.NewGuid();
                 decimal puntuacionTotal = 0m;
                 var voto = new Voto
@@ -121,6 +133,7 @@ namespace Votify.Core.Services
                     Id_votacion = idVotacion,
                     Id_proyecto = v.IdProyecto,
                     Id_votante = dto.IdVotante,
+                    Id_categoria = v.IdCategoriaEvento,
                     Fecha_voto = DateTime.UtcNow
                 };
 
@@ -155,8 +168,8 @@ namespace Votify.Core.Services
                 }
 
                 voto.Puntuacion = puntuacionTotal;
-                return voto;
-            }).ToList();
+                votos.Add(voto);
+            }
 
             await votoRepository.GuardarVotosAsync(votos);
             return true;
@@ -186,10 +199,17 @@ namespace Votify.Core.Services
 
             foreach (var criterioDto in criterios)
             {
+                if (criterioDto.IdCategoriaEvento == Guid.Empty)
+                    throw new Exception("Cada criterio debe pertenecer a una categoría del evento.");
+
+                if (!await dimensionRepository.CategoriaEventoPerteneceAlEventoAsync(criterioDto.IdCategoriaEvento, Id_evento))
+                    throw new Exception("Algún criterio pertenece a una categoría que no es de este evento.");
+
                 var nuevoCriterio = new DimensionesDeValor
                 {
                     Id = criterioDto.Id == Guid.Empty ? Guid.NewGuid() : criterioDto.Id,
                     Id_votacion = idVotacion,
+                    Id_categoria_evento = criterioDto.IdCategoriaEvento,
                     Nombre = criterioDto.Nombre,
                     Descripcion = criterioDto.Descripcion,
                     Peso = criterioDto.Peso
@@ -267,6 +287,12 @@ namespace Votify.Core.Services
 
             foreach (var criterioDto in criterios)
             {
+                if (criterioDto.IdCategoriaEvento == Guid.Empty)
+                    throw new Exception("Cada criterio debe pertenecer a una categoría del evento.");
+
+                if (!await dimensionRepository.CategoriaEventoPerteneceAlEventoAsync(criterioDto.IdCategoriaEvento, Id_evento))
+                    throw new Exception("Algún criterio pertenece a una categoría que no es de este evento.");
+
                 var existente = criteriosExistentes.FirstOrDefault(c => c.Id == criterioDto.Id);
 
                 if (existente == null)
@@ -275,6 +301,7 @@ namespace Votify.Core.Services
                     {
                         Id = criterioDto.Id == Guid.Empty ? Guid.NewGuid() : criterioDto.Id,
                         Id_votacion = Id,
+                        Id_categoria_evento = criterioDto.IdCategoriaEvento,
                         Nombre = criterioDto.Nombre,
                         Descripcion = criterioDto.Descripcion,
                         Peso = criterioDto.Peso
@@ -284,6 +311,9 @@ namespace Votify.Core.Services
                 }
                 else
                 {
+                    existente.Id_categoria_evento = criterioDto.IdCategoriaEvento;
+                    existente.Nombre = criterioDto.Nombre;
+                    existente.Descripcion = criterioDto.Descripcion;
                     existente.Peso = criterioDto.Peso;
                     await dimensionRepository.EditarCriterioAsync(existente);
                 }

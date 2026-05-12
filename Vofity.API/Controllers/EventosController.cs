@@ -51,10 +51,39 @@ namespace Votify.API.Controllers
                     imagenUrl
                 );
                 await context.SaveChangesAsync();
+                foreach (var categoriaDto in dto.CategoriasEvento)
+                {
+                    if (string.IsNullOrWhiteSpace(categoriaDto.Nombre))
+                        continue;
+
+                    var categoriaEvento = new CategoriaEvento
+                    {
+                        Id = categoriaDto.Id == Guid.Empty ? Guid.NewGuid() : categoriaDto.Id,
+                        Id_evento = evento.Id,
+                        Nombre = categoriaDto.Nombre.Trim()
+                    };
+
+                    await context.CategoriaEvento.AddAsync(categoriaEvento);
+
+                    foreach (var criterioDto in categoriaDto.Criterios)
+                    {
+                        await context.DimensionesDeValor.AddAsync(new DimensionesDeValor
+                        {
+                            Id = criterioDto.Id == Guid.Empty ? Guid.NewGuid() : criterioDto.Id,
+                            Id_categoria_evento = categoriaEvento.Id,
+                            Id_votacion = null,
+                            Nombre = criterioDto.Nombre,
+                            Descripcion = criterioDto.Descripcion,
+                            Peso = criterioDto.Peso
+                        });
+                    }
+                }
+                await context.SaveChangesAsync();
+
                 var jurados = new List<Guid>();
                 for (int i = 0; i < dto.dTOsVotacion.Count; i++)
                 {
-                        await votacionService.CrearVotacion(evento.Id, dto.dTOsVotacion[i].FechaInicio, dto.dTOsVotacion[i].FechaFin, dto.dTOsVotacion[i].PermiteAutoVoto, dto.dTOsVotacion[i].TipoVotacion, dto.dTOsVotacion[i].Num_Proy, dto.dTOsVotacion[i].PermiteComentarios, dto.dTOsVotacion[i].ComentariosObligatorios, dto.dTOsVotacion[i].VerRes, jurados, dto.dTOsVotacion[i].EstadoVotacion, dto.dTOsVotacion[i].Criterios);
+                        await votacionService.CrearVotacion(evento.Id, dto.dTOsVotacion[i].FechaInicio, dto.dTOsVotacion[i].FechaFin, dto.dTOsVotacion[i].PermiteAutoVoto, dto.dTOsVotacion[i].TipoVotacion, dto.dTOsVotacion[i].Num_Proy, dto.dTOsVotacion[i].PermiteComentarios, dto.dTOsVotacion[i].ComentariosObligatorios, dto.dTOsVotacion[i].VerRes, jurados, dto.dTOsVotacion[i].EstadoVotacion, new List<CrearCriterioDTO>());
                         await context.SaveChangesAsync();
                 }
                 await context.SaveChangesAsync();
