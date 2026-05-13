@@ -136,14 +136,16 @@
     <section class="bloque-criterios">
         <h3 class="titulo-criterios">Criterios</h3>
 
-        <div class="lista-criterios">
-            @foreach (var c in criterios)
+        @foreach (var categoria in categoriasEvento)
+        {
+            <h4>@categoria.Nombre</h4>
+            <div class="lista-criterios">
+            @foreach (var c in criterios.Where(c => c.Id_categoria_evento == categoria.Id))
             {
                 <div class="criterio-item">
                     <div class="criterio-texto">
-                        <span class="criterio-nombre">@c.Nombre</span>
-                        <span class="criterio-descripcion">@NombreCategoria(c.Id_categoria_evento)</span>
-                        <span class="criterio-descripcion">@c.Descripcion</span>
+                        <input type="text" class="input-criterio" @bind="c.Nombre" placeholder="Nombre" />
+                        <input type="text" class="input-criterio" @bind="c.Descripcion" placeholder="Descripción" />
                     </div>
 
                     <div class="criterio-acciones">
@@ -153,7 +155,8 @@
                     </div>
                 </div>
             }
-        </div>
+            </div>
+        }
 
         <div><label style="color:black">@mensajeNoCriterio</label></div>
 

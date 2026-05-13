@@ -18,6 +18,7 @@ namespace Votify.Core.DTOs
         public string Titulo { get; set; } = "";
         public string Descripcion { get; set; } = "";
         public Guid? IdEvento { get; set; }
+        public Guid? IdCategoriaEvento { get; set; }
         public Guid Id_Creador { get; set; }
     }
 }

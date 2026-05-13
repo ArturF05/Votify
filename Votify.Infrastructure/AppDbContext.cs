@@ -147,6 +147,17 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        modelBuilder.Entity<Proyecto>(entity =>
+        {
+            entity.Property(p => p.Id_categoria_evento)
+                .HasColumnName("id_categoria_evento");
+
+            entity.HasOne(p => p.CategoriaEvento)
+                .WithMany()
+                .HasForeignKey(p => p.Id_categoria_evento)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         modelBuilder.Entity<ProyectoParticipantes>(entity =>
         {
             entity.ToTable("ProyectoParticipantes");

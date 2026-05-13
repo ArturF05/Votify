@@ -19,7 +19,7 @@ namespace Votify.Core.Services
             this.IAService = IAService;
         }
 
-        public async Task<bool> CrearProyecto(string nombre, string descripcion, Guid idEvento, Guid idCreador){
+        public async Task<bool> CrearProyecto(string nombre, string descripcion, Guid idEvento, Guid idCategoriaEvento, Guid idCreador){
             nombre = nombre?.Trim() ?? string.Empty;
             descripcion = descripcion?.Trim() ?? string.Empty;
 
@@ -40,12 +40,18 @@ namespace Votify.Core.Services
                 throw new Exception("Debe seleccionar un evento válido");
             }
 
+            if (idCategoriaEvento == Guid.Empty || !evento.CategoriasEvento.Any(c => c.Id == idCategoriaEvento))
+            {
+                throw new Exception("Debe seleccionar una categoría válida del evento");
+            }
+
             Proyecto proyecto =  new Proyecto
             {
                 Id = Guid.NewGuid(),
                 Titulo = nombre,
                 Descripcion = descripcion,
                 Id_evento = idEvento,
+                Id_categoria_evento = idCategoriaEvento,
                 Id_creador = idCreador,
                 ProyectoParticipantes = new List<ProyectoParticipantes>()
             };

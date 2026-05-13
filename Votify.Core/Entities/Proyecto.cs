@@ -14,6 +14,8 @@ public class Proyecto
     [ForeignKey(nameof(Evento))]
     public Guid Id_evento { get; set; }
     public Evento Evento { get; set; }
+    public Guid? Id_categoria_evento { get; set; }
+    public CategoriaEvento? CategoriaEvento { get; set; }
     public String Descripcion { get; set; }
     public Guid Id_creador { get; set; }
     public List<ProyectoParticipantes> ProyectoParticipantes { get; set; }

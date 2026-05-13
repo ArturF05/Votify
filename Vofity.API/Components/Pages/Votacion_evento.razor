@@ -402,8 +402,13 @@
             </select>
         </div>
 
+        @if (idCategoriaSeleccionada != Guid.Empty && !ProyectosDeCategoria.Any())
+        {
+            <div class="mensaje-info">No hay proyectos inscritos en esta categoría.</div>
+        }
+
         <div class="proyecto-container">
-            @foreach (var proyecto in evento.Proyectos)
+            @foreach (var proyecto in ProyectosDeCategoria)
             {
                 <div class="proyecto-card @(yaVoto ? "deshabilitado" : "")">
                     <div class="proyecto-top">
@@ -512,6 +517,10 @@
     private List<DimensionesDeValor> criterios = new();
     private List<CategoriaEvento> categoriasEvento = new();
     private Guid idCategoriaSeleccionada = Guid.Empty;
+    private List<Proyecto> ProyectosDeCategoria =>
+        evento?.Proyectos?
+            .Where(p => p.Id_categoria_evento == idCategoriaSeleccionada)
+            .ToList() ?? new();
     private Dictionary<Guid, Dictionary<Guid, int>> puntuacionesPorProyecto = new();
 
 
@@ -549,7 +558,7 @@
         idCategoriaSeleccionada = Guid.Empty;
         await CargarCriteriosVotacion();
 
-        foreach (var proyecto in evento.Proyectos)
+        foreach (var proyecto in ProyectosDeCategoria)
         {
             if (!puntuacionesPorProyecto.ContainsKey(proyecto.Id))
                 puntuacionesPorProyecto[proyecto.Id] = new Dictionary<Guid, int>();
@@ -645,7 +654,7 @@
         if (evento?.Proyectos == null)
             return;
 
-        foreach (var proyecto in evento.Proyectos)
+        foreach (var proyecto in ProyectosDeCategoria)
         {
             if (!puntuacionesPorProyecto.ContainsKey(proyecto.Id))
                 puntuacionesPorProyecto[proyecto.Id] = new Dictionary<Guid, int>();

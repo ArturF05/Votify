@@ -20,12 +20,14 @@ public class ProyectoController : ControllerBase
     {
         if (dto.IdEvento == null)
             return BadRequest("Debes seleccionar un evento");
+        if (dto.IdCategoriaEvento == null || dto.IdCategoriaEvento == Guid.Empty)
+            return BadRequest("Debes seleccionar una categoría del evento");
         if (string.IsNullOrEmpty(dto.Titulo))
             return BadRequest("El título es obligatorio");
         if (string.IsNullOrWhiteSpace(dto.Descripcion))
             return BadRequest("La descripción es obligatoria");
 
-        var resultado = await _proyectoService.CrearProyecto(dto.Titulo, dto.Descripcion,dto.IdEvento.Value, dto.Id_Creador);
+        var resultado = await _proyectoService.CrearProyecto(dto.Titulo, dto.Descripcion, dto.IdEvento.Value, dto.IdCategoriaEvento.Value, dto.Id_Creador);
 
         if (resultado)
             return StatusCode(201, new { status = "success", message = "Proyecto creado" });

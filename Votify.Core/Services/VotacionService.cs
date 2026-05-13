@@ -114,6 +114,10 @@ namespace Votify.Core.Services
                 if (!await dimensionRepository.CategoriaEventoPerteneceAlEventoAsync(v.IdCategoriaEvento, votacion.Id_evento))
                     throw new Exception("La categoría seleccionada no pertenece al evento de la votación.");
 
+                var proyectoVotado = proyectos.FirstOrDefault(p => p.Id == v.IdProyecto);
+                if (proyectoVotado?.Id_categoria_evento != v.IdCategoriaEvento)
+                    throw new Exception("El proyecto no pertenece a la categoría seleccionada.");
+
                 if (await votacionRepository.YaVotoCategoriaAsync(idVotacion, dto.IdVotante, v.IdCategoriaEvento))
                     throw new Exception("Ya has votado en esta categoría.");
 

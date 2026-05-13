@@ -93,7 +93,9 @@ namespace Votify.Infrastructure.Repositorios
         }
         public async Task<Evento?> ObtenerEventoPorIdAsync(Guid id)
         {
-            return await contexto.Evento.FindAsync(id);
+            return await contexto.Evento
+                .Include(e => e.CategoriasEvento)
+                .FirstOrDefaultAsync(e => e.Id == id);
         }
         public async Task<List<Evento>> ObtenerTodos()
         {
