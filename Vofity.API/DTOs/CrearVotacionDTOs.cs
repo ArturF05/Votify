@@ -7,6 +7,7 @@ namespace Votify.API.DTOs
     {
         public bool PermiteAutoVoto { get; set; }
         public Guid Id_evento { get; set; }
+        public Guid? Id_categoria_evento { get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
         public TipoVotacion TipoVotacion { get; set; }

@@ -64,6 +64,7 @@ namespace Votify.API.Controllers
             {
                 await votacionService.CrearVotacion(
                     dto.Id_evento,
+                    dto.Id_categoria_evento,
                     dto.FechaInicio,
                     dto.FechaFin,
                     dto.PermiteAutoVoto,
@@ -100,6 +101,7 @@ namespace Votify.API.Controllers
                 await votacionService.EditarVotacion(
                     id,
                     dto.Id_evento,
+                    dto.Id_categoria_evento,
                     dto.FechaInicio,
                     dto.FechaFin,
                     dto.PermiteAutoVoto,

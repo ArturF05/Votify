@@ -62,6 +62,7 @@
         <thead>
             <tr>
                 <th>Evento</th>
+                <th>Categoría</th>
                 <th>Tipo de votación</th>
                 <th>Permite autovoto</th>
                 <th>Fecha Inicio</th>
@@ -86,10 +87,12 @@
                           || vot.EstadoVotacion == EstadoVotacion.Pausada
                           || vot.EstadoVotacion == EstadoVotacion.Finalizada
                         : vot.EstadoVotacion == EstadoVotacion.Abierta
-                          || vot.EstadoVotacion == EstadoVotacion.Pausada))
+                          || vot.EstadoVotacion == EstadoVotacion.Pausada
+                          || vot.EstadoVotacion == EstadoVotacion.Cerrada))
                 {
                     <tr>
                         <td>@eventos.FirstOrDefault(e => e.Id == vot.Id_evento)?.Nombre</td>
+                        <td>@ObtenerCategoriaVotacion(vot)</td>
                         <td>@ObtenerTipoVotacion(vot)</td>
                         <td>@vot.PermiteAutoVoto</td>
                         <td>@vot.FechaInicio.ToLocalTime()</td>
@@ -131,6 +134,7 @@
 
 @code {
     List<Votify.Core.Entities.Evento> eventos = new();
+    List<CategoriaEvento> categoriasEvento = new();
     List<Votify.Core.Entities.Votacion> votaciones = new();
     List<Votify.Core.Entities.Votacion> votacionesActuales = new();
 
@@ -161,6 +165,7 @@
 
         await ActualizarEstadosVotaciones();
         eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).Include(e => e.Proyectos).ToListAsync();
+        categoriasEvento = await contexto.CategoriaEvento.AsNoTracking().ToListAsync();
 
         votaciones = await contexto.Votacion
             .Where(v => contexto.EventoUsuarioRol
@@ -298,13 +303,14 @@
                   || vot.EstadoVotacion == EstadoVotacion.Finalizada
                 : vot.EstadoVotacion == EstadoVotacion.Abierta
                   || vot.EstadoVotacion == EstadoVotacion.Pausada
+                  || vot.EstadoVotacion == EstadoVotacion.Cerrada
         ).ToList();
 
         if (votacionesActuales.Count == 0)
         {
             noHayResultados = verResultados
                 ? "No hay votaciones con resultados disponibles"
-                : "No hay votaciones abiertas o pausadas";
+                : "No hay votaciones creadas para gestionar";
         }
         else
         {
@@ -318,5 +324,13 @@
         if (vot is VotacionJurado) return "Jurado";
         if (vot is VotacionMixta) return "Mixta";
         return "Desconocido";
+    }
+
+    private string ObtenerCategoriaVotacion(Votify.Core.Entities.Votacion vot)
+    {
+        if (!vot.Id_categoria_evento.HasValue)
+            return "Todas";
+
+        return categoriasEvento.FirstOrDefault(c => c.Id == vot.Id_categoria_evento.Value)?.Nombre ?? "Sin categoría";
     }
 }

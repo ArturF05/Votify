@@ -53,6 +53,9 @@ public class AppDbContext : DbContext
             entity.Property(v => v.Id_evento)
                 .HasColumnName("Id_evento");
 
+            entity.Property(v => v.Id_categoria_evento)
+                .HasColumnName("id_categoria_evento");
+
             entity.Property(v => v.FechaInicio)
                 .HasColumnName("FechaInicio");
 
@@ -65,6 +68,11 @@ public class AppDbContext : DbContext
                 .WithMany(e => e.Votaciones)
                 .HasForeignKey(v => v.Id_evento)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(v => v.CategoriaEvento)
+                .WithMany()
+                .HasForeignKey(v => v.Id_categoria_evento)
+                .OnDelete(DeleteBehavior.Restrict);
             entity.Property(v => v.NumProy)
                 .HasColumnName("NumProy");
             entity.Property(v => v.EstadoVotacion).HasColumnName("EstadoVotacion");

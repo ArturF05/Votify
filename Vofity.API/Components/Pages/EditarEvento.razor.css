@@ -178,6 +178,97 @@
         color: white;
     }
 
+.separador-criterios {
+    height: 1px;
+    background: #f1ebe3;
+    margin: 1.5rem 0;
+}
+
+.bloque-criterios {
+    border: 1px solid #f1ebe3;
+    border-radius: 14px;
+    padding: 1.25rem;
+    background: #fffaf3;
+}
+
+.titulo-criterios {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.lista-criterios {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.criterio-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.85rem;
+    border: 1px solid #f3dfc1;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.criterio-texto {
+    flex: 1;
+    display: grid;
+    gap: 0.4rem;
+}
+
+.criterio-acciones {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.criterio-descripcion {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.criterio-formulario {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    align-items: center;
+}
+
+.input-criterio {
+    width: 100%;
+    background-color: #f3f4f6;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 0.8rem 0.95rem;
+    font-size: 0.95rem;
+    color: #1f2937;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.input-criterio:focus,
+.input-criterio:hover {
+    border-color: #f28c28;
+    background: #ffffff;
+}
+
+.boton-secundario:disabled {
+    border-color: #d1d5db;
+    color: #9ca3af;
+    cursor: not-allowed;
+    background: #f9fafb;
+}
+
+.boton-secundario:disabled:hover {
+    border-color: #d1d5db;
+    color: #9ca3af;
+    background: #f9fafb;
+}
+
 @media (max-width: 900px) {
     .editar-evento-page {
         padding: 1.25rem;
@@ -209,4 +300,10 @@
         .grupo-botones button {
             width: 100%;
         }
+
+    .criterio-item,
+    .criterio-formulario {
+        flex-direction: column;
+        align-items: stretch;
+    }
 }

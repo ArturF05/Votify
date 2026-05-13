@@ -537,18 +537,6 @@
             return;
         }
 
-        votacion = await contexto.Votacion
-    .FirstOrDefaultAsync(vot =>
-        vot.Id_evento == evento.Id &&
-        vot.EstadoVotacion == EstadoVotacion.Abierta);
-
-        if (votacion != null)
-        {
-            NumProy = votacion.NumProy;
-            idVotacion = votacion.Id;
-            mensaje = $"Puedes votar hasta {NumProy} proyectos";
-        }
-
         categoriasEvento = await contexto.CategoriaEvento
             .AsNoTracking()
             .Where(c => c.Id_evento == evento.Id)
@@ -556,7 +544,7 @@
             .ToListAsync();
 
         idCategoriaSeleccionada = Guid.Empty;
-        await CargarCriteriosVotacion();
+        mensaje = "Selecciona una categoría para votar.";
 
         foreach (var proyecto in ProyectosDeCategoria)
         {
@@ -629,12 +617,41 @@
 
         idCategoriaSeleccionada = idCategoria;
         proyectosSeleccionados.Clear();
+        await CargarVotacionCategoria();
         await CargarCriteriosVotacion();
         yaVoto = idVotante != Guid.Empty && await contexto.Voto.AnyAsync(v =>
             v.Id_votacion == idVotacion &&
             v.Id_votante == idVotante &&
             v.Id_categoria == idCategoriaSeleccionada);
-        mensaje = yaVoto ? "Ya has votado en esta categoría." : $"Puedes votar hasta {NumProy} proyectos";
+        mensaje = yaVoto
+            ? "Ya has votado en esta categoría."
+            : votacion == null
+                ? "No hay una votación abierta para esta categoría."
+                : $"Puedes votar hasta {NumProy} proyectos";
+    }
+
+    private async Task CargarVotacionCategoria()
+    {
+        votacion = null;
+        idVotacion = Guid.Empty;
+        NumProy = 0;
+
+        if (evento == null || idCategoriaSeleccionada == Guid.Empty)
+            return;
+
+        votacion = await contexto.Votacion
+            .Where(vot =>
+                vot.Id_evento == evento.Id &&
+                vot.EstadoVotacion == EstadoVotacion.Abierta &&
+                (vot.Id_categoria_evento == idCategoriaSeleccionada || vot.Id_categoria_evento == null))
+            .OrderByDescending(vot => vot.Id_categoria_evento == idCategoriaSeleccionada)
+            .FirstOrDefaultAsync();
+
+        if (votacion != null)
+        {
+            NumProy = votacion.NumProy;
+            idVotacion = votacion.Id;
+        }
     }
 
     private async Task CargarCriteriosVotacion()

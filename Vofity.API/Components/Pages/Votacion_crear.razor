@@ -33,6 +33,16 @@
             <label>Fin del evento: @finEvento</label>
         }
     </div>
+    <div class="campo">
+        <label>Categoría de la votación*:</label>
+        <select @bind="idCategoriaVotacion" disabled="@(Id_evento == Guid.Empty || !categoriasEvento.Any())">
+            <option value="@Guid.Empty">Todas las categorías</option>
+            @foreach (var categoria in categoriasEvento)
+            {
+                <option value="@categoria.Id">@categoria.Nombre</option>
+            }
+        </select>
+    </div>
     <hr>
     <label>Tipo de votación*:</label>
     <div class="grupo-botones-votacion">
@@ -230,6 +240,7 @@
     private DateTime inicioEvento = DateTime.Now;
     private DateTime finEvento = DateTime.Now.AddDays(1);
     private Guid Id_evento = Guid.Empty;
+    private Guid idCategoriaVotacion = Guid.Empty;
     private int numProy = 1;
     private TipoVotacion tipoVotacion = TipoVotacion.Publico;
     private string mensaje = "";
@@ -303,6 +314,7 @@
             idEvento = Guid.Empty;
 
         Id_evento = idEvento;
+        idCategoriaVotacion = Guid.Empty;
         await ponerTiempos();
         await CargarCategoriasEvento();
     }
@@ -420,7 +432,11 @@
                 return;
             }
 
-            foreach (var categoria in categoriasEvento)
+            var categoriasDeLaVotacion = categoriasEvento
+                .Where(categoria => idCategoriaVotacion == Guid.Empty || categoria.Id == idCategoriaVotacion)
+                .ToList();
+
+            foreach (var categoria in categoriasDeLaVotacion)
             {
                 if (!categoria.Criterios.Any())
                 {
@@ -442,6 +458,7 @@
             var dto = new CrearVotacionDTOs
             {
                 Id_evento = Id_evento,
+                Id_categoria_evento = idCategoriaVotacion == Guid.Empty ? null : idCategoriaVotacion,
                 FechaInicio = inicioVotacion.ToUniversalTime(),
                 FechaFin = finVotacion.ToUniversalTime(),
                 PermiteAutoVoto = permiteAutoVoto == 1,
@@ -451,6 +468,7 @@
                 EstadoVotacion= EstadoVotacion.Cerrada,
                 Jurados = juradoSeleccionado.Select(u => u.Id).ToList(),
                 Criterios = categoriasEvento
+                    .Where(categoria => idCategoriaVotacion == Guid.Empty || categoria.Id == idCategoriaVotacion)
                     .SelectMany(categoria => categoria.Criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
                     {
                         Id = c.Id == Guid.Empty ? Guid.NewGuid() : c.Id,
