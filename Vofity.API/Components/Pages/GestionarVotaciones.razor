@@ -15,18 +15,7 @@
 @rendermode InteractiveServer
 
 <div class="titulo-y-finalizadas">
-    @if (!verResultados)
-    {
-        <h2 class="titulo">Gestionar votaciones</h2>
-    }
-    else
-    {
-        <h2 class="titulo">Resultados de votaciones</h2>
-    }
-
-    <button class="boton-finalizadas" @onclick="CambiarModoResultados">
-        @boton
-    </button>
+    <h2 class="titulo">Gestionar votaciones</h2>
 </div>
 
 <PageTitle>Gestionar Votaciones</PageTitle>
@@ -66,8 +55,7 @@
                 <th>Permite autovoto</th>
                 <th>Fecha Inicio</th>
                 <th>Fecha Fin</th>
-                <th hidden="@(verResultados)">Editar</th>
-                <th hidden="@(!verResultados)">Resultados del evento</th>
+                <th>Editar</th>
             </tr>
         </thead>
 
@@ -81,12 +69,8 @@
             else
             {
                 @foreach (var vot in votaciones.Where(vot =>
-                    verResultados
-                        ? vot.EstadoVotacion == EstadoVotacion.Abierta
-                          || vot.EstadoVotacion == EstadoVotacion.Pausada
-                          || vot.EstadoVotacion == EstadoVotacion.Finalizada
-                        : vot.EstadoVotacion == EstadoVotacion.Abierta
-                          || vot.EstadoVotacion == EstadoVotacion.Pausada))
+                            vot.EstadoVotacion == EstadoVotacion.Abierta ||
+                            vot.EstadoVotacion == EstadoVotacion.Pausada))
                 {
                     <tr>
                         <td>@eventos.FirstOrDefault(e => e.Id == vot.Id_evento)?.Nombre</td>
@@ -94,26 +78,10 @@
                         <td>@vot.PermiteAutoVoto</td>
                         <td>@vot.FechaInicio.ToLocalTime()</td>
                         <td>@vot.FechaFin.ToLocalTime()</td>
-
-                        <td hidden="@(verResultados)">
+                        <td>
                             <button class="boton-editar" @onclick='() => EditarVotacion(vot)'>
                                 Editar
                             </button>
-                        </td>
-
-                        <td hidden="@(!verResultados)">
-                            <div class="tooltip-wrapper">
-                                <button class="boton-editar"
-                                        @onclick='() => VerDashboard(vot)'
-                                        disabled="@(!PuedeVerResultados(vot))">
-                                    Resultados
-                                </button>
-
-                                @if (!PuedeVerResultados(vot))
-                                {
-                                    <span class="tooltip-text">@ObtenerMotivoBloqueo(vot)</span>
-                                }
-                            </div>
                         </td>
                     </tr>
                 }
@@ -124,18 +92,12 @@
     <label class="noHayResult">@noHayResultados</label>
 </div>
 
-@if (!verResultados)
-{
-    <a href="/CrearVotacion" class="botonLink">Crear Votacion nueva</a>
-}
+<a href="/CrearVotacion" class="botonLink">Crear Votacion nueva</a>
 
 @code {
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Votify.Core.Entities.Votacion> votaciones = new();
     List<Votify.Core.Entities.Votacion> votacionesActuales = new();
-
-    private bool verResultados = false;
-    private string boton = "Ver resultados";
 
     private Guid Id_evento = Guid.Empty;
     private int tipoVotacion = -1;
@@ -204,10 +166,7 @@
                 .Any(eur =>
                     eur.EventoId == v.Id_evento &&
                     eur.UsuarioId == idUsuario &&
-                    (
-                        eur.Rol.Nombre == "Organizador" ||
-                        (verResultados && eur.Rol.Nombre == "Participante")
-                    )))
+                    eur.Rol.Nombre == "Organizador"))
             .AsQueryable();
 
         if (Id_evento != Guid.Empty)
@@ -245,71 +204,16 @@
         nav.NavigateTo($"/EditarVotacion/{vot.Id}");
     }
 
-    private bool PuedeVerResultados(Votify.Core.Entities.Votacion votacion)
-    {
-        return ObtenerMotivoBloqueo(votacion) == null;
-    }
-
-    private string? ObtenerMotivoBloqueo(Votify.Core.Entities.Votacion votacion)
-    {
-        var evento = eventos.FirstOrDefault(e => e.Id == votacion.Id_evento);
-
-        if (evento == null)
-            return "El evento no existe";
-
-        if (evento.Proyectos == null || evento.Proyectos.Count == 0)
-            return "No se han presentado proyectos para este evento";
-
-        if (votacion.EstadoVotacion == EstadoVotacion.Finalizada)
-            return null;
-
-        if (votacion.EstadoVotacion == EstadoVotacion.Abierta ||
-            votacion.EstadoVotacion == EstadoVotacion.Pausada)
-        {
-            if (!votacion.VerRes)
-                return "Los resultados no están disponibles mientras la votación no haya finalizado";
-        }
-
-        return null;
-    }
-
-    private void VerDashboard(Votify.Core.Entities.Votacion vot)
-    {
-        nav.NavigateTo($"/Dashboard/{vot.Id_evento}");
-    }
-
-    private async Task CambiarModoResultados()
-    {
-        verResultados = !verResultados;
-
-        boton = verResultados
-            ? "Gestionar votaciones"
-            : "Ver resultados";
-
-        await BuscarVotaciones();
-    }
-
     private void HayVotaciones()
     {
         votacionesActuales = votaciones.Where(vot =>
-            verResultados
-                ? vot.EstadoVotacion == EstadoVotacion.Abierta
-                  || vot.EstadoVotacion == EstadoVotacion.Pausada
-                  || vot.EstadoVotacion == EstadoVotacion.Finalizada
-                : vot.EstadoVotacion == EstadoVotacion.Abierta
-                  || vot.EstadoVotacion == EstadoVotacion.Pausada
+            vot.EstadoVotacion == EstadoVotacion.Abierta ||
+            vot.EstadoVotacion == EstadoVotacion.Pausada
         ).ToList();
 
-        if (votacionesActuales.Count == 0)
-        {
-            noHayResultados = verResultados
-                ? "No hay votaciones con resultados disponibles"
-                : "No hay votaciones abiertas o pausadas";
-        }
-        else
-        {
-            noHayResultados = "";
-        }
+        noHayResultados = votacionesActuales.Count == 0
+            ? "No hay votaciones abiertas o pausadas"
+            : "";
     }
 
     private string ObtenerTipoVotacion(Votify.Core.Entities.Votacion vot)
