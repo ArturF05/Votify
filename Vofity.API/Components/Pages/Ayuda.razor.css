@@ -53,7 +53,8 @@
 .card h3,
 .pasos h2,
 .faq h2,
-.nota h2 {
+.nota h2,
+.contacto h2 {
     margin: 0 0 0.85rem;
     color: #111827;
 }
@@ -63,7 +64,8 @@
 }
 
 .card p,
-.nota p {
+.nota p,
+.contacto p {
     margin: 0 0 0.65rem;
     color: #4b5563;
     line-height: 1.55;
@@ -76,7 +78,8 @@
 
 .pasos,
 .faq,
-.nota {
+.nota,
+.contacto {
     margin-top: 1.35rem;
     background: #fffaf3;
     border: 1px solid #f3dfc1;
@@ -116,6 +119,58 @@
     line-height: 1.5;
 }
 
+.contacto {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.25rem;
+    background: #ffffff;
+}
+
+.contacto-texto {
+    max-width: 360px;
+}
+
+.contacto-links {
+    display: flex;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.contacto-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 190px;
+    padding: 1rem 1.1rem;
+    border: 1px solid #f3dfc1;
+    border-radius: 8px;
+    color: #111827;
+    text-decoration: none;
+    background: #fffaf3;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.contacto-link:hover {
+    border-color: #f28c28;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(245, 166, 35, 0.16);
+}
+
+.contacto-label {
+    color: #f28c28;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.contacto-valor {
+    color: #374151;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
 @media (max-width: 950px) {
     .ayuda-grid {
         grid-template-columns: 1fr;
@@ -123,6 +178,19 @@
 
     .faq-lista {
         grid-template-columns: 1fr;
+    }
+
+    .contacto {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .contacto-links {
+        justify-content: stretch;
+    }
+
+    .contacto-link {
+        width: 100%;
     }
 }
 
