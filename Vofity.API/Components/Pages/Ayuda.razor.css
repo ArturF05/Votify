@@ -1,0 +1,141 @@
+.ayuda-page {
+    width: 100%;
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    box-sizing: border-box;
+    color: #1f2937;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.ayuda-header {
+    margin-bottom: 2.5rem;
+}
+
+.eyebrow {
+    margin: 0 0 0.35rem;
+    color: #f28c28;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+}
+
+.ayuda-header h1 {
+    margin: 0;
+    font-size: 2.6rem;
+    color: #111827;
+}
+
+.intro {
+    max-width: 560px;
+    margin: 0.75rem 0 0;
+    color: #6b7280;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.ayuda-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.35rem;
+}
+
+.card {
+    background: #ffffff;
+    border: 1px solid #f1ebe3;
+    border-radius: 8px;
+    padding: 1.75rem;
+    min-height: 150px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+}
+
+.card h3,
+.pasos h2,
+.faq h2,
+.nota h2 {
+    margin: 0 0 0.85rem;
+    color: #111827;
+}
+
+.card h3 {
+    font-size: 1.25rem;
+}
+
+.card p,
+.nota p {
+    margin: 0 0 0.65rem;
+    color: #4b5563;
+    line-height: 1.55;
+}
+
+.card p:last-child,
+.nota p:last-child {
+    margin-bottom: 0;
+}
+
+.pasos,
+.faq,
+.nota {
+    margin-top: 1.35rem;
+    background: #fffaf3;
+    border: 1px solid #f3dfc1;
+    border-radius: 8px;
+    padding: 1.75rem;
+}
+
+.pasos ol {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: #4b5563;
+    line-height: 1.7;
+}
+
+.faq-lista {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+.faq-item {
+    background: #ffffff;
+    border: 1px solid #f3dfc1;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.faq-item h3 {
+    margin: 0 0 0.45rem;
+    color: #111827;
+    font-size: 1rem;
+}
+
+.faq-item p {
+    margin: 0;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+@media (max-width: 950px) {
+    .ayuda-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .faq-lista {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .ayuda-page {
+        padding: 1.25rem;
+    }
+
+    .ayuda-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .ayuda-grid {
+        grid-template-columns: 1fr;
+    }
+}
