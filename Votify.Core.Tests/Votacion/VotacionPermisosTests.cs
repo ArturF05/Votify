@@ -27,6 +27,7 @@ namespace Votify.Core.Tests.Votaciones
         private EventoUsuarioRolRepository eventoUsuarioRolRepository;
 
         private Guid idEvento;
+        private Guid idCategoriaEvento;
         private Guid idUsuarioParticipante;
         private Guid idUsuarioPublico;
         private Guid idUsuarioAjeno1;
@@ -76,6 +77,7 @@ namespace Votify.Core.Tests.Votaciones
             );
 
             idEvento = Guid.NewGuid();
+            idCategoriaEvento = Guid.NewGuid();
             idUsuarioParticipante = Guid.NewGuid();
             idUsuarioPublico = Guid.NewGuid();
             idUsuarioJurado = Guid.NewGuid();
@@ -101,7 +103,7 @@ namespace Votify.Core.Tests.Votaciones
             var relacionAjeno2 = new ProyectoParticipantes
             {
                 Id_proyecto = idProyectoAjeno2,
-                Id_usuario = Guid.NewGuid() 
+                Id_usuario = Guid.NewGuid()
             };
 
             idVotacionPublicaConAutovoto = Guid.NewGuid();
@@ -132,6 +134,13 @@ namespace Votify.Core.Tests.Votaciones
                 Descripcion = "Evento para pruebas",
                 FechaInicio = DateTime.Today.AddDays(-2),
                 FechaFin = DateTime.Today.AddDays(2)
+            };
+
+            var categoriaEvento = new CategoriaEvento
+            {
+                Id = idCategoriaEvento,
+                Id_evento = idEvento,
+                Nombre = "Categoría test"
             };
 
             var usuarioParticipante = new Usuario
@@ -183,6 +192,7 @@ namespace Votify.Core.Tests.Votaciones
                 Titulo = "Proyecto Propio",
                 Descripcion = "Descripcion del proyecto propio",
                 Id_evento = idEvento,
+                Id_categoria_evento = idCategoriaEvento,
                 Id_creador = idUsuarioParticipante,
                 ProyectoParticipantes = new List<ProyectoParticipantes>
                 {
@@ -200,6 +210,7 @@ namespace Votify.Core.Tests.Votaciones
                 Titulo = "Proyecto Ajeno 1",
                 Descripcion = "Descripcion del proyecto ajeno 1",
                 Id_evento = idEvento,
+                Id_categoria_evento = idCategoriaEvento,
                 Id_creador = idUsuarioAjeno1,
                 ProyectoParticipantes = new List<ProyectoParticipantes>
                 {
@@ -217,6 +228,7 @@ namespace Votify.Core.Tests.Votaciones
                 Titulo = "Proyecto Ajeno 2",
                 Descripcion = "Descripcion del proyecto ajeno 2",
                 Id_evento = idEvento,
+                Id_categoria_evento = idCategoriaEvento,
                 Id_creador = Guid.NewGuid(),
                 ProyectoParticipantes = new List<ProyectoParticipantes>
                 {
@@ -283,6 +295,7 @@ namespace Votify.Core.Tests.Votaciones
             {
                 Id = Guid.NewGuid(),
                 Id_votacion = idVotacionPublicaConAutovoto,
+                Id_categoria_evento = idCategoriaEvento,
                 Nombre = "Calidad",
                 Descripcion = "Criterio de prueba",
                 Peso = 100
@@ -292,6 +305,7 @@ namespace Votify.Core.Tests.Votaciones
             {
                 Id = Guid.NewGuid(),
                 Id_votacion = idVotacionPublicaSinAutovoto,
+                Id_categoria_evento = idCategoriaEvento,
                 Nombre = "Calidad",
                 Descripcion = "Criterio de prueba",
                 Peso = 100
@@ -301,6 +315,7 @@ namespace Votify.Core.Tests.Votaciones
             {
                 Id = Guid.NewGuid(),
                 Id_votacion = idVotacionPublica,
+                Id_categoria_evento = idCategoriaEvento,
                 Nombre = "Calidad",
                 Descripcion = "Criterio de prueba",
                 Peso = 100
@@ -310,6 +325,7 @@ namespace Votify.Core.Tests.Votaciones
             context.Role.AddRange(rolParticipante, rolPublico, rolJurado);
             context.Usuario.AddRange(usuarioParticipante, usuarioPublico);
             context.Evento.Add(evento);
+            context.CategoriaEvento.Add(categoriaEvento);
             context.EventoUsuarioRol.AddRange(eventoUsuarioRolParticipante, eventoUsuarioRolPublico);
             context.Proyecto.AddRange(proyectoPropio, proyectoAjeno1, proyectoAjeno2);
             context.Votacion.AddRange(
@@ -331,9 +347,9 @@ namespace Votify.Core.Tests.Votaciones
                 IdVotante = idUsuarioParticipante,
                 Votos = new List<VotoDetalleDTO>
                 {
-                    new VotoDetalleDTO { IdProyecto = idProyectoPropio },
-                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno1 },
-                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno2 }
+                    new VotoDetalleDTO { IdProyecto = idProyectoPropio, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno1, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno2, IdCategoriaEvento = idCategoriaEvento }
                 },
                 IdEvento = idEvento
             };
@@ -357,9 +373,9 @@ namespace Votify.Core.Tests.Votaciones
                 IdVotante = idUsuarioParticipante,
                 Votos = new List<VotoDetalleDTO>
                 {
-                    new VotoDetalleDTO { IdProyecto = idProyectoPropio },
-                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno1 },
-                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno2 }
+                    new VotoDetalleDTO { IdProyecto = idProyectoPropio, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno1, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno2, IdCategoriaEvento = idCategoriaEvento }
                 },
                 IdEvento = idEvento
             };
@@ -384,9 +400,9 @@ namespace Votify.Core.Tests.Votaciones
                 IdVotante = idUsuarioPublico,
                 Votos = new List<VotoDetalleDTO>
                 {
-                    new VotoDetalleDTO { IdProyecto = idProyectoPropio },
-                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno1 },
-                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno2 }
+                    new VotoDetalleDTO { IdProyecto = idProyectoPropio, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno1, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyectoAjeno2, IdCategoriaEvento = idCategoriaEvento }
                 },
                 IdEvento = idEvento
             };

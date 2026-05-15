@@ -21,6 +21,7 @@ namespace Votify.Core.Tests.Votacion
 
         private Guid idEvento;
         private Guid idVotacion;
+        private Guid idCategoriaEvento;
 
         [TestInitialize]
         public void Setup()
@@ -47,7 +48,7 @@ namespace Votify.Core.Tests.Votacion
                 usuarioRepository,
                 usuarioRolRepository
             );
-           
+
 
             DateTime hoy = DateTime.UtcNow;
             Guid categoriaId = Guid.NewGuid();
@@ -68,7 +69,14 @@ namespace Votify.Core.Tests.Votacion
             );
 
             idEvento = evento.Id;
+            idCategoriaEvento = Guid.NewGuid();
             context.Evento.Add(evento);
+            context.CategoriaEvento.Add(new CategoriaEvento
+            {
+                Id = idCategoriaEvento,
+                Id_evento = idEvento,
+                Nombre = "Categoría test"
+            });
 
             idVotacion = Guid.NewGuid();
 
@@ -98,6 +106,7 @@ namespace Votify.Core.Tests.Votacion
                 new CrearCriterioDTO
                 {
                     Id = idExistente,
+                    IdCategoriaEvento = idCategoriaEvento,
                     Nombre = "Viejo",
                     Descripcion = "Actualizado",
                     Peso = 30
@@ -105,6 +114,7 @@ namespace Votify.Core.Tests.Votacion
                 new CrearCriterioDTO
                 {
                     Id = Guid.Empty,
+                    IdCategoriaEvento = idCategoriaEvento,
                     Nombre = "Nuevo",
                     Descripcion = "Nuevo criterio",
                     Peso = 70
@@ -114,6 +124,7 @@ namespace Votify.Core.Tests.Votacion
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
                 () => votacionService.CrearVotacion(
                     idEvento,
+                    idCategoriaEvento,
                     inicio,
                     fin,
                     true,
@@ -156,22 +167,31 @@ namespace Votify.Core.Tests.Votacion
                 {
                     Id = p1,
                     Id_evento = idEvento,
+                    Id_categoria_evento = idCategoriaEvento,
                     Titulo = "P1",
-                    Descripcion = "Desc P1"
+                    Descripcion = "Desc P1",
+                    ProyectoParticipantes = new List<ProyectoParticipantes>(),
+                    Materiales = new List<Material>()
                 },
                 new Proyecto
                 {
                     Id = p2,
                     Id_evento = idEvento,
+                    Id_categoria_evento = idCategoriaEvento,
                     Titulo = "P2",
-                    Descripcion = "Desc P2"
+                    Descripcion = "Desc P2",
+                    ProyectoParticipantes = new List<ProyectoParticipantes>(),
+                    Materiales = new List<Material>()
                 },
                 new Proyecto
                 {
                     Id = p3,
                     Id_evento = idEvento,
+                    Id_categoria_evento = idCategoriaEvento,
                     Titulo = "P3",
-                    Descripcion = "Desc P3"
+                    Descripcion = "Desc P3",
+                    ProyectoParticipantes = new List<ProyectoParticipantes>(),
+                    Materiales = new List<Material>()
                 }
             );
 
@@ -183,9 +203,9 @@ namespace Votify.Core.Tests.Votacion
                 IdEvento = idEvento,
                 Votos = new List<VotoDetalleDTO>
                 {
-                    new VotoDetalleDTO { IdProyecto = p1 },
-                    new VotoDetalleDTO { IdProyecto = p2 },
-                    new VotoDetalleDTO { IdProyecto = p3 }
+                    new VotoDetalleDTO { IdProyecto = p1, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = p2, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = p3, IdCategoriaEvento = idCategoriaEvento }
                 }
             };
 

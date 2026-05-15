@@ -19,6 +19,7 @@ namespace Votify.Core.Tests.Votacion
         private AppDbContext context;
         private Guid idVotacion;
         private Guid idEvento;
+        private Guid idCategoriaEvento;
 
         [TestInitialize]
         public void Setup()
@@ -47,6 +48,7 @@ namespace Votify.Core.Tests.Votacion
 
             idEvento = Guid.NewGuid();
             idVotacion = Guid.NewGuid();
+            idCategoriaEvento = Guid.NewGuid();
 
             context.Evento.Add(new Evento
             {
@@ -55,6 +57,13 @@ namespace Votify.Core.Tests.Votacion
                 Descripcion = "Evento de prueba",
                 FechaInicio = DateTime.UtcNow.AddDays(-1),
                 FechaFin = DateTime.UtcNow.AddDays(10)
+            });
+
+            context.CategoriaEvento.Add(new CategoriaEvento
+            {
+                Id = idCategoriaEvento,
+                Id_evento = idEvento,
+                Nombre = "Categoría test"
             });
 
             context.Votacion.Add(new VotacionPublico
@@ -81,6 +90,7 @@ namespace Votify.Core.Tests.Votacion
             {
                 Id = idExistente,
                 Id_votacion = idVotacion,
+                Id_categoria_evento = idCategoriaEvento,
                 Nombre = "Viejo",
                 Descripcion = "Criterio viejo",
                 Peso = 100
@@ -93,6 +103,7 @@ namespace Votify.Core.Tests.Votacion
                 new CrearCriterioDTO
                 {
                     Id = idExistente,
+                    IdCategoriaEvento = idCategoriaEvento,
                     Nombre = "Viejo",
                     Descripcion = "Actualizado",
                     Peso = 30
@@ -100,14 +111,15 @@ namespace Votify.Core.Tests.Votacion
                 new CrearCriterioDTO
                 {
                     Id = Guid.Empty,
+                    IdCategoriaEvento = idCategoriaEvento,
                     Nombre = "Nuevo",
                     Descripcion = "Nuevo criterio",
                     Peso = 70
                 }
             };
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3, true, true, true, jurados, EstadoVotacion.Abierta);
-            await votacionService.EditarVotacion(idVotacion, idEvento, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3, true, true,true, jurados, EstadoVotacion.Abierta);
+            await votacionService.EditarVotacion(idVotacion, idEvento, null, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3, true, true, true, jurados, EstadoVotacion.Abierta);
+            await votacionService.EditarVotacion(idVotacion, idEvento, null, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3, true, true, true, jurados, EstadoVotacion.Abierta);
 
             var resultados = await context.DimensionesDeValor.Where(d => d.Id_votacion == idVotacion).ToListAsync();
             Assert.AreEqual(2, resultados.Count);
