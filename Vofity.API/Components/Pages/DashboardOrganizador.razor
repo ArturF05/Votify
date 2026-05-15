@@ -1,0 +1,422 @@
+﻿@page "/DashboardOrganizador"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using Votify.Core.Entities
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Votify.Infrastructure.Data
+@inject ProtectedSessionStorage sessionStorage
+@inject NavigationManager nav
+@inject AppDbContext contexto
+<head>
+  <title>Dashboard Organizador - Votify</title>
+</head>
+<body>
+  <div class="layout">
+
+    <!-- Título y subtítulo -->
+      <header class="main-header">
+        <h1>Dashboard del Organizador</h1>
+        <p>Gestiona eventos, proyectos, categorias, votaciones y premios</p>
+      </header>
+
+      <!-- Estadisticas Grid -->
+      <div class="estadisticas-grid">
+          <!--Eventos activos-->
+        <div class="card estadistica-card">
+          <div class="estadistica-content">
+            <div>
+                <p class="estadistica-label">Eventos Activos</p>
+                @if(numEventos!= null)
+                {
+                    <p class="estadistica-value">@numEventos</p>
+                } else 
+                {
+                    <p class="estadistica-value">—</p> 
+                }
+            </div>
+            <div class="estadistica-icono amber">
+              <img src="/calendario.png" />
+            </div>
+          </div>
+        </div>
+        <!--Proyectos totales-->
+        <div class="card estadistica-card">
+          <div class="estadistica-content">
+            <div>
+              <p class="estadistica-label">Proyectos Totales</p>
+                @if(numProyectos!= null)
+                {
+                    <p class="estadistica-value">@numProyectos</p>
+                } else
+                {
+                    <p class="estadistica-value">—</p>
+                }
+                    </div>
+            <div class="estadistica-icono blue">
+              <img src="/proyecto.png" />
+            </div>
+          </div>
+        </div>
+        <!--Número participantes-->
+        <div class="card estadistica-card">
+          <div class="estadistica-content">
+            <div>
+              <p class="estadistica-label">Participantes</p>
+                @if(numParticipantes!= null)
+                {
+                    <p class="estadistica-value">@numParticipantes</p>
+                } else 
+                {
+                    <p class="estadistica-value">—</p> 
+                }
+            </div>
+            <div class="estadistica-icono green">
+              <img src="/Usuarios.png" />
+            </div>
+          </div>
+        </div>
+        <!--Votos emitidos-->
+        <div class="card estadistica-card">
+          <div class="estadistica-content">
+            <div>
+              <p class="estadistica-label">Votos Emitidos</p>
+                @if(numVotos!= null)
+                {
+                    <p class="estadistica-value">@numVotos</p>
+                } else 
+                {
+                    <p class="estadistica-value">—</p> 
+                }
+            </div>
+            <div class="estadistica-icono violet">
+              <img src="/Votos.png" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid de dos columnas -->
+      <div class="dos-col-grid">
+        <!-- Votaciones en Curso -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"></path>
+              </svg>
+                        Votaciones en Curso
+                    </h2>
+                </div>
+ 
+                <div class="card-content">
+                    <div class="voting-list">
+ 
+                        @if (votaciones == null)
+                        {
+                            <!-- Estado de carga -->
+                            <div class="voting-loading">
+                                <span>Cargando votaciones...</span>
+                            </div>
+                        }
+                        else if (!votaciones.Any(v =>
+                            v.EstadoVotacion == EstadoVotacion.Abierta ||
+                            v.EstadoVotacion == EstadoVotacion.Pausada ||
+                            v.EstadoVotacion == EstadoVotacion.Finalizada))
+                        {
+                            <!-- Sin votaciones -->
+                            <p class="voting-empty">No hay votaciones disponibles.</p>
+                        }
+                        else
+                        {
+                            @foreach (var vot in votaciones.Where(v =>
+                                v.EstadoVotacion == EstadoVotacion.Abierta ||
+                                v.EstadoVotacion == EstadoVotacion.Pausada ||
+                                v.EstadoVotacion == EstadoVotacion.Finalizada))
+                            {
+                                var nombreEvento = eventos.FirstOrDefault(e => e.Id == vot.Id_evento)?.Nombre ?? "—";
+                                var pctFecha = CalcularPorcentajeFecha(vot.FechaInicio, vot.FechaFin);
+                                var pctStr = pctFecha.ToString("0") + "%";
+                                var puedeVer = PuedeVerResultados(vot);
+                                var motivo = ObtenerMotivoBloqueo(vot);
+                                var estadoBadge = ObtenerClaseBadgeEstado(vot.EstadoVotacion);
+                                var estadoLabel = ObtenerEtiquetaEstado(vot.EstadoVotacion);
+ 
+                                <div class="voting-item">
+                                    <!-- Título + badges + botón resultados -->
+                                    <div class="voting-header">
+                                        <span class="voting-title">@nombreEvento – @ObtenerTipoVotacion(vot)</span>
+                                        <div class="voting-actions">
+                                            <span class="badge @estadoBadge">@estadoLabel</span>
+ 
+                                            <!-- Botón "Ver resultados" SIEMPRE visible; deshabilitado si no puede -->
+                                            <div class="tooltip-wrapper">
+                                                <button class="btn-results @(puedeVer ? "" : "btn-results--disabled")"
+                                                        @onclick="() => { if (puedeVer) VerDashboard(vot.Id_evento); }"
+                                                        disabled="@(!puedeVer)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                              d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51
+                                                        7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178
+                                                        .07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12
+                                                        19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    </svg>
+                                                    Ver resultados
+                                                </button>
+                                                @if (!puedeVer && motivo != null)
+                                                {
+                                                    <span class="tooltip-text">@motivo</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+ 
+                                    <!-- Progreso temporal: desde FechaInicio hasta FechaFin -->
+                                    <div class="voting-stats">
+                                        <span>@vot.FechaInicio.ToLocalTime().ToString("dd/MM/yyyy HH:mm") → @vot.FechaFin.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                        <span>@pctStr transcurrido</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: @pctStr"></div>
+                                    </div>
+ 
+                                    <!-- Fecha fin -->
+                                    <div class="voting-date">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                             stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Finaliza: @vot.FechaFin.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    </div>
+                                </div>
+                            }
+                        }
+ 
+                    </div><!-- /voting-list -->
+                </div>
+            </div><!-- /Votaciones en Curso -->
+            <!-- Eventos Recientes -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5
+                                 A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25
+                                 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25
+                                 0 0121 11.25v7.5" />
+                    </svg>
+                    Eventos Recientes
+                </h2>
+            </div>
+
+            <div class="card-content">
+                <div class="events-list">
+
+                    @if (eventos == null || !eventos.Any())
+                    {
+                        <p class="voting-empty">No hay eventos disponibles.</p>
+                    }
+                    else
+                    {
+                        <!-- Muestra los 6 más recientes (por FechaInicio desc) -->
+                        @foreach (var evt in eventos
+                            .OrderByDescending(e => e.FechaInicio)
+                            .Take(6))
+                        {
+                            var evtLocal     = evt;
+                            var esActivo     = !evtLocal.Archivado;
+                            var dotClass     = esActivo ? "dot-green" : "dot-gray";
+                            var badgeClass   = esActivo ? "badge-green" : "badge-gray";
+                            var badgeLabel   = esActivo ? "Activo" : "Archivado";
+                            var numProy      = evtLocal.Proyectos?.Count ?? 0;
+                                var fechaMostrar = evtLocal.FechaFin.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+
+                            <div class="event-item">
+                                <!-- Lado izquierdo: dot + nombre + proyectos -->
+                                <div class="event-info">
+                                    <div class="event-dot @dotClass"></div>
+                                    <div>
+                                        <p class="event-name">@evtLocal.Nombre</p>
+                                        <p class="event-projects">@numProy proyectos</p>
+                                    </div>
+                                </div>
+
+                                <!-- Lado derecho: badge + fecha + botones -->
+                                <div class="event-meta">
+                                    <div class="event-status-group">
+                                        <span class="badge @badgeClass">@badgeLabel</span>
+                                        <p class="event-date">@fechaMostrar</p>
+                                    </div>
+
+                                    <!-- Botón "Ver info" → /DashboardEvento (siempre visible) -->
+                                    <button class="btn-info"
+                                                @onclick='() => nav.NavigateTo($"/DashboardEvento/{evtLocal.Id}")'>                                        <!-- CAMBIAR: cuando la ruta tenga parámetro, usa /DashboardEvento/{evtLocal.Id} -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0
+                                                     005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5
+                                                     6L21 3m0 0h-5.25M21 3v5.25" />
+                                        </svg>
+                                        Ver info
+                                    </button>
+
+                                    <!-- Botón "Ver resultados": solo si se pueden ver -->
+                                        @if (PuedeVerResultadosEvento(evtLocal.Id))
+                                    {
+                                        <button class="btn-results"
+                                                    @onclick="() => VerDashboard(evtLocal.Id)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51
+                                                         7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178
+                                                         .07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12
+                                                         19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                            Ver resultados
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+
+                </div><!-- /events-list -->
+            </div>
+        </div><!-- /Eventos Recientes -->
+
+    </div><!-- /dos-col-grid -->
+
+</div><!-- /layout -->
+</body>
+
+@code {
+    private int? numEventos;
+    private int? numProyectos;
+    private int? numParticipantes;
+    private int? numVotos;
+    private List<Votify.Core.Entities.Evento> eventos = new();
+    private List<Votify.Core.Entities.Votacion> votaciones = null!;   // null = cargando
+ 
+    private Guid idUsuario;
+    private bool cargado = false;
+ 
+    // ── Ciclo de vida ─────────────────────────────────────────────────
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || cargado) return;
+ 
+        var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
+        if (!resultado.Success || resultado.Value == Guid.Empty)
+        {
+            nav.NavigateTo("/Login");
+            return;
+        }
+ 
+        idUsuario = resultado.Value;
+  
+        // Cargar eventos del organizador
+        eventos = await contexto.Evento
+          .AsNoTracking()
+          .Include(e => e.Proyectos).Include(e => e.EventoUsuarioRoles).ThenInclude(eur => eur.Rol).Where(v => contexto.EventoUsuarioRol.Any(eur =>
+              eur.EventoId == v.Id &&
+              eur.UsuarioId == idUsuario &&
+              eur.Rol.Nombre == "Organizador"))
+          .ToListAsync();
+ 
+        // Cargar votaciones de los eventos donde el usuario es Organizador
+        var eventosIds = eventos.Select(e => e.Id).ToList();
+        votaciones = await contexto.Votacion
+            .Where(v => eventosIds.Contains(v.Id_evento))
+            .ToListAsync();
+ 
+        // Estadísticas
+        numEventos = eventos.Count(e => !e.Archivado);
+        numProyectos = eventos.Sum(e => e.Proyectos?.Count ?? 0);
+        // CAMBIAR AL CREAR PROYECTO PARA QUE CUANDO SE CREE UN PROYECTO EN EL EVENTO SE LE CAMBIE EL ROL DE PUBLICO A PARTICIPANTE Y QUE AL INSCRIBIRSE EN UN EVENTO SEA SOLO PUBLICO SIEMPRE
+        numParticipantes = eventos
+            .SelectMany(e => e.EventoUsuarioRoles ?? Enumerable.Empty<EventoUsuarioRol>())
+            .Where(eur => eur.Rol?.Nombre == "Participante")
+            .Select(eur => eur.UsuarioId)
+            .Distinct()
+            .Count();
+        numVotos = await contexto.Voto
+            .Where(v => votaciones.Select(vot => vot.Id).Contains(v.Id_votacion))
+            .CountAsync();
+        cargado = true;
+        StateHasChanged();
+    }
+ 
+    // ── Helpers: lógica copiada de GestionarVotaciones ───────────────
+ 
+    private bool PuedeVerResultadosEvento(Guid idEvento)
+    {
+        return votaciones.Any(v =>
+            v.Id_evento == idEvento &&
+            PuedeVerResultados(v));
+    }
+    private bool PuedeVerResultados(Votify.Core.Entities.Votacion votacion)
+      => ObtenerMotivoBloqueo(votacion) == null;
+ 
+    private string? ObtenerMotivoBloqueo(Votify.Core.Entities.Votacion votacion)
+    {
+        var evento = eventos.FirstOrDefault(e => e.Id == votacion.Id_evento);
+        if (evento == null)
+            return "El evento no existe";
+        if (evento.Proyectos == null || evento.Proyectos.Count == 0)
+            return "No se han presentado proyectos para este evento";
+        if (votacion.EstadoVotacion == EstadoVotacion.Finalizada)
+            return null;
+        if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
+             votacion.EstadoVotacion == EstadoVotacion.Pausada) && !votacion.VerRes)
+            return "Los resultados no están disponibles mientras la votación no haya finalizado";
+        return null;
+    }
+ 
+    private void VerDashboard(Guid Id_evento)
+      => nav.NavigateTo($"/Dashboard/{Id_evento}");
+ 
+    private string ObtenerTipoVotacion(Votify.Core.Entities.Votacion vot)
+    {
+        if (vot is VotacionPublico) return "Público";
+        if (vot is VotacionJurado) return "Jurado";
+        if (vot is VotacionMixta) return "Mixta";
+        return "Desconocido";
+    }
+ 
+    private double CalcularPorcentajeFecha(DateTime inicio, DateTime fin)
+    {
+        var ahora = DateTime.UtcNow;
+        if (ahora <= inicio) return 0;
+        if (ahora >= fin) return 100;
+        var total = (fin - inicio).TotalSeconds;
+        var transcurrido = (ahora - inicio).TotalSeconds;
+        return Math.Round(transcurrido / total * 100, 1);
+    }
+ 
+    private string ObtenerClaseBadgeEstado(EstadoVotacion estado) => estado switch
+    {
+        EstadoVotacion.Abierta => "badge-green",
+        EstadoVotacion.Pausada => "badge-amber",   // añadir color en el CSS si lo necesitas
+        EstadoVotacion.Finalizada => "badge-gray",
+        _ => "badge-gray"
+    };
+ 
+    private string ObtenerEtiquetaEstado(EstadoVotacion estado) => estado switch
+    {
+        EstadoVotacion.Abierta => "En curso",
+        EstadoVotacion.Pausada => "Pausada",
+        EstadoVotacion.Finalizada => "Finalizada",
+        _ => estado.ToString()
+    };
+}
+ 
+
