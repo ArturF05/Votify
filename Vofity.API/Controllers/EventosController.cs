@@ -217,5 +217,47 @@ namespace Votify.API.Controllers
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
+        [HttpGet("estadisticas-organizador")]
+        public async Task<DashboardOrganizadorStatsDTO> EstadisticasOrganizador([FromQuery] Guid idUsuario)
+        {
+            var eventosIds = await context.EventoUsuarioRol
+                .Where(eur => eur.UsuarioId == idUsuario && eur.Rol.Nombre == "Organizador")
+                .Select(eur => eur.EventoId)
+                .Distinct()
+                .ToListAsync();
+
+            var eventosActivos = await context.Evento
+                .CountAsync(e => eventosIds.Contains(e.Id) && !e.Archivado);
+
+            var proyectosTotales = await context.Proyecto
+                .CountAsync(p => eventosIds.Contains(p.Id_evento));
+
+            var participantes = await context.EventoUsuarioRol
+                .Where(eur => eventosIds.Contains(eur.EventoId) && eur.Rol.Nombre == "Participante")
+                .Select(eur => eur.UsuarioId)
+                .Distinct()
+                .CountAsync();
+
+            var votacionesIds = await context.Votacion
+                .Where(v => eventosIds.Contains(v.Id_evento))
+                .Select(v => v.Id)
+                .ToListAsync();
+
+            var votosEmitidos = await context.Voto
+                .CountAsync(v => votacionesIds.Contains(v.Id_votacion));
+
+            return new DashboardOrganizadorStatsDTO
+            {
+                EventosActivos = eventosActivos,
+                ProyectosTotales = proyectosTotales,
+                Participantes = participantes,
+                VotosEmitidos = votosEmitidos
+            };
+        }
+        [HttpGet("numProyectos")]
+        public async Task<int> NumProyectosPorEvento([FromQuery] Guid idEvento)
+        {
+            return await context.Proyecto.CountAsync(p => p.Id_evento == idEvento);
+        }
     }
 }

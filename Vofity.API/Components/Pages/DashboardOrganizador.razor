@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.EntityFrameworkCore
+@using Votify.API.DTOs
 @using Votify.Core.Entities
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using Votify.Infrastructure.Data
@@ -238,7 +239,7 @@
                             var esActivo     = !evtLocal.Archivado;
                             var badgeClass   = esActivo ? "badge-green" : "badge-gray";
                             var badgeLabel   = esActivo ? "Activo" : "Archivado";
-                            var numProy      = evtLocal.Proyectos?.Count ?? 0;
+                            var numProy = numProyectosEvento.ContainsKey(evtLocal.Id) ? numProyectosEvento[evtLocal.Id] : 0;
 
                             var fechaMostrar = evtLocal.FechaFin.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
                             var puedeVer = PuedeVerResultadosEvento(evtLocal.Id);
@@ -322,12 +323,13 @@
     private List<Votify.Core.Entities.Votacion> votaciones = new()!;
     private Dictionary<Guid, int> numVotosEvento = new(); 
     private Dictionary<Guid, int> numVotosVotaciones = new();
+    private Dictionary<Guid, int> numProyectosEvento = new();
     private Guid idUsuario;
     private bool cargado = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || cargado) return;
+        if (!firstRender) return;
 
         var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
         if (!resultado.Success || resultado.Value == Guid.Empty)
@@ -347,7 +349,9 @@
             url = $"api/eventos/numVotos?idEvento={e.Id}";
             var nVE = await Http.GetFromJsonAsync<int>(url);
             numVotosEvento[e.Id] = nVE;
-            numVotos += nVE;
+            url = $"api/eventos/numProyectos?idEvento={e.Id}";
+            var nProy = await Http.GetFromJsonAsync<int>(url);
+            numProyectosEvento[e.Id] = nProy;
         }
 
         // Cargar votaciones de los eventos donde el usuario es Organizador
@@ -362,14 +366,15 @@
             var votos = await Http.GetFromJsonAsync<List<Voto>>(url);
             numVotosVotaciones[v.Id] = votos.Count;
         }
-        numEventos = eventos.Count(e => !e.Archivado);
-        numProyectos = eventos.Sum(e => e.Proyectos?.Count ?? 0);
-        numParticipantes = eventos
-            .SelectMany(e => e.EventoUsuarioRoles ?? Enumerable.Empty<EventoUsuarioRol>())
-            .Where(eur => eur.Rol?.Nombre == "Participante")
-            .Select(eur => eur.UsuarioId)
-            .Distinct()
-            .Count();
+        var statsUrl = $"api/eventos/estadisticas-organizador?idUsuario={idUsuario}";
+        var stats = await Http.GetFromJsonAsync<DashboardOrganizadorStatsDTO>(statsUrl);
+        if (stats != null)
+        {
+            numEventos = stats.EventosActivos;
+            numProyectos = stats.ProyectosTotales;
+            numParticipantes = stats.Participantes;
+            numVotos = stats.VotosEmitidos;
+        }
         cargado = true;
         StateHasChanged();
     }
