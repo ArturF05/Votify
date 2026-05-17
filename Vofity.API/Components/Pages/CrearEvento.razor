@@ -12,6 +12,7 @@
 @inject AppDbContext contexto
 @inject HttpClient Http
 @inject ProtectedSessionStorage sessionStorage
+@inject IJSRuntime JS
 
 
 <div class="crear-evento-page">
@@ -261,10 +262,7 @@
         otraVotacion();
     }
 
-    void Cancelar()
-    {
-        nav.NavigateTo("/Evento");
-    }
+    private async Task Volver() => await JS.InvokeVoidAsync("history.back");
 
     void SeleccionarTipo(TipoVotacion tipo, int numeroVotacion)
     {

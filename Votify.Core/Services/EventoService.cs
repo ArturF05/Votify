@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Votify.Core.DTOs;
 using Votify.Core.Entities;
 using Votify.Core.Factories;
 using Votify.Core.Interfaces;
-using Votify.Core.DTOs;
 
 namespace Votify.Core.Services
 {
@@ -101,6 +102,15 @@ namespace Votify.Core.Services
         public async Task<List<Evento>> ObtenerTodos()
         {
             return await eventoRepository.ObtenerTodos();
+        }
+        public async Task<int> NumeroVotosPorEvento(Guid idEvento)
+        {
+            var  votos = await eventoRepository.ObtenerVotosDeEventoAsync(idEvento);
+            return votos.Count();
+        }
+        public async Task<List<Votify.Core.Entities.Evento>> ObtenerEventosOrganizador(Guid idUsuario)
+        {
+            return await eventoRepository.ObtenerEventosOrganizadorAsync(idUsuario);
         }
 
         public async Task<DashboardEventoDTO> ObtenerDashboardEventoAsync(Guid eventoId)

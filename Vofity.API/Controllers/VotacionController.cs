@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Votify.API.DTOs;
 using Votify.Core.DTOs;
+using Votify.Core.Entities;
 using Votify.Core.Interfaces;
 using Votify.Core.Services;
 using Votify.Infrastructure.Data;
@@ -134,6 +135,11 @@ namespace Votify.API.Controllers
             {
                 return BadRequest(new { mensaje = ex.Message });
             }
+        }
+        [HttpGet("votEventos")]
+        public async Task<List<Votacion>> ObtenerVotacionesEventos([FromQuery] List<Guid> idsEventos)
+        {
+            return await votacionService.ObtenerVotacionesEventos(idsEventos);
         }
 
     }

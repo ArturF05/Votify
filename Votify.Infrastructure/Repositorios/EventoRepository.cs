@@ -145,5 +145,17 @@ namespace Votify.Infrastructure.Repositorios
 
             await contexto.EventoUsuarioRol.AddAsync(relacion);
         }
+        public async Task<List<Votify.Core.Entities.Evento>> ObtenerEventosOrganizadorAsync(Guid idUsuario)
+        {
+            return eventos = await contexto.Evento
+            .AsNoTracking()
+            .Include(e => e.Categoria)
+            .Where(e => contexto.EventoUsuarioRol
+                .Include(eur => eur.Rol)
+                .Any(eur => eur.EventoId == e.Id
+                         && eur.UsuarioId == idUsuario
+                         && eur.Rol.Nombre == "Organizador"))
+            .ToListAsync();
+        }
     }
 }

@@ -18,6 +18,7 @@ namespace Votify.Core.Interfaces
         Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipovotacion, List<CrearCriterioDTO> criterios,int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool verRes,List<Guid> Jurados, EstadoVotacion estadoVotacion);
         Task EliminarVotacion(Guid Id);
         Task<Votacion?> ObtenerPorIdAsync(Guid id);
+        Task<List<Votacion>> ObtenerVotacionesEventos(List<Guid> idsEventos);
 
     }
 }

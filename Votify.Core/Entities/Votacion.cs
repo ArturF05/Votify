@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace Votify.Core.Entities;
 
+using System.Text.Json.Serialization;
+
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
+[JsonDerivedType(typeof(VotacionPublico), "publico")]
+[JsonDerivedType(typeof(VotacionJurado), "jurado")]
+[JsonDerivedType(typeof(VotacionMixta), "mixta")]
 public abstract class Votacion
 {
     public Guid Id { get; set; }

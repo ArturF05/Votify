@@ -176,6 +176,16 @@ namespace Votify.API.Controllers
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
+        [HttpGet("numVotos")]
+        public async Task<int> NumeroVotosPorEvento([FromQuery] Guid idEvento)
+        {
+            return await eventoService.NumeroVotosPorEvento(idEvento);
+        }
+        [HttpGet("organizador")]
+        public async Task<List<Votify.Core.Entities.Evento>> ObtenerEventosOrganizador(Guid idUsuario)
+        {
+            return await eventoService.ObtenerEventosOrganizador(idUsuario);
+        }
 
         [HttpPatch("{id}/apuntarse")]
         public async Task<IActionResult> ApuntarseAEvento(Guid id, [FromQuery] Guid usuarioId, [FromQuery] bool apuntar)

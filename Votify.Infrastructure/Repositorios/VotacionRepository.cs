@@ -101,5 +101,11 @@ namespace Votify.Infrastructure.Repositorios
                 .OrderByDescending(v => v.FechaFin)
                 .FirstOrDefaultAsync();
         }
+        public async Task<List<Votacion>> ObtenerVotacionesEventos(List<Guid> idsEventos)
+        {
+            return await contexto.Votacion
+                .Where(v => idsEventos.Contains(v.Id_evento))
+                .ToListAsync();
+        }
     }
 }

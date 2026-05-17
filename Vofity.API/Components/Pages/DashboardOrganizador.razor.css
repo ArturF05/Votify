@@ -76,6 +76,9 @@ body {
 .card-header {
     padding: 20px 24px 12px;
     background: #ffa000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .card-title {
@@ -98,7 +101,33 @@ body {
     padding: 0 24px 24px;
     background: #ffffff;
 }
+.btn-create {
+    background: white;
+    color: #f59e0b;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
 
+    .btn-create:hover {
+        background: #fff7ed;
+    }
+.mini-status {
+    display: inline-flex;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+    .mini-status.green {
+        background: #dcfce7;
+        color: #15803d;
+    }
 /* ── Grid de estadísticas ───────────────────────────────────────────── */
 .estadisticas-grid {
     display: grid;
@@ -356,24 +385,24 @@ body {
     font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
+    color: black;
 }
 
 /* Clases usadas en el razor (badge-green, badge-gray, badge-amber) */
-.badge badge-green {
-    background-color: var(--green-100);
-    color: var(--green-700);
-}
+    .badge.badge-green {
+        background-color: #dcfce7;
+        color: #15803d;
+    }
 
-.badge badge-gray {
-    background-color: var(--gray-100);
-    color: var(--gray-700);
-}
+    .badge.badge-gray {
+        background-color: #f3f4f6;
+        color: #374151;
+    }
 
-.badge badge-amber {
-    background-color: var(--amber-badge-bg);
-    color: var(--amber-badge-text);
-}
-
+    .badge.badge-amber {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
 /* ── Botón "Ver resultados" ─────────────────────────────────────────── */
 .btn-results {
     display: inline-flex;

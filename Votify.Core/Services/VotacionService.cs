@@ -355,6 +355,10 @@ namespace Votify.Core.Services
             throw new Exception("Tipo de votación desconocido");
         }
 
+        public async Task<List<Votacion>> ObtenerVotacionesEventos(List<Guid> idsEventos)
+        {
+            return await votacionRepository.ObtenerVotacionesEventos(idsEventos);
+        }
 
     }
 }

@@ -12,6 +12,7 @@
 @inject AppDbContext contexto
 @inject HttpClient Http
 @inject ProtectedSessionStorage sessionStorage
+@inject IJSRuntime JS
 
 <div class="form-evento">
     <h3>Nueva votacion</h3>
@@ -289,10 +290,7 @@
         finEvento = evento.FechaFin;
         StateHasChanged();
     }
-    void Cancelar()
-    {
-        nav.NavigateTo("/GestionarVotaciones");
-    }
+    private async Task Cancelar() => await JS.InvokeVoidAsync("history.back");
     void SeleccionarTipo(TipoVotacion tipo)
     {
         tipoVotacion = tipo;
