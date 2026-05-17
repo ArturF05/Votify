@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Votify.Core\Votify.Core.csproj" />
     <ProjectReference Include="..\Votify.Infrastructure\Votify.Infrastructure.csproj" />
+    <ProjectReference Include="..\Vofity.API\Votify.API.csproj" />
   </ItemGroup>
 
   <ItemGroup>
