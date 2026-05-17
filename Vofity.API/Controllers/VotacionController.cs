@@ -141,7 +141,11 @@ namespace Votify.API.Controllers
         {
             return await votacionService.ObtenerVotacionesEventos(idsEventos);
         }
-
+        [HttpGet("votosVotacion")]
+        public async Task<List<Voto>> ObtenerVotosVotacion([FromQuery] Guid idVotacion)
+        {
+            return await votacionService.ObtenerVotosVotacion(idVotacion);
+        }
     }
 
 }

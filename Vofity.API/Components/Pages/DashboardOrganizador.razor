@@ -9,19 +9,11 @@
 @inject ProtectedSessionStorage sessionStorage
 @inject NavigationManager nav
 @inject HttpClient Http
-<head>
-  <title>Dashboard Organizador - Votify</title>
-</head>
-<body>
+<PageTitle>Dashboard Organizador - Votify </PageTitle>
   <div class="layout">
-
-    <!-- Título y subtítulo -->
       <header class="main-header">
-        <h1>Dashboard del Organizador</h1>
-        <p>Gestiona eventos, proyectos, categorias, votaciones y premios</p>
+        <h1>Dashboard Organizador</h1>
       </header>
-
-      <!-- Estadisticas Grid -->
       <div class="estadisticas-grid">
           <!--Eventos activos-->
         <div class="card estadistica-card">
@@ -109,13 +101,7 @@
                 <div class="card-content">
                     <div class="voting-list">
  
-                        @if (votaciones == null)
-                        {
-                            <div class="voting-loading">
-                                <span>Cargando votaciones...</span>
-                            </div>
-                        }
-                        else if (!votaciones.Any(v =>
+                        @if (votaciones == null || !votaciones.Any(v =>
                             v.EstadoVotacion == EstadoVotacion.Abierta ||
                             v.EstadoVotacion == EstadoVotacion.Pausada ))
                         {
@@ -125,7 +111,7 @@
                         {
                             @foreach (var vot in votaciones.Where(v =>
                                 v.EstadoVotacion == EstadoVotacion.Abierta ||
-                                v.EstadoVotacion == EstadoVotacion.Pausada ))
+                                v.EstadoVotacion == EstadoVotacion.Pausada).OrderBy(v => v.FechaFin))
                             {
                                 var nombreEvento = eventos.FirstOrDefault(e => e.Id == vot.Id_evento)?.Nombre ?? "—";
                                 var pctFecha = CalcularPorcentajeFecha(vot.FechaInicio, vot.FechaFin);
@@ -134,13 +120,18 @@
                                 var motivo = ObtenerMotivoBloqueo(vot);
                                 var estadoBadge = ObtenerClaseBadgeEstado(vot.EstadoVotacion);
                                 var estadoLabel = ObtenerEtiquetaEstado(vot.EstadoVotacion);
- 
+                                var finalizaPronto = FinalizaPronto(vot.FechaFin);
                                 <div class="voting-item">
-                                    <!-- Título + badges + botón resultados -->
                                     <div class="voting-header">
                                         <span class="voting-title">@nombreEvento – @ObtenerTipoVotacion(vot)</span>
                                         <div class="voting-actions">
                                             <span class="badge @estadoBadge">@estadoLabel</span>
+                                            @if (finalizaPronto)
+                                            {
+                                                <span class="badge badge-danger">
+                                                    Finaliza pronto
+                                                </span>
+                                            }
                                              <div class="tooltip-wrapper">
                                                 <button class="btn-results @(puedeVer ? "" : "btn-results--disabled")"
                                                         @onclick="() => { if (puedeVer) VerDashboard(vot.Id_evento); }"
@@ -165,10 +156,30 @@
                                         </div>
                                     </div>
  
-                                    <!-- Progreso temporal: desde FechaInicio hasta FechaFin -->
+                                    <!-- Barra de progreso temporal: desde FechaInicio hasta FechaFin -->
                                     <div class="voting-stats">
                                         <span>@vot.FechaInicio.ToLocalTime().ToString("dd/MM/yyyy HH:mm") → @vot.FechaFin.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                                         <span>@pctStr transcurrido</span>
+                                    </div>
+                                    <div class="voting-extra-info">
+
+                                        <span>
+                                            @(numVotosVotaciones.ContainsKey(vot.Id)? numVotosVotaciones[vot.Id]: 0)
+                                            votos emitidos
+                                        </span>
+
+                                        <span>·</span>
+                                        <span>
+                                            Tipo de votacion:
+                                            @(vot.Tipo.ToString())
+                                        </span>
+                                        @if (vot.Tipo != TipoVotacion.Jurado)
+                                        {
+                                            <span>·</span>
+                                            <span>
+                                                Autovoto @(vot.PermiteAutoVoto ? "Sí" : "No")
+                                            </span>
+                                        }
                                     </div>
                                     <div class="progress-bar">
                                         <div class="progress-fill" style="width: @pctStr"></div>
@@ -189,7 +200,7 @@
  
                     </div>
                 </div>
-            </div><!-- /Votaciones en Curso -->
+            </div>
             <!-- Eventos Recientes -->
         <div class="card">
             <div class="card-header">
@@ -225,7 +236,6 @@
                         {
                             var evtLocal     = evt;
                             var esActivo     = !evtLocal.Archivado;
-                            var dotClass     = esActivo ? "dot-green" : "dot-gray";
                             var badgeClass   = esActivo ? "badge-green" : "badge-gray";
                             var badgeLabel   = esActivo ? "Activo" : "Archivado";
                             var numProy      = evtLocal.Proyectos?.Count ?? 0;
@@ -233,10 +243,9 @@
                             var fechaMostrar = evtLocal.FechaFin.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
                             var puedeVer = PuedeVerResultadosEvento(evtLocal.Id);
                             var motivo = ObtenerMotivoBloqueoEvento(evtLocal);
+                            var finalizaPronto = FinalizaPronto(evtLocal.FechaFin);
                             <div class="event-item">
-                                <!-- Lado izquierdo: dot + nombre + proyectos -->
                                 <div class="event-info">
-                                    <div class="event-dot @dotClass"></div>
                                     <div>
                                         <p class="event-name">@evtLocal.Nombre</p>
                                         <p class="event-projects">@numProy proyectos · @(numVotosEvento.ContainsKey(evtLocal.Id) ? numVotosEvento[evtLocal.Id] : 0) votos</p>
@@ -248,14 +257,17 @@
                                         }
                                     </div>
                                 </div>
-
-                                <!-- Lado derecho: badge + fecha + botones -->
                                 <div class="event-meta">
                                     <div class="event-status-group">
                                         <span class="badge @badgeClass">@badgeLabel</span>
+                                        @if (finalizaPronto)
+                                        {
+                                            <span class="badge badge-danger">
+                                                Finaliza pronto
+                                            </span>
+                                        }
                                         <p class="event-date">Finaliza: @fechaMostrar</p>
                                     </div>
-
                                     <button class="btn-info"
                                                 @onclick='() => nav.NavigateTo($"/DashboardEvento/{evtLocal.Id}")'> 
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -300,7 +312,6 @@
     </div>
 
 </div>
-</body>
 
 @code {
     private int? numEventos;
@@ -308,8 +319,10 @@
     private int? numParticipantes;
     private int numVotos = 0;
     private List<Votify.Core.Entities.Evento> eventos = new();
-    private List<Votify.Core.Entities.Votacion> votaciones = null!;
-    private Dictionary<Guid, int> numVotosEvento = new(); private Guid idUsuario;
+    private List<Votify.Core.Entities.Votacion> votaciones = new()!;
+    private Dictionary<Guid, int> numVotosEvento = new(); 
+    private Dictionary<Guid, int> numVotosVotaciones = new();
+    private Guid idUsuario;
     private bool cargado = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -343,11 +356,14 @@
         url = $"api/v1/votaciones/votEventos?{query}";
 
         votaciones = await Http.GetFromJsonAsync<List<Votify.Core.Entities.Votacion>>(url);
-
+        foreach(Votify.Core.Entities.Votacion v in votaciones)
+        {
+            url = $"api/v1/votaciones/votosVotacion?idVotacion={v.Id}";
+            var votos = await Http.GetFromJsonAsync<List<Voto>>(url);
+            numVotosVotaciones[v.Id] = votos.Count;
+        }
         numEventos = eventos.Count(e => !e.Archivado);
         numProyectos = eventos.Sum(e => e.Proyectos?.Count ?? 0);
-        // CAMBIAR AL CREAR PROYECTO PARA QUE CUANDO SE CREE UN PROYECTO EN EL EVENTO SE LE CAMBIE EL ROL DE PUBLICO A PARTICIPANTE Y QUE AL INSCRIBIRSE EN UN EVENTO SEA SOLO PUBLICO SIEMPRE
-        //CAMBIAR LOS ICONOS PARA QUITAR ENLCES SI SE CONSIDERA NECESARIO
         numParticipantes = eventos
             .SelectMany(e => e.EventoUsuarioRoles ?? Enumerable.Empty<EventoUsuarioRol>())
             .Where(eur => eur.Rol?.Nombre == "Participante")
@@ -356,6 +372,11 @@
             .Count();
         cargado = true;
         StateHasChanged();
+    }
+    private bool FinalizaPronto(DateTime fechaFin)
+    {
+        return fechaFin.ToUniversalTime() <= DateTime.UtcNow.AddHours(24)
+            && fechaFin.ToUniversalTime() > DateTime.UtcNow;
     }
     private bool TieneVotacionActiva(Guid idEvento)
     {

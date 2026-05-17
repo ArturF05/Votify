@@ -1,39 +1,17 @@
-﻿/* ── Reset mínimo ───────────────────────────────────────────────────── */
-*, *::before, *::after {
+﻿*, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-/* ── Variables de color ─────────────────────────────────────────────── */
 :root {
     --foreground: #1a1a1a;
     --background: #f5f5f5;
-    --muted: #e5e5e5;
     --muted-foreground: #737373;
     --card: #ffffff;
     --border: #e5e5e5;
-    --amber-100: #fef3c7;
-    --amber-500: #f59e0b;
-    --amber-700: #b45309;
-    --orange-500: #f97316;
-    --blue-500: #3b82f6;
-    --green-100: #dcfce7;
-    --green-500: #22c55e;
-    --green-700: #15803d;
-    --violet-500: #8b5cf6;
-    --gray-100: #f3f4f6;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
-    --gray-700: #374151;
-    --red-50: #fef2f2;
-    --red-600: #dc2626;
-    /* Badge ámbar (estado Pausada) */
-    --amber-badge-bg: #fef3c7;
-    --amber-badge-text: #92400e;
 }
 
-/* ── Body ───────────────────────────────────────────────────────────── */
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background-color: var(--background);
@@ -41,7 +19,6 @@ body {
     line-height: 1.5;
 }
 
-/* ── Layout raíz ────────────────────────────────────────────────────── */
 .layout {
     max-width: 1400px;
     margin: 0 auto;
@@ -51,7 +28,6 @@ body {
     gap: 24px;
 }
 
-/* ── Encabezado ─────────────────────────────────────────────────────── */
 .main-header h1 {
     font-size: 30px;
     font-weight: 700;
@@ -64,7 +40,6 @@ body {
     font-size: 14px;
 }
 
-/* ── Tarjeta base ───────────────────────────────────────────────────── */
 .card {
     background-color: var(--card);
     border-radius: 12px;
@@ -128,7 +103,6 @@ body {
         background: #dcfce7;
         color: #15803d;
     }
-/* ── Grid de estadísticas ───────────────────────────────────────────── */
 .estadisticas-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -172,7 +146,6 @@ body {
     line-height: 1;
 }
 
-/* Iconos de estadística */
 .estadistica-icono {
     width: 40px;
     height: 40px;
@@ -204,7 +177,6 @@ body {
         background-color: #8a53ed;
     }
 
-/* ── Grid de dos columnas ───────────────────────────────────────────── */
 .dos-col-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -217,7 +189,6 @@ body {
     }
 }
 
-/* ── Lista de votaciones ────────────────────────────────────────────── */
 .voting-list {
     display: flex;
     flex-direction: column;
@@ -260,8 +231,24 @@ body {
     color: var(--muted-foreground);
     margin-bottom: 6px;
 }
+.voting-extra-info {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+.voting-item,
+.event-item {
+    transition: all 0.2s ease;
+}
 
-/* ── Barra de progreso ──────────────────────────────────────────────── */
+    .voting-item:hover,
+    .event-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(0,0,0,.08);
+    }
 .progress-bar {
     width: 100%;
     height: 8px;
@@ -292,7 +279,6 @@ body {
         flex-shrink: 0;
     }
 
-/* ── Estado vacío / cargando ────────────────────────────────────────── */
 .voting-empty,
 .voting-loading {
     padding: 24px 0;
@@ -301,7 +287,6 @@ body {
     color: var(--muted-foreground);
 }
 
-/* ── Lista de eventos ───────────────────────────────────────────────── */
 .events-list {
     display: flex;
     flex-direction: column;
@@ -326,22 +311,6 @@ body {
     min-width: 0;
 }
 
-/* Puntos de color */
-.event-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-/* IMPORTANTE: el razor genera clases como "dot-green" y "dot-gray" */
-.dot-green {
-    background-color: green;
-}
-
-.dot-gray {
-    background-color: gray;
-}
 
 .event-name {
     font-size: 14px;
@@ -375,8 +344,6 @@ body {
     margin-top: 2px;
 }
 
-/* ── Badges ─────────────────────────────────────────────────────────── */
-/* El razor emite clases compuestas: "badge badge-green", "badge badge-gray", etc.  */
 .badge {
     display: inline-flex;
     align-items: center;
@@ -388,7 +355,6 @@ body {
     color: black;
 }
 
-/* Clases usadas en el razor (badge-green, badge-gray, badge-amber) */
     .badge.badge-green {
         background-color: #dcfce7;
         color: #15803d;
@@ -403,7 +369,11 @@ body {
         background-color: #fef3c7;
         color: #92400e;
     }
-/* ── Botón "Ver resultados" ─────────────────────────────────────────── */
+.badge-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
 .btn-results {
     display: inline-flex;
     align-items: center;
@@ -434,7 +404,6 @@ body {
         flex-shrink: 0;
     }
 
-    /* Estado deshabilitado */
     .btn-results--disabled,
     .btn-results:disabled {
         opacity: 0.45;
@@ -446,8 +415,6 @@ body {
             background-color: var(--amber-100);
         }
 
-/* ── Botón "Ver info" ───────────────────────────────────────────────── */
-/* Mismo estilo que btn-results pero con fondo azul claro */
 .btn-info {
     display: inline-flex;
     align-items: center;
@@ -455,8 +422,8 @@ body {
     padding: 4px 10px;
     font-size: 12px;
     font-weight: 500;
-    background-color: #dbeafe; /* blue-100 */
-    color: #1d4ed8; /* blue-700 */
+    background-color: #dbeafe; 
+    color: #1d4ed8; 
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -467,7 +434,6 @@ body {
     .btn-info:hover {
         background-color: #bfdbfe;
     }
-    /* blue-200 */
     .btn-info:active {
         filter: brightness(.95);
     }
@@ -478,7 +444,6 @@ body {
         flex-shrink: 0;
     }
 
-/* ── Tooltip ────────────────────────────────────────────────────────── */
 .tooltip-wrapper {
     position: relative;
     display: inline-flex;

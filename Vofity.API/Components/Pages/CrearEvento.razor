@@ -14,7 +14,7 @@
 @inject ProtectedSessionStorage sessionStorage
 @inject IJSRuntime JS
 
-
+<PageTitle>Crear Evento - Votify </PageTitle>
 <div class="crear-evento-page">
     <div class="page-header">
         <h2 class="page-title">Crear Evento</h2>
@@ -262,7 +262,7 @@
         otraVotacion();
     }
 
-    private async Task Volver() => await JS.InvokeVoidAsync("history.back");
+    private async Task Cancelar() => await JS.InvokeVoidAsync("history.back");
 
     void SeleccionarTipo(TipoVotacion tipo, int numeroVotacion)
     {

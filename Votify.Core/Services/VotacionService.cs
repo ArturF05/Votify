@@ -359,6 +359,9 @@ namespace Votify.Core.Services
         {
             return await votacionRepository.ObtenerVotacionesEventos(idsEventos);
         }
-
+        public async Task<List<Voto>> ObtenerVotosVotacion(Guid idVotacion)
+        {
+            return await votacionRepository.ObtenerVotosVotacion(idVotacion);
+        }
     }
 }

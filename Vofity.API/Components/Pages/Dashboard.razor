@@ -5,7 +5,7 @@
 @inject IDashboardService dashboardService
 @inject HttpClient Http
 @inject IJSRuntime JS
-
+<PageTitle>@TituloPagina </PageTitle>
 <div class="dashboard-container">
 
     @if (!string.IsNullOrEmpty(errorMsg))
@@ -218,7 +218,9 @@
 
 @code {
     [Parameter] public Guid id { get; set; }
-
+    private string TituloPagina => dashboard == null
+    ? "Resultados - Votify"
+    : $"Resultados {dashboard.NombreEvento} - Votify";
     private DashboardEventoDTO? dashboard;
     private Guid proyectoSeleccionadoId;
     private string? errorMsg;

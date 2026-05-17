@@ -19,6 +19,8 @@ namespace Votify.Core.Interfaces
         Task<bool> YaVotoAsync(Guid idVotacion, Guid idVotante);
         Task<Votacion?> ObtenerUltimaPorEventoAsync(Guid eventoId);
         Task<List<Votacion>> ObtenerVotacionesEventos(List<Guid> idEvento);
+        Task<List<Voto>> ObtenerVotosVotacion(Guid idVotacion);
+
 
     }
 }
