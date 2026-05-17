@@ -392,8 +392,24 @@
             <p class="subtitulo">Selecciona tus @NumProy proyectos favoritos</p>
         </div>
 
+        <div class="estado-card">
+            <label>Categoría de votación:</label>
+            <select value="@idCategoriaSeleccionada" @onchange="CategoriaSeleccionada">
+                <option value="@Guid.Empty">Selecciona una categoría</option>
+                @foreach (var categoria in categoriasEvento)
+                {
+                    <option value="@categoria.Id">@categoria.Nombre</option>
+                }
+            </select>
+        </div>
+
+        @if (idCategoriaSeleccionada != Guid.Empty && !ProyectosDeCategoria.Any())
+        {
+            <div class="mensaje-info">No hay proyectos inscritos en esta categoría.</div>
+        }
+
         <div class="proyecto-container">
-            @foreach (var proyecto in evento.Proyectos)
+            @foreach (var proyecto in ProyectosDeCategoria)
             {
                 <div class="proyecto-card @(yaVoto ? "deshabilitado" : "")">
                     <div class="proyecto-top">
@@ -430,7 +446,7 @@
                         </div>
                     }
 
-            @if (proyectosSeleccionados.Contains(proyecto.Id))
+            @if (proyectosSeleccionados.Contains(proyecto.Id) && idCategoriaSeleccionada != Guid.Empty)
                     {
                         <div class="criterios-proyecto">
                             <hr class="linea-criterios" />
@@ -500,6 +516,12 @@
     private Votify.Core.Entities.Usuario usuario;
     private bool yaVoto = false;
     private List<DimensionesDeValor> criterios = new();
+    private List<CategoriaEvento> categoriasEvento = new();
+    private Guid idCategoriaSeleccionada = Guid.Empty;
+    private List<Proyecto> ProyectosDeCategoria =>
+        evento?.Proyectos?
+            .Where(p => p.Id_categoria_evento == idCategoriaSeleccionada)
+            .ToList() ?? new();
     private Dictionary<Guid, Dictionary<Guid, int>> puntuacionesPorProyecto = new();
 
 
@@ -516,21 +538,16 @@
             return;
         }
 
-        votacion = await contexto.Votacion
-    .FirstOrDefaultAsync(vot =>
-        vot.Id_evento == evento.Id &&
-        vot.EstadoVotacion == EstadoVotacion.Abierta);
+        categoriasEvento = await contexto.CategoriaEvento
+            .AsNoTracking()
+            .Where(c => c.Id_evento == evento.Id)
+            .OrderBy(c => c.Nombre)
+            .ToListAsync();
 
-        if (votacion != null)
-        {
-            NumProy = votacion.NumProy;
-            idVotacion = votacion.Id;
-            mensaje = $"Puedes votar hasta {NumProy} proyectos";
-        }
+        idCategoriaSeleccionada = Guid.Empty;
+        mensaje = "Selecciona una categoría para votar.";
 
-        criterios = await contexto.DimensionesDeValor.Where(d => d.Id_votacion == votacion.Id).ToListAsync();
-
-        foreach (var proyecto in evento.Proyectos)
+        foreach (var proyecto in ProyectosDeCategoria)
         {
             if (!puntuacionesPorProyecto.ContainsKey(proyecto.Id))
                 puntuacionesPorProyecto[proyecto.Id] = new Dictionary<Guid, int>();
@@ -557,13 +574,18 @@
                 idVotante = resultado.Value;
                 usuarioSesion.IdUsuario = resultado.Value;
                 usuario = await contexto.Usuario.Include(u => u.Rol).Include(u => u.ProyectoParticipantes).FirstOrDefaultAsync(u => u.Id == idVotante);
-                yaVoto = await VotacionService.YaVotoAsync(idVotacion, idVotante);
+                yaVoto = await contexto.Voto.AnyAsync(v =>
+                    v.Id_votacion == idVotacion &&
+                    v.Id_votante == idVotante &&
+                    v.Id_categoria == idCategoriaSeleccionada);
 
                 if (yaVoto)
                 {
-                    mensaje = "Ya has votado en este evento.";
+                    mensaje = "Ya has votado en esta categoría.";
                     List<Voto> votos = await VotacionService.ObtenerVotosUsuarioAsync(idVotacion, idVotante);
-                    foreach (var voto in votos)
+                    await CargarCriteriosVotacion();
+
+                    foreach (var voto in votos.Where(v => v.Id_categoria == idCategoriaSeleccionada))
                     {
                         proyectosSeleccionados.Add(voto.Id_proyecto);
 
@@ -589,6 +611,86 @@
         }
 
     }
+    private async Task CategoriaSeleccionada(ChangeEventArgs e)
+    {
+        if (!Guid.TryParse(e.Value?.ToString(), out var idCategoria))
+            idCategoria = Guid.Empty;
+
+        idCategoriaSeleccionada = idCategoria;
+        proyectosSeleccionados.Clear();
+        await CargarVotacionCategoria();
+        await CargarCriteriosVotacion();
+        yaVoto = idVotante != Guid.Empty && await contexto.Voto.AnyAsync(v =>
+            v.Id_votacion == idVotacion &&
+            v.Id_votante == idVotante &&
+            v.Id_categoria == idCategoriaSeleccionada);
+        mensaje = yaVoto
+            ? "Ya has votado en esta categoría."
+            : votacion == null
+                ? "No hay una votación abierta para esta categoría."
+                : $"Puedes votar hasta {NumProy} proyectos";
+    }
+
+    private async Task CargarVotacionCategoria()
+    {
+        votacion = null;
+        idVotacion = Guid.Empty;
+        NumProy = 0;
+
+        if (evento == null || idCategoriaSeleccionada == Guid.Empty)
+            return;
+
+        votacion = await contexto.Votacion
+            .Where(vot =>
+                vot.Id_evento == evento.Id &&
+                vot.EstadoVotacion == EstadoVotacion.Abierta &&
+                (vot.Id_categoria_evento == idCategoriaSeleccionada || vot.Id_categoria_evento == null))
+            .OrderByDescending(vot => vot.Id_categoria_evento == idCategoriaSeleccionada)
+            .FirstOrDefaultAsync();
+
+        if (votacion != null)
+        {
+            NumProy = votacion.NumProy;
+            idVotacion = votacion.Id;
+        }
+    }
+
+    private async Task CargarCriteriosVotacion()
+    {
+        if (votacion == null)
+        {
+            criterios = new();
+            return;
+        }
+
+        criterios = await contexto.DimensionesDeValor
+            .AsNoTracking()
+            .Where(d => d.Id_votacion == votacion.Id && d.Id_categoria_evento == idCategoriaSeleccionada)
+            .OrderBy(d => d.Nombre)
+            .ToListAsync();
+
+        if (evento?.Proyectos == null)
+            return;
+
+        foreach (var proyecto in ProyectosDeCategoria)
+        {
+            if (!puntuacionesPorProyecto.ContainsKey(proyecto.Id))
+                puntuacionesPorProyecto[proyecto.Id] = new Dictionary<Guid, int>();
+
+            if (!comentariosPorCriterio.ContainsKey(proyecto.Id))
+                comentariosPorCriterio[proyecto.Id] = new Dictionary<Guid, string>();
+
+            foreach (var criterio in criterios)
+            {
+                if (!puntuacionesPorProyecto[proyecto.Id].ContainsKey(criterio.Id))
+                    puntuacionesPorProyecto[proyecto.Id][criterio.Id] = 0;
+
+                if (!comentariosPorCriterio[proyecto.Id].ContainsKey(criterio.Id))
+                    comentariosPorCriterio[proyecto.Id][criterio.Id] = "";
+            }
+        }
+    }
+
     private void Favorito(Guid idProyecto)
     {
         if (yaVoto) return;
@@ -630,6 +732,16 @@
         if (idVotacion == Guid.Empty)
         {
             mensaje = "No hay una votación activa para este evento, espera a que haya una para poder votar.";
+            return;
+        }
+        if (idCategoriaSeleccionada == Guid.Empty)
+        {
+            mensaje = "Selecciona una categoría antes de votar.";
+            return;
+        }
+        if (!criterios.Any())
+        {
+            mensaje = "La categoría seleccionada no tiene criterios.";
             return;
         }
         if (proyectosSeleccionados.Count > NumProy)
@@ -692,6 +804,7 @@
             Votos = proyectosSeleccionados.Select(idProyecto => new VotoDetalleDTO
             {
                 IdProyecto = idProyecto,
+                IdCategoriaEvento = idCategoriaSeleccionada,
                 Puntuaciones = criterios.Select(c => new PuntuacionCriterioDTO
                 {
                     IdCriterio = c.Id,

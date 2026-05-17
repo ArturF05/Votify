@@ -57,8 +57,6 @@ namespace Votify.Core.Services
             var ahoraUtc = DateTime.UtcNow;
             if (ahoraUtc < votacion.FechaInicio || ahoraUtc > votacion.FechaFin)
                 throw new Exception("La votación no está activa.");
-            if (await YaVotoAsync(idVotacion, dto.IdVotante))
-                throw new Exception("Ya has votado en esta votación.");
             int numProy = votacion.NumProy;
 
             if (dto.Votos == null || dto.Votos.Count == 0)
@@ -107,12 +105,30 @@ namespace Votify.Core.Services
             if (votacion is VotacionMixta && !esPublico && !esJuradoAsignado)
                 throw new Exception("Solo usuarios públicos, participantes o jurado asignado pueden votar en este evento.");
 
-            var criterios = await dimensionRepository.ObtenerCriterioPorVotacionAsync(idVotacion);
-
-            if (criterios == null || criterios.Count == 0)
-                throw new Exception("La votación no tiene criterios definidos.");
-            var votos = dto.Votos.Select(v =>
+            var votos = new List<Voto>();
+            foreach (var v in dto.Votos)
             {
+                if (v.IdCategoriaEvento == Guid.Empty)
+                    throw new Exception("Debes indicar la categoría del evento que estás votando.");
+
+                if (!await dimensionRepository.CategoriaEventoPerteneceAlEventoAsync(v.IdCategoriaEvento, votacion.Id_evento))
+                    throw new Exception("La categoría seleccionada no pertenece al evento de la votación.");
+
+                if (votacion.Id_categoria_evento.HasValue && votacion.Id_categoria_evento.Value != v.IdCategoriaEvento)
+                    throw new Exception("Esta votación no corresponde a la categoría seleccionada.");
+
+                var proyectoVotado = proyectos.FirstOrDefault(p => p.Id == v.IdProyecto);
+                if (proyectoVotado?.Id_categoria_evento != v.IdCategoriaEvento)
+                    throw new Exception("El proyecto no pertenece a la categoría seleccionada.");
+
+                if (await votacionRepository.YaVotoCategoriaAsync(idVotacion, dto.IdVotante, v.IdCategoriaEvento))
+                    throw new Exception("Ya has votado en esta categoría.");
+
+                var criterios = await dimensionRepository.ObtenerCriteriosPorCategoriaEventoAsync(idVotacion, v.IdCategoriaEvento);
+
+                if (criterios == null || criterios.Count == 0)
+                    throw new Exception("La categoría seleccionada no tiene criterios definidos.");
+
                 var idVoto = Guid.NewGuid();
                 decimal puntuacionTotal = 0m;
                 var voto = new Voto
@@ -121,6 +137,7 @@ namespace Votify.Core.Services
                     Id_votacion = idVotacion,
                     Id_proyecto = v.IdProyecto,
                     Id_votante = dto.IdVotante,
+                    Id_categoria = v.IdCategoriaEvento,
                     Fecha_voto = DateTime.UtcNow
                 };
 
@@ -155,8 +172,8 @@ namespace Votify.Core.Services
                 }
 
                 voto.Puntuacion = puntuacionTotal;
-                return voto;
-            }).ToList();
+                votos.Add(voto);
+            }
 
             await votoRepository.GuardarVotosAsync(votos);
             return true;
@@ -168,7 +185,7 @@ namespace Votify.Core.Services
             return await votacionRepository.BuscarPorNombreAsync(Id_evento, tipoVotacion, permiteAutoVoto, verFinalizadas);
         }
 
-        public async Task CrearVotacion(Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool verRes,List<Guid> Jurados, EstadoVotacion estadoVotacion, List<CrearCriterioDTO> criterios)
+        public async Task CrearVotacion(Guid Id_evento, Guid? idCategoriaEvento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool verRes,List<Guid> Jurados, EstadoVotacion estadoVotacion, List<CrearCriterioDTO> criterios)
         {
             if (Id_evento == Guid.Empty)
                 throw new Exception("El evento es obligatorio");
@@ -177,8 +194,12 @@ namespace Votify.Core.Services
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
             if (NumProy < 1)
                 throw new Exception("Se tiene que poder votar mínimo 1 proyecto");
+            if (idCategoriaEvento.HasValue && idCategoriaEvento.Value != Guid.Empty &&
+                !await dimensionRepository.CategoriaEventoPerteneceAlEventoAsync(idCategoriaEvento.Value, Id_evento))
+                throw new Exception("La categoría de la votación no pertenece al evento");
             if (permiteComentarios == false) comentariosObligatorios = false;
             var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion,NumProy, permiteComentarios, comentariosObligatorios, verRes,estadoVotacion);
+            nuevaVotacion.Id_categoria_evento = idCategoriaEvento == Guid.Empty ? null : idCategoriaEvento;
 
             await votacionRepository.CrearVotacionAsync(nuevaVotacion);
 
@@ -186,10 +207,17 @@ namespace Votify.Core.Services
 
             foreach (var criterioDto in criterios)
             {
+                if (criterioDto.IdCategoriaEvento == Guid.Empty)
+                    throw new Exception("Cada criterio debe pertenecer a una categoría del evento.");
+
+                if (!await dimensionRepository.CategoriaEventoPerteneceAlEventoAsync(criterioDto.IdCategoriaEvento, Id_evento))
+                    throw new Exception("Un criterio está asociado a una categoría que no pertenece al evento.");
+
                 var nuevoCriterio = new DimensionesDeValor
                 {
                     Id = criterioDto.Id == Guid.Empty ? Guid.NewGuid() : criterioDto.Id,
                     Id_votacion = idVotacion,
+                    Id_categoria_evento = criterioDto.IdCategoriaEvento,
                     Nombre = criterioDto.Nombre,
                     Descripcion = criterioDto.Descripcion,
                     Peso = criterioDto.Peso
@@ -213,7 +241,7 @@ namespace Votify.Core.Services
                 await eventoUsuarioRolRepository.CrearAsync(nuevoJurado);
             }
         }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios, int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool verRes,List<Guid> Jurados, EstadoVotacion estadoVotacion)
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, Guid? idCategoriaEvento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios, int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool verRes,List<Guid> Jurados, EstadoVotacion estadoVotacion)
         {
             var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);
 
@@ -225,6 +253,9 @@ namespace Votify.Core.Services
 
             if (Id_evento == Guid.Empty)
                 throw new Exception("El evento es obligatorio");
+            if (idCategoriaEvento.HasValue && idCategoriaEvento.Value != Guid.Empty &&
+                !await dimensionRepository.CategoriaEventoPerteneceAlEventoAsync(idCategoriaEvento.Value, Id_evento))
+                throw new Exception("La categoría de la votación no pertenece al evento");
 
             if (finVotacion < inicioVotacion)
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
@@ -232,6 +263,7 @@ namespace Votify.Core.Services
             if (votacionActual.Tipo == tipoVotacion)
             {
                 votacionActual.Id_evento = Id_evento;
+                votacionActual.Id_categoria_evento = idCategoriaEvento == Guid.Empty ? null : idCategoriaEvento;
                 votacionActual.FechaInicio = inicioVotacion.ToUniversalTime();
                 votacionActual.FechaFin = finVotacion.ToUniversalTime();
                 votacionActual.PermiteAutoVoto = permiteAutoVoto;
@@ -259,6 +291,7 @@ namespace Votify.Core.Services
                 );
 
                 nuevaVotacion.Id = votacionActual.Id;
+                nuevaVotacion.Id_categoria_evento = idCategoriaEvento == Guid.Empty ? null : idCategoriaEvento;
 
                 await votacionRepository.ReemplazarVotacionAsync(votacionActual, nuevaVotacion);
             }
@@ -267,6 +300,12 @@ namespace Votify.Core.Services
 
             foreach (var criterioDto in criterios)
             {
+                if (criterioDto.IdCategoriaEvento == Guid.Empty)
+                    throw new Exception("Cada criterio debe pertenecer a una categoría del evento.");
+
+                if (!await dimensionRepository.CategoriaEventoPerteneceAlEventoAsync(criterioDto.IdCategoriaEvento, Id_evento))
+                    throw new Exception("Un criterio está asociado a una categoría que no pertenece al evento.");
+
                 var existente = criteriosExistentes.FirstOrDefault(c => c.Id == criterioDto.Id);
 
                 if (existente == null)
@@ -275,6 +314,7 @@ namespace Votify.Core.Services
                     {
                         Id = criterioDto.Id == Guid.Empty ? Guid.NewGuid() : criterioDto.Id,
                         Id_votacion = Id,
+                        Id_categoria_evento = criterioDto.IdCategoriaEvento,
                         Nombre = criterioDto.Nombre,
                         Descripcion = criterioDto.Descripcion,
                         Peso = criterioDto.Peso
@@ -284,7 +324,10 @@ namespace Votify.Core.Services
                 }
                 else
                 {
+                    existente.Nombre = criterioDto.Nombre;
+                    existente.Descripcion = criterioDto.Descripcion;
                     existente.Peso = criterioDto.Peso;
+                    existente.Id_categoria_evento = criterioDto.IdCategoriaEvento;
                     await dimensionRepository.EditarCriterioAsync(existente);
                 }
             }
@@ -295,6 +338,9 @@ namespace Votify.Core.Services
 
             foreach (var criterio in criteriosABorrar)
             {
+                if (await dimensionRepository.TieneVotosAsociadosAsync(criterio.Id))
+                    throw new Exception($"No se puede eliminar el criterio '{criterio.Nombre}' porque ya tiene votos asociados.");
+
                 await dimensionRepository.EliminarCriterioAsync(criterio);
             }
 

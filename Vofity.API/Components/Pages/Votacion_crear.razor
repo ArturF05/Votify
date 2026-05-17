@@ -19,7 +19,7 @@
     <hr class="linea">
     <div class="campo">
         <label>Evento de la votación*: </label>
-        <select @bind="Id_evento" @bind:event="oninput" @onclick='() => ponerTiempos()' title="No se puede cambiar de evento una votación ya creada">
+        <select value="@Id_evento" @onchange="EventoSeleccionado" title="No se puede cambiar de evento una votación ya creada">
             <option value="@Guid.Empty"></option>
             @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateTime.Now)>=0))
             {
@@ -33,6 +33,16 @@
             <label>Inicio del evento: @inicioEvento    </label>
             <label>Fin del evento: @finEvento</label>
         }
+    </div>
+    <div class="campo">
+        <label>Categoría de la votación*:</label>
+        <select @bind="idCategoriaVotacion" disabled="@(Id_evento == Guid.Empty || !categoriasEvento.Any())">
+            <option value="@Guid.Empty">Todas las categorías</option>
+            @foreach (var categoria in categoriasEvento)
+            {
+                <option value="@categoria.Id">@categoria.Nombre</option>
+            }
+        </select>
     </div>
     <hr>
     <label>Tipo de votación*:</label>
@@ -104,10 +114,32 @@
     <div class="separador-criterios"></div>
 
     <section class="bloque-criterios">
-        <h3 class="titulo-criterios">Criterios</h3>
+        <h3 class="titulo-criterios">Categorías del evento</h3>
 
-        <div class="lista-criterios">
-            @foreach (var c in criterios)
+        <div class="criterio-formulario">
+            <input type="text" placeholder="Nombre de categoría" @bind="nombreCategoriaEvento" class="input-criterio" />
+            <button type="button" class="boton-principal" @onclick="GuardarCategoriaEvento">Añadir categoría</button>
+        </div>
+
+        @foreach (var categoria in categoriasEvento)
+        {
+            <div class="criterio-item">
+                <div class="criterio-texto">
+                    <span class="criterio-nombre">@categoria.Nombre</span>
+                </div>
+                <div class="criterio-acciones">
+                    <button type="button" class="boton-secundario" @onclick="() => QuitarCategoriaEvento(categoria.Id)">Quitar</button>
+                </div>
+            </div>
+
+            <div class="criterio-formulario">
+                <input type="text" placeholder="Nombre criterio" @bind="nombreCriterio" class="input-criterio" />
+                <input type="text" placeholder="Descripción" @bind="descripcionCriterio" class="input-criterio" />
+                <button type="button" class="boton-principal" @onclick="() => GuardarCriterio(categoria.Id)">Añadir criterio</button>
+            </div>
+
+            <div class="lista-criterios">
+            @foreach (var c in categoria.Criterios)
             {
                 <div class="criterio-item">
                     <div class="criterio-texto">
@@ -118,24 +150,16 @@
                     <div class="criterio-acciones">
                         <span class="criterio-descripcion">Peso (%):</span>
                         <input type="text" class="criterio-peso" @bind="c.Peso" />
-                        <button type="button" class="boton-secundario" @onclick='() => QuitarCriterio(c.Id)'>Quitar</button>
+                        <button type="button" class="boton-secundario" @onclick="() => QuitarCriterio(categoria.Id, c.Id)">Quitar</button>
                     </div>
                 </div>
             }
-        </div>
-
-        <div><label style="color:black">@mensajeNoCriterio</label></div>
-
-        <div class="criterio-formulario">
-            <input type="text" placeholder="Nombre" @bind="nombreCriterio" class="input-criterio" />
-            <input type="text" placeholder="Descripción" @bind="descripcionCriterio" class="input-criterio" />
-            <button type="button" class="boton-principal" @onclick="GuardarCriterio">Añadir</button>
-        </div>
+            </div>
+        }
 
         <div>
             <div><label style="color:red">@mensajeErrorCriterio</label></div>
         </div>
-
     </section>
 
     @if (tipoVotacion != TipoVotacion.Publico)
@@ -217,18 +241,21 @@
     private DateTime inicioEvento = DateTime.Now;
     private DateTime finEvento = DateTime.Now.AddDays(1);
     private Guid Id_evento = Guid.Empty;
+    private Guid idCategoriaVotacion = Guid.Empty;
     private int numProy = 1;
     private TipoVotacion tipoVotacion = TipoVotacion.Publico;
     private string mensaje = "";
     private string mensaje2 = "";
     private string mensajeErrorCriterio = "";
     private string mensajeNoCriterio = "";
+    private string nombreCategoriaEvento = "";
     private string nombreCriterio = "";
     private string descripcionCriterio = "";
     private int pesoCriterio = 0;
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Votify.Core.Entities.Votacion> votaciones = new();
     List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
+    List<CategoriaEventoForm> categoriasEvento = new();
     private Votify.Core.Entities.Evento? evento;
     private Guid idUsuario;
     private bool cargado = false;
@@ -282,6 +309,17 @@
         StateHasChanged();
     }
 
+    private async Task EventoSeleccionado(ChangeEventArgs e)
+    {
+        if (!Guid.TryParse(e.Value?.ToString(), out var idEvento))
+            idEvento = Guid.Empty;
+
+        Id_evento = idEvento;
+        idCategoriaVotacion = Guid.Empty;
+        await ponerTiempos();
+        await CargarCategoriasEvento();
+    }
+
     private async Task ponerTiempos()
     {
         evento = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == Id_evento);
@@ -290,7 +328,33 @@
         finEvento = evento.FechaFin;
         StateHasChanged();
     }
+    private async Task CargarCategoriasEvento()
+    {
+        categoriasEvento = await contexto.CategoriaEvento
+            .AsNoTracking()
+            .Where(c => c.Id_evento == Id_evento)
+            .Select(c => new CategoriaEventoForm
+            {
+                Id = c.Id,
+                Nombre = c.Nombre,
+                EsNueva = false,
+                Criterios = contexto.DimensionesDeValor
+                    .Where(d => d.Id_categoria_evento == c.Id)
+                    .Select(d => new DimensionesDeValor
+                    {
+                        Id = Guid.NewGuid(),
+                        Id_categoria_evento = c.Id,
+                        Nombre = d.Nombre,
+                        Descripcion = d.Descripcion,
+                        Peso = d.Peso
+                    })
+                    .ToList()
+            })
+            .ToListAsync();
+    }
+
     private async Task Cancelar() => await JS.InvokeVoidAsync("history.back");
+
     void SeleccionarTipo(TipoVotacion tipo)
     {
         tipoVotacion = tipo;
@@ -361,16 +425,39 @@
                 mensaje = "Se tiene que poder votar mínimo 1 proyecto";
                 return;
             }
-            if (criterios.Sum(c => c.Peso) != 100)
+            if (!categoriasEvento.Any())
             {
-                mensajeErrorCriterio = "La suma de los pesos debe ser 100";
+                mensajeErrorCriterio = "El evento debe tener al menos una categoría de votación";
                 return;
             }
+
+            var categoriasDeLaVotacion = categoriasEvento
+                .Where(categoria => idCategoriaVotacion == Guid.Empty || categoria.Id == idCategoriaVotacion)
+                .ToList();
+
+            foreach (var categoria in categoriasDeLaVotacion)
+            {
+                if (!categoria.Criterios.Any())
+                {
+                    mensajeErrorCriterio = $"La categoría {categoria.Nombre} debe tener al menos un criterio";
+                    return;
+                }
+
+                if (categoria.Criterios.Sum(c => c.Peso) != 100)
+                {
+                    mensajeErrorCriterio = $"La suma de pesos de la categoría {categoria.Nombre} debe ser 100";
+                    return;
+                }
+            }
+
             if (permiteComentarios == 0) comentariosObligatorios = 0;
             evento = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == Id_evento);
+            await GuardarCategoriasEvento();
+
             var dto = new CrearVotacionDTOs
             {
                 Id_evento = Id_evento,
+                Id_categoria_evento = idCategoriaVotacion == Guid.Empty ? null : idCategoriaVotacion,
                 FechaInicio = inicioVotacion.ToUniversalTime(),
                 FechaFin = finVotacion.ToUniversalTime(),
                 PermiteAutoVoto = permiteAutoVoto == 1,
@@ -379,13 +466,17 @@
                 VerRes = verRes==1,
                 EstadoVotacion= EstadoVotacion.Cerrada,
                 Jurados = juradoSeleccionado.Select(u => u.Id).ToList(),
-                Criterios = criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
-                {
-                    Id = c.Id,
-                    Nombre = c.Nombre,
-                    Descripcion = c.Descripcion,
-                    Peso = c.Peso
-                }).ToList(),
+                Criterios = categoriasEvento
+                    .Where(categoria => idCategoriaVotacion == Guid.Empty || categoria.Id == idCategoriaVotacion)
+                    .SelectMany(categoria => categoria.Criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
+                    {
+                        Id = c.Id == Guid.Empty ? Guid.NewGuid() : c.Id,
+                        IdCategoriaEvento = categoria.Id,
+                        Nombre = c.Nombre,
+                        Descripcion = c.Descripcion,
+                        Peso = c.Peso
+                    }))
+                    .ToList(),
                 PermiteComentarios = permiteComentarios == 1,
                 ComentariosObligatorios = comentariosObligatorios == 1
             };
@@ -408,7 +499,79 @@
         }
     }
 
-    private void GuardarCriterio()
+    private async Task GuardarCategoriasEvento()
+    {
+        foreach (var categoria in categoriasEvento)
+        {
+            if (categoria.EsNueva)
+            {
+                await contexto.CategoriaEvento.AddAsync(new CategoriaEvento
+                {
+                    Id = categoria.Id,
+                    Id_evento = Id_evento,
+                    Nombre = categoria.Nombre
+                });
+            }
+            else
+            {
+                var categoriaDb = await contexto.CategoriaEvento.FirstOrDefaultAsync(c => c.Id == categoria.Id);
+                if (categoriaDb != null)
+                    categoriaDb.Nombre = categoria.Nombre;
+            }
+
+        }
+
+        await contexto.SaveChangesAsync();
+    }
+
+    private void GuardarCategoriaEvento()
+    {
+        if (Id_evento == Guid.Empty)
+        {
+            mensajeErrorCriterio = "Selecciona un evento antes de crear categorías";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(nombreCategoriaEvento))
+        {
+            mensajeErrorCriterio = "Debes indicar el nombre de la categoría";
+            return;
+        }
+
+        if (categoriasEvento.Any(c => c.Nombre.Equals(nombreCategoriaEvento.Trim(), StringComparison.OrdinalIgnoreCase)))
+        {
+            mensajeErrorCriterio = "Ya existe una categoría con ese nombre";
+            return;
+        }
+
+        var categoria = new CategoriaEventoForm
+        {
+            Id = Guid.NewGuid(),
+            Nombre = nombreCategoriaEvento.Trim(),
+            EsNueva = true
+        };
+
+        categoriasEvento.Add(categoria);
+        nombreCategoriaEvento = "";
+        mensajeErrorCriterio = "";
+    }
+
+    private void QuitarCategoriaEvento(Guid idCategoria)
+    {
+        var categoria = categoriasEvento.FirstOrDefault(c => c.Id == idCategoria);
+        if (categoria == null)
+            return;
+
+        if (!categoria.EsNueva)
+        {
+            mensajeErrorCriterio = "No puedes quitar desde aquí una categoría que ya existe en el evento";
+            return;
+        }
+
+        categoriasEvento.Remove(categoria);
+    }
+
+    private void GuardarCriterio(Guid idCategoria)
     {
         if (nombreCriterio == "")
         {
@@ -422,16 +585,21 @@
             return;
         }
 
-        if (criterios.Any(c => c.Nombre == nombreCriterio))
+        var categoria = categoriasEvento.FirstOrDefault(c => c.Id == idCategoria);
+        if (categoria == null)
+            return;
+
+        if (categoria.Criterios.Any(c => c.Nombre == nombreCriterio))
         {
-            mensajeErrorCriterio = "No se puede añadir el criterio: Ya existe un criterio con ese nombre";
+            mensajeErrorCriterio = "No se puede añadir el criterio: Ya existe un criterio con ese nombre en esta categoría";
             return;
         }
 
-        criterios.Add(new DimensionesDeValor
+        categoria.Criterios.Add(new DimensionesDeValor
         {
             Id = Guid.NewGuid(),
             Id_votacion = Guid.Empty,
+            Id_categoria_evento = idCategoria,
             Nombre = nombreCriterio,
             Descripcion = descripcionCriterio,
             Peso = 0
@@ -444,9 +612,10 @@
         pesoCriterio = 0;
     }
 
-    private void QuitarCriterio(Guid idCriterio)
+    private void QuitarCriterio(Guid idCategoria, Guid idCriterio)
     {
-        criterios.RemoveAll(c => c.Id == idCriterio);
+        var categoria = categoriasEvento.FirstOrDefault(c => c.Id == idCategoria);
+        categoria?.Criterios.RemoveAll(c => c.Id == idCriterio);
     }
 
     private void AnadirJurado(Usuario usuario)
@@ -460,5 +629,13 @@
     private void QuitarJurado(Usuario usuario)
     {
         juradoSeleccionado.RemoveAll(u => u.Id == usuario.Id);
+    }
+
+    class CategoriaEventoForm
+    {
+        public Guid Id { get; set; }
+        public string Nombre { get; set; } = "";
+        public bool EsNueva { get; set; }
+        public List<DimensionesDeValor> Criterios { get; set; } = new();
     }
 }

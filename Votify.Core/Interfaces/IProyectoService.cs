@@ -17,6 +17,7 @@ namespace Votify.Core.Interfaces
             string nombre,
             string descripcion,
             Guid IdEvento,
+            Guid idCategoriaEvento,
             Guid idCreador
         );
         Task<SintesisIAResultadoDTO> GenerarSintesisIA(Guid idProyecto);

@@ -29,18 +29,36 @@
             <div class="campo-grupo">
                 <label for="evento" class="campo-label">Evento asociado</label>
                 <div class="campo-wrapper">
-                    <InputSelect id="evento"
-                                 @bind-Value="modelo.IdEvento"
-                                 class="campo-input">
+                    <select id="evento"
+                            value="@modelo.IdEvento"
+                            @onchange="EventoSeleccionado"
+                            class="campo-input">
                         <option value="">-- Selecciona un evento --</option>
                         @foreach (var evento in eventos)
                         {
                             <option value="@evento.Id">@evento.Nombre</option>
                         }
-                    </InputSelect>
+                    </select>
                     <span class="campo-linea"></span>
                 </div>
                 <ValidationMessage For="@(() => modelo.IdEvento)" />
+            </div>
+
+            <div class="campo-grupo">
+                <label for="categoriaEvento" class="campo-label">Categoría de participación</label>
+                <div class="campo-wrapper">
+                    <InputSelect id="categoriaEvento"
+                                 @bind-Value="modelo.IdCategoriaEvento"
+                                 class="campo-input"
+                                 disabled="@(modelo.IdEvento == null || !categoriasEvento.Any())">
+                        <option value="">-- Selecciona una categoría --</option>
+                        @foreach (var categoria in categoriasEvento)
+                        {
+                            <option value="@categoria.Id">@categoria.Nombre</option>
+                        }
+                    </InputSelect>
+                    <span class="campo-linea"></span>
+                </div>
             </div>
 
             <div class="campo-grupo">
@@ -104,6 +122,7 @@
 
 @code {
     List<Votify.Core.Entities.Evento> eventos = new();
+    List<Votify.Core.Entities.CategoriaEvento> categoriasEvento = new();
     private CrearProyectoDto modelo = new();
     private string mensaje = "";
     private bool creado = false;
@@ -156,11 +175,19 @@
 
         try
         {
+            if (modelo.IdCategoriaEvento == null || modelo.IdCategoriaEvento == Guid.Empty)
+            {
+                mensaje = "Debes seleccionar una categoría para el proyecto";
+                creado = false;
+                return;
+            }
+
             var response = await Http.PostAsJsonAsync("api/v1/proyecto", new
             {
                 titulo = modelo.Titulo,
                 descripcion = modelo.Descripcion ?? "",
                 idEvento = modelo.IdEvento,
+                idCategoriaEvento = modelo.IdCategoriaEvento,
                 Id_Creador = idUsuario
             });
 
@@ -169,6 +196,7 @@
                 mensaje = "Proyecto creado exitosamente";
                 creado = true;
                 modelo = new CrearProyectoDto();
+                categoriasEvento.Clear();
             }
             else
             {
@@ -185,6 +213,26 @@
         finally
         {
             cargando = false;
+        }
+    }
+
+    private async Task EventoSeleccionado(ChangeEventArgs e)
+    {
+        if (Guid.TryParse(e.Value?.ToString(), out var idEvento))
+        {
+            modelo.IdEvento = idEvento;
+            modelo.IdCategoriaEvento = null;
+            categoriasEvento = await contexto.CategoriaEvento
+                .AsNoTracking()
+                .Where(c => c.Id_evento == idEvento)
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
+        }
+        else
+        {
+            modelo.IdEvento = null;
+            modelo.IdCategoriaEvento = null;
+            categoriasEvento.Clear();
         }
     }
 

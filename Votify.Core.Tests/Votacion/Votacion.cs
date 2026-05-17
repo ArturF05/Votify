@@ -23,6 +23,7 @@ namespace Votify.Core.Tests.Votacion
         private Guid idEvento;
         private Guid idVotacion;
         private Guid idVotante;
+        private Guid idCategoriaEvento;
         private Guid idProyecto1;
         private Guid idProyecto2;
         private Guid idProyecto3;
@@ -59,6 +60,7 @@ namespace Votify.Core.Tests.Votacion
 
             idVotacion = Guid.NewGuid();
             idVotante = Guid.NewGuid();
+            idCategoriaEvento = Guid.NewGuid();
 
             idProyecto1 = Guid.NewGuid();
             idProyecto2 = Guid.NewGuid();
@@ -144,6 +146,12 @@ namespace Votify.Core.Tests.Votacion
             context.Usuario.Add(usuario);
             context.EventoUsuarioRol.Add(eventoUsuarioRol);
             context.Evento.AddRange(eventoPrincipal, otroEvento, otroEvento2);
+            context.CategoriaEvento.Add(new CategoriaEvento
+            {
+                Id = idCategoriaEvento,
+                Id_evento = idEvento,
+                Nombre = "General"
+            });
             context.Votacion.Add(votacion);
 
             context.Proyecto.AddRange(
@@ -152,28 +160,40 @@ namespace Votify.Core.Tests.Votacion
                     Id = idProyecto1,
                     Titulo = "Proyecto 1",
                     Descripcion = "Descripcion proyecto 1",
-                    Id_evento = idEvento
+                    Id_evento = idEvento,
+                    Id_categoria_evento = idCategoriaEvento,
+                    ProyectoParticipantes = new List<ProyectoParticipantes>(),
+                    Materiales = new List<Material>()
                 },
                 new Proyecto
                 {
                     Id = idProyecto2,
                     Titulo = "Proyecto 2",
                     Descripcion = "Descripcion proyecto 2",
-                    Id_evento = idEvento
+                    Id_evento = idEvento,
+                    Id_categoria_evento = idCategoriaEvento,
+                    ProyectoParticipantes = new List<ProyectoParticipantes>(),
+                    Materiales = new List<Material>()
                 },
                 new Proyecto
                 {
                     Id = idProyecto3,
                     Titulo = "Proyecto 3",
                     Descripcion = "Descripcion proyecto 3",
-                    Id_evento = idEvento
+                    Id_evento = idEvento,
+                    Id_categoria_evento = idCategoriaEvento,
+                    ProyectoParticipantes = new List<ProyectoParticipantes>(),
+                    Materiales = new List<Material>()
                 },
                 new Proyecto
                 {
                     Id = idProyectoOtroEvento,
                     Titulo = "Proyecto otro evento",
                     Descripcion = "Descripcion proyecto otro evento",
-                    Id_evento = idOtroEvento
+                    Id_evento = idOtroEvento,
+                    Id_categoria_evento = idCategoriaEvento,
+                    ProyectoParticipantes = new List<ProyectoParticipantes>(),
+                    Materiales = new List<Material>()
                 }
             );
 
@@ -182,6 +202,7 @@ namespace Votify.Core.Tests.Votacion
                 {
                     Id = Guid.NewGuid(),
                     Id_votacion = idVotacion,
+                    Id_categoria_evento = idCategoriaEvento,
                     Nombre = "Criterio 1",
                     Descripcion = "Descripción",
                     Peso = 50
@@ -190,6 +211,7 @@ namespace Votify.Core.Tests.Votacion
                 {
                     Id = Guid.NewGuid(),
                     Id_votacion = idVotacion,
+                    Id_categoria_evento = idCategoriaEvento,
                     Nombre = "Criterio 2",
                     Descripcion = "Descripción",
                     Peso = 50
@@ -207,9 +229,9 @@ namespace Votify.Core.Tests.Votacion
                 IdEvento = idEvento,
                 Votos = new List<VotoDetalleDTO>
                 {
-                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
-                    new VotoDetalleDTO { IdProyecto = idProyecto2 },
-                    new VotoDetalleDTO { IdProyecto = idProyecto3 }
+                    new VotoDetalleDTO { IdProyecto = idProyecto1, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyecto3, IdCategoriaEvento = idCategoriaEvento }
                 }
             };
         }
@@ -222,6 +244,7 @@ namespace Votify.Core.Tests.Votacion
         {
             await votacionService.CrearVotacion(
                 idEvento,
+                null,
                 inicio,
                 fin,
                 permiteAutoVoto,
@@ -273,10 +296,10 @@ namespace Votify.Core.Tests.Votacion
                 IdEvento = idEvento,
                 Votos = new List<VotoDetalleDTO>
                 {
-                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
-                    new VotoDetalleDTO { IdProyecto = idProyecto2 },
-                    new VotoDetalleDTO { IdProyecto = idProyecto3 },
-                    new VotoDetalleDTO { IdProyecto = Guid.NewGuid() }
+                    new VotoDetalleDTO { IdProyecto = idProyecto1, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyecto3, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = Guid.NewGuid(), IdCategoriaEvento = idCategoriaEvento }
                 }
             };
 
@@ -296,9 +319,9 @@ namespace Votify.Core.Tests.Votacion
                 IdEvento = idEvento,
                 Votos = new List<VotoDetalleDTO>
                 {
-                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
-                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
-                    new VotoDetalleDTO { IdProyecto = idProyecto2 }
+                    new VotoDetalleDTO { IdProyecto = idProyecto1, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyecto1, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2, IdCategoriaEvento = idCategoriaEvento }
                 }
             };
 
@@ -357,6 +380,7 @@ namespace Votify.Core.Tests.Votacion
                 Id_votacion = idVotacion,
                 Id_proyecto = idProyecto1,
                 Id_votante = idVotante,
+                Id_categoria = idCategoriaEvento,
                 Puntuacion = 1,
                 Fecha_voto = DateTime.UtcNow
             });
@@ -369,7 +393,7 @@ namespace Votify.Core.Tests.Votacion
                 () => votacionService.RegistrarVotoAsync(idVotacion, dto)
             );
 
-            Assert.AreEqual("Ya has votado en esta votación.", exception.Message);
+            Assert.AreEqual("Ya has votado en esta categoría.", exception.Message);
         }
 
         [TestMethod]
@@ -381,9 +405,9 @@ namespace Votify.Core.Tests.Votacion
                 IdEvento = idEvento,
                 Votos = new List<VotoDetalleDTO>
                 {
-                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
-                    new VotoDetalleDTO { IdProyecto = idProyecto2 },
-                    new VotoDetalleDTO { IdProyecto = Guid.NewGuid() }
+                    new VotoDetalleDTO { IdProyecto = idProyecto1, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = Guid.NewGuid(), IdCategoriaEvento = idCategoriaEvento }
                 }
             };
 
@@ -403,9 +427,9 @@ namespace Votify.Core.Tests.Votacion
                 IdEvento = idEvento,
                 Votos = new List<VotoDetalleDTO>
                 {
-                    new VotoDetalleDTO { IdProyecto = idProyecto1 },
-                    new VotoDetalleDTO { IdProyecto = idProyecto2 },
-                    new VotoDetalleDTO { IdProyecto = idProyectoOtroEvento }
+                    new VotoDetalleDTO { IdProyecto = idProyecto1, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyecto2, IdCategoriaEvento = idCategoriaEvento },
+                    new VotoDetalleDTO { IdProyecto = idProyectoOtroEvento, IdCategoriaEvento = idCategoriaEvento }
                 }
             };
 
@@ -458,7 +482,7 @@ namespace Votify.Core.Tests.Votacion
             var criteriosVacios = new List<CrearCriterioDTO>();
             var jurado = new List<Guid>();
             var tipoVotacion = TipoVotacion.Publico;
-            await votacionService.CrearVotacion(idEvento, inicioVotacion, finVotacion, true, tipoVotacion, 3, true, true,true, jurado, EstadoVotacion.Abierta, criteriosVacios);
+            await votacionService.CrearVotacion(idEvento, null, inicioVotacion, finVotacion, true, tipoVotacion, 3, true, true, true, jurado, EstadoVotacion.Abierta, criteriosVacios);
 
             var votacionCreada = await context.Votacion
                 .FirstOrDefaultAsync(v => v.Id_evento == idEvento && v.Id != idVotacion);
@@ -475,7 +499,7 @@ namespace Votify.Core.Tests.Votacion
             var finVotacion = DateTime.Now.AddDays(10);
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
-                () => votacionService.CrearVotacion(Guid.Empty, inicioVotacion, finVotacion, true, TipoVotacion.Publico, 3, true, true,true, new List<Guid>(),EstadoVotacion.Abierta,new List<CrearCriterioDTO>())
+                () => votacionService.CrearVotacion(Guid.Empty, null, inicioVotacion, finVotacion, true, TipoVotacion.Publico, 3, true, true, true, new List<Guid>(), EstadoVotacion.Abierta, new List<CrearCriterioDTO>())
             );
 
             Assert.AreEqual("El evento es obligatorio", exception.Message);
@@ -488,7 +512,7 @@ namespace Votify.Core.Tests.Votacion
             var finVotacion = DateTime.Now.AddDays(1);
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
-                () => votacionService.CrearVotacion(idEvento, inicioVotacion, finVotacion, true, TipoVotacion.Publico, 3, true, true,true, new List<Guid>(), EstadoVotacion.Cerrada, new List<CrearCriterioDTO>())
+                () => votacionService.CrearVotacion(idEvento, null, inicioVotacion, finVotacion, true, TipoVotacion.Publico, 3, true, true, true, new List<Guid>(), EstadoVotacion.Cerrada, new List<CrearCriterioDTO>())
             );
 
             Assert.AreEqual("La fecha de fin no puede ser anterior a la fecha de inicio", exception.Message);
@@ -499,7 +523,7 @@ namespace Votify.Core.Tests.Votacion
         {
             var fecha = DateTime.Now.AddDays(5);
 
-            await votacionService.CrearVotacion(idEvento, fecha, fecha, false, TipoVotacion.Publico, 3, true, true,true, new List<Guid>(), EstadoVotacion.Abierta, new List<CrearCriterioDTO>());
+            await votacionService.CrearVotacion(idEvento, null, fecha, fecha, false, TipoVotacion.Publico, 3, true, true, true, new List<Guid>(), EstadoVotacion.Abierta, new List<CrearCriterioDTO>());
 
             var votacionCreada = await context.Votacion
                 .FirstOrDefaultAsync(v => v.Id_evento == idEvento && v.Id != idVotacion);
@@ -513,7 +537,7 @@ namespace Votify.Core.Tests.Votacion
             var inicioVotacion = DateTime.Now.AddDays(1);
             var finVotacion = DateTime.Now.AddDays(10);
 
-            await votacionService.CrearVotacion(idEvento, inicioVotacion, finVotacion, false, TipoVotacion.Publico, 3, true, true,true, new List<Guid>(), EstadoVotacion.Abierta, CriteriosVacios);
+            await votacionService.CrearVotacion(idEvento, null, inicioVotacion, finVotacion, false, TipoVotacion.Publico, 3, true, true, true, new List<Guid>(), EstadoVotacion.Abierta, CriteriosVacios);
 
             var votacionCreada = await context.Votacion
                 .FirstOrDefaultAsync(v => v.Id_evento == idEvento && v.Id != idVotacion);
@@ -528,7 +552,7 @@ namespace Votify.Core.Tests.Votacion
             var inicioVotacion = new DateTime(2025, 6, 15, 10, 0, 0, DateTimeKind.Local);
             var finVotacion = new DateTime(2025, 6, 20, 18, 0, 0, DateTimeKind.Local);
 
-            await votacionService.CrearVotacion(idEvento, inicioVotacion, finVotacion, true, TipoVotacion.Publico, 3, true, true,true, JuradosVacios, EstadoVotacion.Abierta, CriteriosVacios);
+            await votacionService.CrearVotacion(idEvento, null, inicioVotacion, finVotacion, true, TipoVotacion.Publico, 3, true, true, true, JuradosVacios, EstadoVotacion.Abierta, CriteriosVacios);
 
             var votacionCreada = await context.Votacion
                 .Where(v => v.Id_evento == idEvento && v.Id != idVotacion)
@@ -546,8 +570,8 @@ namespace Votify.Core.Tests.Votacion
             var inicioVotacion = DateTime.Now.AddDays(1);
             var finVotacion = DateTime.Now.AddDays(10);
 
-            await votacionService.CrearVotacion(idEvento, inicioVotacion, finVotacion, true, TipoVotacion.Publico, 3, true, true,true, JuradosVacios, EstadoVotacion.Abierta, CriteriosVacios);
-            await votacionService.CrearVotacion(idEvento, inicioVotacion, finVotacion, false, TipoVotacion.Publico, 3, true, true,true, JuradosVacios, EstadoVotacion.Abierta, CriteriosVacios);
+            await votacionService.CrearVotacion(idEvento, null, inicioVotacion, finVotacion, true, TipoVotacion.Publico, 3, true, true, true, JuradosVacios, EstadoVotacion.Abierta, CriteriosVacios);
+            await votacionService.CrearVotacion(idEvento, null, inicioVotacion, finVotacion, false, TipoVotacion.Publico, 3, true, true, true, JuradosVacios, EstadoVotacion.Abierta, CriteriosVacios);
 
             var votaciones = await context.Votacion
                 .Where(v => v.Id_evento == idEvento && v.Id != idVotacion)
@@ -578,7 +602,7 @@ namespace Votify.Core.Tests.Votacion
             var nuevaFechaFin = DateTime.Now.AddDays(15);
             var criteriosVacios = new List<CrearCriterioDTO>();
 
-            await votacionService.EditarVotacion(idVotacion, nuevoEvento, nuevaFechaInicio, nuevaFechaFin, true, TipoVotacion.Publico, criteriosVacios, 3, true, true,true, JuradosVacios,EstadoVotacion.Abierta);
+            await votacionService.EditarVotacion(idVotacion, nuevoEvento, null, nuevaFechaInicio, nuevaFechaFin, true, TipoVotacion.Publico, criteriosVacios, 3, true, true, true, JuradosVacios, EstadoVotacion.Abierta);
 
             var votacionEditada = await context.Votacion.FindAsync(idVotacion);
 
@@ -597,7 +621,7 @@ namespace Votify.Core.Tests.Votacion
 
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
-                () => votacionService.EditarVotacion(idInexistente, idEvento, inicioVotacion, finVotacion, true, TipoVotacion.Publico, criteriosVacios, 3, true, true,true, JuradosVacios,EstadoVotacion.Abierta)
+                () => votacionService.EditarVotacion(idInexistente, idEvento, null, inicioVotacion, finVotacion, true, TipoVotacion.Publico, criteriosVacios, 3, true, true, true, JuradosVacios, EstadoVotacion.Abierta)
             );
 
             Assert.AreEqual("La votación no existe", exception.Message);
@@ -611,7 +635,7 @@ namespace Votify.Core.Tests.Votacion
             var criteriosVacios = new List<CrearCriterioDTO>();
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
-                () => votacionService.EditarVotacion(idVotacion, Guid.Empty, inicioVotacion, finVotacion, true, TipoVotacion.Publico, criteriosVacios, 3, true, true,true, JuradosVacios, EstadoVotacion.Abierta)
+                () => votacionService.EditarVotacion(idVotacion, Guid.Empty, null, inicioVotacion, finVotacion, true, TipoVotacion.Publico, criteriosVacios, 3, true, true, true, JuradosVacios, EstadoVotacion.Abierta)
             );
 
             Assert.AreEqual("El evento es obligatorio", exception.Message);
@@ -626,7 +650,7 @@ namespace Votify.Core.Tests.Votacion
 
 
             var exception = await Assert.ThrowsExceptionAsync<Exception>(
-                () => votacionService.EditarVotacion(idVotacion, idEvento, inicioVotacion, finVotacion, true, TipoVotacion.Publico, criteriosVacios, 3, true, true,true, JuradosVacios, EstadoVotacion.Abierta)
+                () => votacionService.EditarVotacion(idVotacion, idEvento, null, inicioVotacion, finVotacion, true, TipoVotacion.Publico, criteriosVacios, 3, true, true, true, JuradosVacios, EstadoVotacion.Abierta)
             );
 
             Assert.AreEqual("La fecha de fin no puede ser anterior a la fecha de inicio", exception.Message);
@@ -642,7 +666,7 @@ namespace Votify.Core.Tests.Votacion
             var finVotacion = DateTime.Now.AddDays(10);
             var criteriosVacios = new List<CrearCriterioDTO>();
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, inicioVotacion, finVotacion, !permisoOriginal, TipoVotacion.Publico, criteriosVacios, 3, true, true,true, JuradosVacios, EstadoVotacion.Abierta);
+            await votacionService.EditarVotacion(idVotacion, idEvento, null, inicioVotacion, finVotacion, !permisoOriginal, TipoVotacion.Publico, criteriosVacios, 3, true, true, true, JuradosVacios, EstadoVotacion.Abierta);
 
             var votacionActualizada = await context.Votacion.FindAsync(idVotacion);
 
@@ -657,7 +681,7 @@ namespace Votify.Core.Tests.Votacion
                 DateTimeKind.Local
             );
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, fecha, fecha, true, TipoVotacion.Publico, CriteriosVacios, 3, true, true,true, JuradosVacios, EstadoVotacion.Abierta);
+            await votacionService.EditarVotacion(idVotacion, idEvento, null, fecha, fecha, true, TipoVotacion.Publico, CriteriosVacios, 3, true, true, true, JuradosVacios, EstadoVotacion.Abierta);
 
             var votacionEditada = await context.Votacion.FindAsync(idVotacion);
 
@@ -673,7 +697,7 @@ namespace Votify.Core.Tests.Votacion
             var nuevaFechaFin = DateTime.Now.AddDays(15);
             var criteriosVacios = new List<CrearCriterioDTO>();
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, nuevaFechaInicio, nuevaFechaFin, true, TipoVotacion.Publico, criteriosVacios, 3, true, true,true, JuradosVacios, EstadoVotacion.Abierta);
+            await votacionService.EditarVotacion(idVotacion, idEvento, null, nuevaFechaInicio, nuevaFechaFin, true, TipoVotacion.Publico, criteriosVacios, 3, true, true, true, JuradosVacios, EstadoVotacion.Abierta);
 
             var votacionEditada = await context.Votacion.FindAsync(idVotacion);
 

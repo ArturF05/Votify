@@ -14,22 +14,6 @@
     margin: 0;
 }
 
-.boton-finalizadas {
-    background: #ffffff;
-    border: 1px solid #f28c28;
-    color: #f28c28;
-    padding: 0.7rem 1rem;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-    .boton-finalizadas:hover {
-        background: #f28c28;
-        color: white;
-    }
-
 .barra-busqueda {
     display: flex;
     gap: 1rem;
@@ -112,14 +96,15 @@
         background: #f28c28;
         color: white;
     }
-.boton-editar:disabled {
-    background-color: #e5e7eb;
-    border-color: #d1d5db;
-    color: #9ca3af;
-    cursor: not-allowed;
-    box-shadow: none;
-    transform: none;
-}
+
+    .boton-editar:disabled {
+        background-color: #e5e7eb;
+        border-color: #d1d5db;
+        color: #9ca3af;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
 
 .noHayResult {
     display: block;
@@ -145,32 +130,7 @@
         transform: translateY(-2px);
         box-shadow: 0 12px 30px -5px rgba(245, 166, 35, 0.5);
     }
-.tooltip-wrapper {
-    position: relative;
-    display: inline-block;
-}
 
-.tooltip-text {
-    visibility: hidden;
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    padding: 6px 10px;
-    border-radius: 6px;
-    position: absolute;
-    bottom: 120%;
-    left: 35%;
-    transform: translateX(-56%);
-    white-space: nowrap;
-    font-size: 0.8rem;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-.tooltip-wrapper:hover .tooltip-text {
-    visibility: visible;
-    opacity: 1;
-}
 @media (max-width: 900px) {
     .barra-busqueda {
         flex-direction: column;

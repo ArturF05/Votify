@@ -23,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<Evento> Evento { get; set; }
     public DbSet<Categoria> Categoria { get; set; }
     public DbSet<DimensionesDeValor> DimensionesDeValor { get; set; }
+    public DbSet<CategoriaEvento> CategoriaEvento { get; set; }
     public DbSet<VotoCriterio> VotoCriterio { get; set; }
     public DbSet<EventoUsuarioRol> EventoUsuarioRol { get; set; }
     public DbSet<Material> Material { get; set; }
@@ -52,6 +53,9 @@ public class AppDbContext : DbContext
             entity.Property(v => v.Id_evento)
                 .HasColumnName("Id_evento");
 
+            entity.Property(v => v.Id_categoria_evento)
+                .HasColumnName("id_categoria_evento");
+
             entity.Property(v => v.FechaInicio)
                 .HasColumnName("FechaInicio");
 
@@ -64,6 +68,11 @@ public class AppDbContext : DbContext
                 .WithMany(e => e.Votaciones)
                 .HasForeignKey(v => v.Id_evento)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(v => v.CategoriaEvento)
+                .WithMany()
+                .HasForeignKey(v => v.Id_categoria_evento)
+                .OnDelete(DeleteBehavior.Restrict);
             entity.Property(v => v.NumProy)
                 .HasColumnName("NumProy");
             entity.Property(v => v.EstadoVotacion).HasColumnName("EstadoVotacion");
@@ -79,10 +88,44 @@ public class AppDbContext : DbContext
             .HasValue<VotacionPublico>(0)
             .HasValue<VotacionJurado>(1)
             .HasValue<VotacionMixta>(2);
-        modelBuilder.Entity<DimensionesDeValor>()
-            .HasOne(d => d.Votacion)
-            .WithMany(v => v.DimensionesDeValores)
-            .HasForeignKey(d => d.Id_votacion);
+        modelBuilder.Entity<CategoriaEvento>(entity =>
+        {
+            entity.ToTable("CategoriaEvento");
+
+            entity.HasKey(c => c.Id);
+
+            entity.Property(c => c.Id)
+                .HasColumnName("id");
+
+            entity.Property(c => c.Id_evento)
+                .HasColumnName("id_evento");
+
+            entity.Property(c => c.Nombre)
+                .HasColumnName("nombre");
+
+            entity.HasOne(c => c.Evento)
+                .WithMany(e => e.CategoriasEvento)
+                .HasForeignKey(c => c.Id_evento)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<DimensionesDeValor>(entity =>
+        {
+            entity.ToTable("DimensionesDeValor");
+
+            entity.Property(d => d.Id_categoria_evento)
+                .HasColumnName("id_categoria_evento");
+
+            entity.HasOne(d => d.Votacion)
+                .WithMany(v => v.DimensionesDeValores)
+                .HasForeignKey(d => d.Id_votacion)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.CategoriaEvento)
+                .WithMany(c => c.Criterios)
+                .HasForeignKey(d => d.Id_categoria_evento)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         modelBuilder.Entity<VotoCriterio>(entity =>
         {
@@ -101,6 +144,25 @@ public class AppDbContext : DbContext
             entity.HasOne(vc => vc.Criterio)
                 .WithMany()
                 .HasForeignKey(vc => vc.Id_criterio)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Voto>(entity =>
+        {
+            entity.HasOne(v => v.CategoriaEvento)
+                .WithMany()
+                .HasForeignKey(v => v.Id_categoria)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Proyecto>(entity =>
+        {
+            entity.Property(p => p.Id_categoria_evento)
+                .HasColumnName("id_categoria_evento");
+
+            entity.HasOne(p => p.CategoriaEvento)
+                .WithMany()
+                .HasForeignKey(p => p.Id_categoria_evento)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

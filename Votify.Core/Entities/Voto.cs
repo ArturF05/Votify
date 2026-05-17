@@ -21,7 +21,7 @@ public class Voto
     public decimal Puntuacion { get; set; }
     public DateTime Fecha_voto { get; set; }
     [ForeignKey(nameof(Id_categoria))]
-    public Categoria? Categoria { get; set; }
+    public CategoriaEvento? CategoriaEvento { get; set; }
     [ForeignKey(nameof(Id_votante))]
     public Usuario Usuario { get; set; }
 

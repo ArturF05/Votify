@@ -31,6 +31,16 @@
         <label>Inicio del evento: @inicioEvento    </label>
         <label>Fin del evento: @finEvento</label>
     </div>
+    <div class="campo">
+        <label>Categoría de la votación*:</label>
+        <select @bind="idCategoriaVotacion">
+            <option value="@Guid.Empty">Todas las categorías</option>
+            @foreach (var categoria in categoriasEvento)
+            {
+                <option value="@categoria.Id">@categoria.Nombre</option>
+            }
+        </select>
+    </div>
     <hr>
     <label>Tipo de votación*:</label>
     <div class="grupo-botones-votacion">
@@ -136,13 +146,16 @@
     <section class="bloque-criterios">
         <h3 class="titulo-criterios">Criterios</h3>
 
-        <div class="lista-criterios">
-            @foreach (var c in criterios)
+        @foreach (var categoria in categoriasEvento.Where(c => idCategoriaVotacion == Guid.Empty || c.Id == idCategoriaVotacion))
+        {
+            <h4>@categoria.Nombre</h4>
+            <div class="lista-criterios">
+            @foreach (var c in criterios.Where(c => c.Id_categoria_evento == categoria.Id))
             {
                 <div class="criterio-item">
                     <div class="criterio-texto">
-                        <span class="criterio-nombre">@c.Nombre</span>
-                        <span class="criterio-descripcion">@c.Descripcion</span>
+                        <input type="text" class="input-criterio" @bind="c.Nombre" placeholder="Nombre" />
+                        <input type="text" class="input-criterio" @bind="c.Descripcion" placeholder="Descripción" />
                     </div>
 
                     <div class="criterio-acciones">
@@ -152,11 +165,19 @@
                     </div>
                 </div>
             }
-        </div>
+            </div>
+        }
 
         <div><label style="color:black">@mensajeNoCriterio</label></div>
 
         <div class="criterio-formulario">
+            <select @bind="idCategoriaCriterio" class="input-criterio">
+                <option value="@Guid.Empty">Selecciona categoría</option>
+                @foreach (var categoria in categoriasEvento)
+                {
+                    <option value="@categoria.Id">@categoria.Nombre</option>
+                }
+            </select>
             <input type="text" placeholder="Nombre" @bind="nombreCriterio" class="input-criterio" />
             <input type="text" placeholder="Descripción" @bind="descripcionCriterio" class="input-criterio" />
             <button type="button" class="boton-principal" @onclick="GuardarCriterio" >Añadir</button>
@@ -263,6 +284,7 @@
     private DateTime inicioEvento = DateTime.Now;
     private DateTime finEvento = DateTime.Now.AddDays(1);
     private Guid Id_evento = Guid.Empty;
+    private Guid idCategoriaVotacion = Guid.Empty;
     private TipoVotacion tipoVotacion = TipoVotacion.Publico;
     private string mensaje = "";
     private string mensaje2 = "";
@@ -276,10 +298,12 @@
     private string nombreCriterio = "";
     private string descripcionCriterio = "";
     private int pesoCriterio = 0;
+    private Guid idCategoriaCriterio = Guid.Empty;
     private EstadoVotacion estadoVotacion=0;
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Votify.Core.Entities.Votacion> votaciones = new();
     List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
+    List<Votify.Core.Entities.CategoriaEvento> categoriasEvento = new();
     private Votify.Core.Entities.Evento? evento;
     private Guid idUsuarioActual = Guid.Empty;
     private int verRes = 1;
@@ -308,6 +332,15 @@
         criterios = await contexto.DimensionesDeValor
             .Where(d => d.Id_votacion == votacion.Id)
             .ToListAsync();
+
+        categoriasEvento = await contexto.CategoriaEvento
+            .AsNoTracking()
+            .Where(c => c.Id_evento == votacion.Id_evento)
+            .OrderBy(c => c.Nombre)
+            .ToListAsync();
+
+        idCategoriaCriterio = categoriasEvento.FirstOrDefault()?.Id ?? Guid.Empty;
+        idCategoriaVotacion = votacion.Id_categoria_evento ?? Guid.Empty;
 
         if (!criterios.Any())
             mensajeNoCriterio = "Esta votación no tiene criterios";
@@ -525,15 +558,30 @@
                 return;
             }
 
-            if (criterios.Sum(c => c.Peso) != 100)
+            var categoriasDeLaVotacion = categoriasEvento
+                .Where(categoria => idCategoriaVotacion == Guid.Empty || categoria.Id == idCategoriaVotacion)
+                .ToList();
+
+            foreach (var categoria in categoriasDeLaVotacion)
             {
-                mensajeErrorCriterio = "La suma de los pesos debe ser 100";
-                return;
+                var criteriosCategoria = criterios.Where(c => c.Id_categoria_evento == categoria.Id).ToList();
+                if (!criteriosCategoria.Any())
+                {
+                    mensajeErrorCriterio = $"La categoría {categoria.Nombre} debe tener al menos un criterio";
+                    return;
+                }
+
+                if (criteriosCategoria.Sum(c => c.Peso) != 100)
+                {
+                    mensajeErrorCriterio = $"La suma de pesos de la categoría {categoria.Nombre} debe ser 100";
+                    return;
+                }
             }
 
             var dto = new CrearVotacionDTOs
             {
                 Id_evento = Id_evento,
+                Id_categoria_evento = idCategoriaVotacion == Guid.Empty ? null : idCategoriaVotacion,
                 FechaInicio = LocalInputToUtc(inicioVotacion),
                 FechaFin = LocalInputToUtc(finVotacion),
                 PermiteAutoVoto = permiteAutoVoto == 1,
@@ -542,9 +590,12 @@
                 Num_Proy = NumProy,
                 Jurados = juradoSeleccionado.Select(u => u.Id).ToList(),
                 EstadoVotacion=estadoVotacion,
-                Criterios = criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
+                Criterios = criterios
+                .Where(c => idCategoriaVotacion == Guid.Empty || c.Id_categoria_evento == idCategoriaVotacion)
+                .Select(c => new Votify.Core.DTOs.CrearCriterioDTO
                 {
                     Id = c.Id,
+                    IdCategoriaEvento = c.Id_categoria_evento,
                     Nombre = c.Nombre,
                     Descripcion = c.Descripcion,
                     Peso = c.Peso
@@ -599,6 +650,12 @@
 
     private void GuardarCriterio()
     {
+        if (idCategoriaCriterio == Guid.Empty)
+        {
+            mensajeErrorCriterio = "Selecciona la categoría del criterio";
+            return;
+        }
+
         if(nombreCriterio == "")
         {
             mensajeErrorCriterio = "No se puede añadir el criterio: Debes asignar un nombre al criterio";
@@ -611,9 +668,9 @@
             return;
         }
 
-        if (criterios.Any(c => c.Nombre == nombreCriterio))
+        if (criterios.Any(c => c.Id_categoria_evento == idCategoriaCriterio && c.Nombre == nombreCriterio))
         {
-            mensajeErrorCriterio = "No se puede añadir el criterio: Ya existe un criterio con ese nombre";
+            mensajeErrorCriterio = "No se puede añadir el criterio: Ya existe un criterio con ese nombre en esta categoría";
             return;
         }
 
@@ -621,6 +678,7 @@
         {
             Id = Guid.NewGuid(),
             Id_votacion = votacion.Id,
+            Id_categoria_evento = idCategoriaCriterio,
             Nombre = nombreCriterio,
             Descripcion = descripcionCriterio,
             Peso = 0
@@ -636,6 +694,11 @@
     private void QuitarCriterio(Guid idCriterio)
     {
         criterios.RemoveAll(c => c.Id == idCriterio);
+    }
+
+    private string NombreCategoria(Guid idCategoria)
+    {
+        return categoriasEvento.FirstOrDefault(c => c.Id == idCategoria)?.Nombre ?? "Sin categoría";
     }
 
     private void AnadirJurado(Usuario usuario)

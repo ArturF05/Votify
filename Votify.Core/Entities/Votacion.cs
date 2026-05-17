@@ -19,6 +19,8 @@ public abstract class Votacion
     public abstract TipoVotacion Tipo { get; }
     public Boolean PermiteAutoVoto { get; set; }
     public Guid Id_evento { get; set; }
+    public Guid? Id_categoria_evento { get; set; }
+    public CategoriaEvento? CategoriaEvento { get; set; }
     public DateTime FechaInicio { get; set; }
     public DateTime FechaFin { get; set; }
     public List<DimensionesDeValor> DimensionesDeValores { get; set; } = new();

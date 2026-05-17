@@ -24,6 +24,8 @@ public class Evento
    
     public ICollection<Proyecto> Proyectos { get; set; }
     public List<Votacion> Votaciones { get; set; }
+    public List<CategoriaEvento> CategoriasEvento { get; set; } = new();
+
     public bool Archivado {  get; set; }
 
     public ICollection<EventoUsuarioRol> EventoUsuarioRoles { get; set; }
