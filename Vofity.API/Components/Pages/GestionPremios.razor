@@ -1,0 +1,716 @@
+@page "/GestionPremios"
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Votify.Core.Entities
+@using Votify.Core.Interfaces
+@using Votify.Infrastructure.Data
+@inject NavigationManager nav
+@inject AppDbContext contexto
+@inject IPremio PremioService
+@inject IAzureStorage azureStorage
+@inject ProtectedSessionStorage sessionStorage
+@rendermode InteractiveServer
+
+<PageTitle>Gestionar premios - Votify</PageTitle>
+
+<div class="premios-page">
+    <div class="premios-header">
+        <div>
+            <span class="header-kicker">Premios</span>
+            <h2>Gestionar premios</h2>
+            <p>Prepara los premios de una categoria y guarda todos los cambios al final.</p>
+        </div>
+        <button type="button" class="boton-secundario" @onclick="VolverDashboard">Volver al dashboard</button>
+    </div>
+
+    @if (!cargado)
+    {
+        <div class="estado-panel">Cargando premios...</div>
+    }
+    else if (!eventos.Any())
+    {
+        <div class="estado-panel">No tienes eventos como organizador para gestionar premios.</div>
+    }
+    else
+    {
+        <section class="selector-panel">
+            <label>
+                Evento
+                <select value="@idEventoSeleccionado" @onchange="EventoSeleccionado">
+                    @foreach (var evento in eventos)
+                    {
+                        <option value="@evento.Id">@evento.Nombre</option>
+                    }
+                </select>
+            </label>
+
+            <label>
+                Categoria de votacion
+                <select value="@idCategoriaSeleccionada" @onchange="CategoriaSeleccionada" disabled="@(!categoriasEvento.Any())">
+                    @if (!categoriasEvento.Any())
+                    {
+                        <option value="@Guid.Empty">Sin categorias de votacion</option>
+                    }
+                    else
+                    {
+                        @foreach (var categoria in categoriasEvento)
+                        {
+                            <option value="@categoria.Id">@categoria.Nombre</option>
+                        }
+                    }
+                </select>
+            </label>
+        </section>
+
+        @if (idCategoriaSeleccionada == Guid.Empty)
+        {
+            <div class="estado-panel estado-panel--accion">
+                <div>
+                    <strong>Este evento aun no tiene categorias de votacion.</strong>
+                    <span>Los premios se definen dentro de una categoria de votacion. Si el evento solo tiene categoria general, anade categorias desde la edicion del evento.</span>
+                </div>
+                @if (idEventoSeleccionado != Guid.Empty)
+                {
+                    <button type="button" class="boton-principal" @onclick="EditarEventoSeleccionado">Editar evento</button>
+                }
+            </div>
+        }
+        else
+        {
+            <section class="resumen-panel">
+                <div class="resumen-copy">
+                    <strong>@NombreCategoriaSeleccionada</strong>
+                    <span>@PremiosVisibles.Count premio(s) preparados · @votacionesCompatibles.Count votacion(es) compatibles</span>
+                </div>
+                <button type="button" class="boton-principal" @onclick="AnadirPremio">Anadir premio</button>
+            </section>
+
+            @if (!PremiosVisibles.Any())
+            {
+                <div class="estado-panel estado-panel--accion">
+                    <div>
+                        <strong>No hay premios preparados.</strong>
+                        <span>Anade todos los premios que necesites y guardalos al final con un unico boton.</span>
+                    </div>
+                    <button type="button" class="boton-principal" @onclick="AnadirPremio">Anadir premio</button>
+                </div>
+            }
+            else
+            {
+                <section class="premios-board">
+                    @foreach (var item in PremiosVisibles.Select((premio, index) => new { premio, index }))
+                    {
+                        var premio = item.premio;
+                        var index = item.index;
+                        var imagen = ObtenerImagenPremio(premio);
+
+                        <article class="premio-card" @key="premio.IdFormulario">
+                            <div class="premio-media">
+                                @if (string.IsNullOrWhiteSpace(imagen))
+                                {
+                                    <div class="premio-placeholder">
+                                        <span>@(index + 1)</span>
+                                        <strong>Premio</strong>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <img src="@imagen" alt="Imagen del premio @premio.Nombre" />
+                                }
+
+                                <div class="premio-media-actions">
+                                    <label class="image-action">
+                                        <span>Subir foto</span>
+                                        <InputFile class="file-input" OnChange="(e) => OnImagenPremioSeleccionada(premio.IdFormulario, e)" accept=".jpg,.jpeg,.png" />
+                                    </label>
+                                    @if (!string.IsNullOrWhiteSpace(imagen))
+                                    {
+                                        <button type="button" class="image-action image-action--ghost" @onclick="() => QuitarImagenPremio(premio.IdFormulario)">Quitar</button>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="premio-content">
+                                <div class="premio-topline">
+                                    <span class="orden-chip">Orden @(index + 1)</span>
+                                    @if (PremiosVisibles.Count > 1)
+                                    {
+                                        <div class="orden-actions">
+                                            <button type="button" title="Subir premio" @onclick="() => MoverPremio(premio.IdFormulario, -1)" disabled="@(index == 0)">Subir</button>
+                                            <button type="button" title="Bajar premio" @onclick="() => MoverPremio(premio.IdFormulario, 1)" disabled="@(index == PremiosVisibles.Count - 1)">Bajar</button>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="form-grid">
+                                    <label>
+                                        Nombre del premio
+                                        <input @bind="premio.Nombre" maxlength="120" placeholder="Ej. Mejor diseno" />
+                                    </label>
+
+                                    <label>
+                                        Puesto premiado
+                                        <select @bind="premio.Puesto">
+                                            @foreach (var puesto in ObtenerPuestosDisponibles(premio))
+                                            {
+                                                <option value="@puesto">@FormatearPuesto(puesto)</option>
+                                            }
+                                        </select>
+                                    </label>
+
+                                    <label class="campo-descripcion">
+                                        Descripcion
+                                        <textarea @bind="premio.Descripcion" rows="3" placeholder="Que reconoce este premio"></textarea>
+                                    </label>
+                                </div>
+
+                                <div class="votaciones-panel">
+                                    <div class="votaciones-header">
+                                        <strong>Votaciones vinculadas</strong>
+                                        <span>@premio.IdsVotaciones.Count seleccionada(s)</span>
+                                    </div>
+
+                                    @if (!votacionesCompatibles.Any())
+                                    {
+                                        <p class="texto-muted">No hay votaciones compatibles para esta categoria.</p>
+                                    }
+                                    else
+                                    {
+                                        <div class="votaciones-lista">
+                                            @foreach (var votacion in votacionesCompatibles)
+                                            {
+                                                <label class="votacion-check">
+                                                    <input type="checkbox"
+                                                   checked="@premio.IdsVotaciones.Contains(votacion.Id)"
+                                                   @onchange="(e) => CambiarVinculoPremio(premio.IdFormulario, votacion.Id, e)" />
+                                                    <span>@ObtenerEtiquetaVotacion(votacion)</span>
+                                                </label>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+
+                                <button type="button" class="boton-peligro" @onclick="() => QuitarPremio(premio.IdFormulario)">Quitar premio</button>
+                            </div>
+                        </article>
+                    }
+                </section>
+            }
+
+            <section class="savebar">
+                <div>
+                    <strong>@PremiosVisibles.Count premio(s) listos</strong>
+                    <span>Los cambios se aplicaran juntos y despues volveras al dashboard.</span>
+                </div>
+                <button type="button" class="boton-principal boton-guardar" @onclick="GuardarPremios" disabled="@guardando">
+                    @(guardando ? "Guardando..." : "Guardar premios")
+                </button>
+            </section>
+        }
+    }
+
+    @if (!string.IsNullOrWhiteSpace(mensaje))
+    {
+        <div class="mensaje-estado">@mensaje</div>
+    }
+</div>
+
+@code {
+    private const long MaxImagenBytes = 5 * 1024 * 1024;
+
+    private readonly string[] extensionesImagenPermitidas = { ".jpg", ".jpeg", ".png" };
+
+    private List<Votify.Core.Entities.Evento> eventos = new();
+    private List<CategoriaEvento> categoriasEvento = new();
+    private List<Votify.Core.Entities.Votacion> votacionesCompatibles = new();
+    private List<PremioForm> premiosFormulario = new();
+
+    private Guid idUsuario;
+    private Guid idEventoSeleccionado = Guid.Empty;
+    private Guid idCategoriaSeleccionada = Guid.Empty;
+    private string mensaje = string.Empty;
+    private bool cargado;
+    private bool guardando;
+
+    private List<PremioForm> PremiosVisibles => premiosFormulario
+        .Where(p => !p.Eliminado)
+        .OrderBy(p => p.Orden)
+        .ToList();
+
+    private string NombreCategoriaSeleccionada =>
+        categoriasEvento.FirstOrDefault(c => c.Id == idCategoriaSeleccionada)?.Nombre ?? "Categoria";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || cargado)
+            return;
+
+        var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
+        if (!resultado.Success || resultado.Value == Guid.Empty)
+        {
+            nav.NavigateTo("/Login");
+            return;
+        }
+
+        try
+        {
+            idUsuario = resultado.Value;
+            await CargarEventosOrganizador();
+        }
+        catch (Exception ex)
+        {
+            RegistrarErrorCarga(ex);
+        }
+        finally
+        {
+            cargado = true;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CargarEventosOrganizador()
+    {
+        var idsEventosOrganizador = await contexto.EventoUsuarioRol
+            .Where(eur =>
+                eur.UsuarioId == idUsuario &&
+                eur.Rol.Nombre == "Organizador")
+            .Select(eur => eur.EventoId)
+            .ToListAsync();
+
+        eventos = await contexto.Evento
+            .AsNoTracking()
+            .Where(e => idsEventosOrganizador.Contains(e.Id) && !e.Archivado)
+            .OrderBy(e => e.Nombre)
+            .ToListAsync();
+
+        idEventoSeleccionado = eventos.FirstOrDefault()?.Id ?? Guid.Empty;
+        await CargarCategoriasEvento();
+    }
+
+    private async Task EventoSeleccionado(ChangeEventArgs e)
+    {
+        try
+        {
+            if (!Guid.TryParse(e.Value?.ToString(), out idEventoSeleccionado))
+                idEventoSeleccionado = Guid.Empty;
+
+            mensaje = string.Empty;
+            await CargarCategoriasEvento();
+        }
+        catch (Exception ex)
+        {
+            RegistrarErrorCarga(ex);
+        }
+    }
+
+    private async Task CargarCategoriasEvento()
+    {
+        categoriasEvento = await contexto.CategoriaEvento
+            .AsNoTracking()
+            .Where(c => c.Id_evento == idEventoSeleccionado)
+            .OrderBy(c => c.Nombre)
+            .ToListAsync();
+
+        idCategoriaSeleccionada = categoriasEvento.FirstOrDefault()?.Id ?? Guid.Empty;
+        await CargarDatosCategoria();
+    }
+
+    private async Task CategoriaSeleccionada(ChangeEventArgs e)
+    {
+        try
+        {
+            if (!Guid.TryParse(e.Value?.ToString(), out idCategoriaSeleccionada))
+                idCategoriaSeleccionada = Guid.Empty;
+
+            mensaje = string.Empty;
+            await CargarDatosCategoria();
+        }
+        catch (Exception ex)
+        {
+            RegistrarErrorCarga(ex);
+        }
+    }
+
+    private async Task CargarDatosCategoria()
+    {
+        if (idCategoriaSeleccionada == Guid.Empty)
+        {
+            premiosFormulario = new();
+            votacionesCompatibles = new();
+            return;
+        }
+
+        votacionesCompatibles = await contexto.Votacion
+            .AsNoTracking()
+            .Where(v =>
+                v.Id_evento == idEventoSeleccionado &&
+                (
+                    v.Id_categoria_evento == idCategoriaSeleccionada ||
+                    (
+                        v.Id_categoria_evento == null &&
+                        contexto.DimensionesDeValor.Any(d =>
+                            d.Id_votacion == v.Id &&
+                            d.Id_categoria_evento == idCategoriaSeleccionada)
+                    )
+                ))
+            .OrderByDescending(v => v.Id_categoria_evento == idCategoriaSeleccionada)
+            .ThenByDescending(v => v.FechaInicio)
+            .ToListAsync();
+
+        var premios = await PremioService.ObtenerPremiosAsync(idCategoriaSeleccionada);
+
+        premiosFormulario = premios
+            .Select((premio, index) => new PremioForm
+            {
+                IdFormulario = premio.Id,
+                IdPremio = premio.Id,
+                Nombre = premio.Nombre,
+                Descripcion = premio.Descripcion,
+                ImagenUrl = premio.ImagenUrl,
+                ImagenUrlOriginal = premio.ImagenUrl,
+                Orden = index + 1,
+                Puesto = premio.Puesto,
+                IdsVotaciones = premio.PremioVotaciones.Select(pv => pv.Id_votacion).ToHashSet()
+            })
+            .ToList();
+    }
+
+    private void AnadirPremio()
+    {
+        var siguienteOrden = PremiosVisibles.Count + 1;
+
+        premiosFormulario.Add(new PremioForm
+        {
+            IdFormulario = Guid.NewGuid(),
+            Orden = siguienteOrden,
+            Puesto = 1
+        });
+
+        mensaje = string.Empty;
+    }
+
+    private void QuitarPremio(Guid idFormulario)
+    {
+        var premio = premiosFormulario.FirstOrDefault(p => p.IdFormulario == idFormulario);
+        if (premio == null)
+            return;
+
+        if (premio.IdPremio.HasValue)
+            premio.Eliminado = true;
+        else
+            premiosFormulario.Remove(premio);
+
+        RecalcularOrdenes(PremiosVisibles);
+    }
+
+    private void MoverPremio(Guid idFormulario, int direccion)
+    {
+        var visibles = PremiosVisibles;
+        var indice = visibles.FindIndex(p => p.IdFormulario == idFormulario);
+        var nuevoIndice = indice + direccion;
+
+        if (indice < 0 || nuevoIndice < 0 || nuevoIndice >= visibles.Count)
+            return;
+
+        var premio = visibles[indice];
+        visibles.RemoveAt(indice);
+        visibles.Insert(nuevoIndice, premio);
+        RecalcularOrdenes(visibles);
+    }
+
+    private static void RecalcularOrdenes(List<PremioForm> premios)
+    {
+        for (var i = 0; i < premios.Count; i++)
+        {
+            premios[i].Orden = i + 1;
+        }
+    }
+
+    private async Task OnImagenPremioSeleccionada(Guid idFormulario, InputFileChangeEventArgs e)
+    {
+        var premio = premiosFormulario.FirstOrDefault(p => p.IdFormulario == idFormulario);
+        if (premio == null)
+            return;
+
+        var file = e.File;
+        if (file.Size > MaxImagenBytes)
+        {
+            mensaje = "La imagen no puede superar los 5 MB.";
+            return;
+        }
+
+        var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+        if (!extensionesImagenPermitidas.Contains(extension))
+        {
+            mensaje = "Formato no permitido. Usa JPG o PNG.";
+            return;
+        }
+
+        using var stream = file.OpenReadStream(MaxImagenBytes);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+
+        premio.ImagenBytes = ms.ToArray();
+        premio.ImagenNombre = file.Name;
+        premio.ImagenPreview = $"data:{file.ContentType};base64,{Convert.ToBase64String(premio.ImagenBytes)}";
+        premio.QuitarImagen = false;
+        mensaje = string.Empty;
+    }
+
+    private void QuitarImagenPremio(Guid idFormulario)
+    {
+        var premio = premiosFormulario.FirstOrDefault(p => p.IdFormulario == idFormulario);
+        if (premio == null)
+            return;
+
+        premio.ImagenBytes = null;
+        premio.ImagenNombre = null;
+        premio.ImagenPreview = null;
+        premio.ImagenUrl = null;
+        premio.QuitarImagen = true;
+    }
+
+    private void CambiarVinculoPremio(Guid idFormulario, Guid idVotacion, ChangeEventArgs e)
+    {
+        var premio = premiosFormulario.FirstOrDefault(p => p.IdFormulario == idFormulario);
+        if (premio == null)
+            return;
+
+        var seleccionado = e.Value is bool valorBool && valorBool;
+
+        if (seleccionado)
+            premio.IdsVotaciones.Add(idVotacion);
+        else
+            premio.IdsVotaciones.Remove(idVotacion);
+
+        AjustarPuestoALimite(premio);
+    }
+
+    private async Task GuardarPremios()
+    {
+        if (guardando)
+            return;
+
+        var premiosActivos = PremiosVisibles;
+        if (!ValidarPremios(premiosActivos))
+            return;
+
+        guardando = true;
+        mensaje = string.Empty;
+
+        try
+        {
+            foreach (var premio in premiosFormulario.Where(p => p.Eliminado && p.IdPremio.HasValue).ToList())
+            {
+                await PremioService.EliminarPremioAsync(premio.IdPremio!.Value);
+
+                if (!string.IsNullOrWhiteSpace(premio.ImagenUrlOriginal))
+                    await azureStorage.EliminarArchivoAsync(premio.ImagenUrlOriginal);
+            }
+
+            foreach (var premio in premiosActivos)
+            {
+                var imagenUrl = premio.ImagenUrl;
+                var reemplazaImagen = premio.ImagenBytes != null && !string.IsNullOrWhiteSpace(premio.ImagenNombre);
+
+                if (reemplazaImagen)
+                {
+                    using var ms = new MemoryStream(premio.ImagenBytes!);
+                    imagenUrl = await azureStorage.SubirArchivoAsync(ms, premio.ImagenNombre!);
+                }
+
+                if (premio.IdPremio.HasValue)
+                {
+                    await PremioService.EditarPremioAsync(
+                        premio.IdPremio.Value,
+                        premio.Nombre,
+                        premio.Descripcion,
+                        premio.Orden,
+                        imagenUrl,
+                        premio.Puesto,
+                        premio.IdsVotaciones);
+
+                    if ((reemplazaImagen || premio.QuitarImagen) && !string.IsNullOrWhiteSpace(premio.ImagenUrlOriginal))
+                        await azureStorage.EliminarArchivoAsync(premio.ImagenUrlOriginal);
+                }
+                else
+                {
+                    await PremioService.CrearPremioAsync(
+                        idCategoriaSeleccionada,
+                        premio.Nombre,
+                        premio.Descripcion,
+                        premio.Orden,
+                        premio.IdsVotaciones,
+                        imagenUrl,
+                        premio.Puesto);
+                }
+            }
+
+            nav.NavigateTo("/DashboardOrganizador");
+        }
+        catch (Exception ex)
+        {
+            mensaje = ex.Message;
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+
+    private bool ValidarPremios(List<PremioForm> premiosActivos)
+    {
+        if (idCategoriaSeleccionada == Guid.Empty)
+        {
+            mensaje = "Selecciona una categoria de votacion antes de guardar.";
+            return false;
+        }
+
+        foreach (var premio in premiosActivos)
+        {
+            if (string.IsNullOrWhiteSpace(premio.Nombre))
+            {
+                mensaje = "Todos los premios necesitan nombre.";
+                return false;
+            }
+
+            if (!premio.IdsVotaciones.Any())
+            {
+                mensaje = $"El premio \"{premio.Nombre.Trim()}\" debe estar vinculado al menos a una votacion.";
+                return false;
+            }
+
+            if (premio.Puesto < 1)
+            {
+                mensaje = $"El premio \"{premio.Nombre.Trim()}\" necesita un puesto valido.";
+                return false;
+            }
+
+            var limitePuesto = ObtenerLimitePuestos(premio);
+            if (premio.Puesto > limitePuesto)
+            {
+                mensaje = $"El premio \"{premio.Nombre.Trim()}\" no puede ir al puesto {premio.Puesto} con las votaciones seleccionadas.";
+                return false;
+            }
+        }
+
+        var duplicado = premiosActivos
+            .GroupBy(p => p.Nombre.Trim().ToLowerInvariant())
+            .FirstOrDefault(g => g.Count() > 1);
+
+        if (duplicado != null)
+        {
+            mensaje = $"El premio \"{duplicado.First().Nombre.Trim()}\" esta repetido.";
+            return false;
+        }
+
+        return true;
+    }
+
+    private List<int> ObtenerPuestosDisponibles(PremioForm premio)
+    {
+        var limite = ObtenerLimitePuestos(premio);
+        return Enumerable.Range(1, limite).ToList();
+    }
+
+    private int ObtenerLimitePuestos(PremioForm premio)
+    {
+        var votacionesSeleccionadas = votacionesCompatibles
+            .Where(v => premio.IdsVotaciones.Contains(v.Id) && v.NumProy > 0)
+            .ToList();
+
+        if (votacionesSeleccionadas.Any())
+            return Math.Max(1, votacionesSeleccionadas.Min(v => v.NumProy));
+
+        var limiteCategoria = votacionesCompatibles
+            .Where(v => v.NumProy > 0)
+            .Select(v => v.NumProy)
+            .DefaultIfEmpty(3)
+            .Max();
+
+        return Math.Max(1, limiteCategoria);
+    }
+
+    private void AjustarPuestoALimite(PremioForm premio)
+    {
+        var limite = ObtenerLimitePuestos(premio);
+        if (premio.Puesto > limite)
+            premio.Puesto = limite;
+
+        if (premio.Puesto < 1)
+            premio.Puesto = 1;
+    }
+
+    private static string FormatearPuesto(int puesto)
+    {
+        return $"Puesto {puesto}";
+    }
+
+    private string? ObtenerImagenPremio(PremioForm premio)
+    {
+        if (!string.IsNullOrWhiteSpace(premio.ImagenPreview))
+            return premio.ImagenPreview;
+
+        if (!string.IsNullOrWhiteSpace(premio.ImagenUrl))
+            return GetProxyUrl(premio.ImagenUrl);
+
+        return null;
+    }
+
+    private string ObtenerEtiquetaVotacion(Votify.Core.Entities.Votacion votacion)
+    {
+        var categoria = votacion.Id_categoria_evento.HasValue
+            ? categoriasEvento.FirstOrDefault(c => c.Id == votacion.Id_categoria_evento.Value)?.Nombre ?? "Categoria"
+            : "Todas";
+
+        return $"{votacion.Tipo} - {categoria} - {votacion.FechaInicio.ToLocalTime():g}";
+    }
+
+    private string GetProxyUrl(string url) => $"/api/miniaturas/from-url?url={Uri.EscapeDataString(url)}";
+
+    private void EditarEventoSeleccionado()
+    {
+        if (idEventoSeleccionado != Guid.Empty)
+            nav.NavigateTo($"/EditarEvento/{idEventoSeleccionado}");
+    }
+
+    private void VolverDashboard()
+    {
+        nav.NavigateTo("/DashboardOrganizador");
+    }
+
+    private void RegistrarErrorCarga(Exception ex)
+    {
+        premiosFormulario = new();
+        votacionesCompatibles = new();
+
+        var detalle = ex.InnerException?.Message ?? ex.Message;
+        if (detalle.Contains("Premio", StringComparison.OrdinalIgnoreCase) &&
+            detalle.Contains("does not exist", StringComparison.OrdinalIgnoreCase))
+        {
+            mensaje = "No se pueden cargar premios porque falta aplicar la migracion de premios en la base de datos.";
+            return;
+        }
+
+        mensaje = $"No se pudieron cargar los datos de premios: {detalle}";
+    }
+
+    private class PremioForm
+    {
+        public Guid IdFormulario { get; set; }
+        public Guid? IdPremio { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string? Descripcion { get; set; }
+        public string? ImagenUrl { get; set; }
+        public string? ImagenUrlOriginal { get; set; }
+        public string? ImagenPreview { get; set; }
+        public byte[]? ImagenBytes { get; set; }
+        public string? ImagenNombre { get; set; }
+        public bool QuitarImagen { get; set; }
+        public int Orden { get; set; }
+        public int Puesto { get; set; } = 1;
+        public bool Eliminado { get; set; }
+        public HashSet<Guid> IdsVotaciones { get; set; } = new();
+    }
+}

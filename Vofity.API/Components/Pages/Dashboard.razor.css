@@ -373,6 +373,78 @@
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
 }
 
+.premios-resultados-section {
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 28px;
+    box-shadow: 0 10px 34px rgba(37, 99, 235, 0.07);
+}
+
+.premios-resultados-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+}
+
+.premio-resultado-card {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.premio-resultado-card img,
+.premio-resultado-placeholder {
+    width: 72px;
+    height: 72px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+}
+
+.premio-resultado-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1d4ed8;
+    font-weight: 900;
+    font-size: 1.1rem;
+}
+
+.premio-resultado-card span,
+.premio-resultado-card strong,
+.premio-resultado-card p {
+    display: block;
+}
+
+.premio-resultado-card span {
+    color: #1d4ed8;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0;
+}
+
+.premio-resultado-card strong {
+    margin-top: 3px;
+    color: #111827;
+    font-size: 1rem;
+}
+
+.premio-resultado-card p {
+    margin: 4px 0 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
 .ranking-list {
     display: flex;
     flex-direction: column;

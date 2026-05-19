@@ -28,6 +28,8 @@ public class AppDbContext : DbContext
     public DbSet<EventoUsuarioRol> EventoUsuarioRol { get; set; }
     public DbSet<Material> Material { get; set; }
     public DbSet<ProyectoParticipantes> ProyectoParticipantes { get; set; }
+    public DbSet<Premio> Premio { get; set; }
+    public DbSet<PremioVotacion> PremioVotacion { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -106,6 +108,66 @@ public class AppDbContext : DbContext
             entity.HasOne(c => c.Evento)
                 .WithMany(e => e.CategoriasEvento)
                 .HasForeignKey(c => c.Id_evento)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Premio>(entity =>
+        {
+            entity.ToTable("Premio");
+
+            entity.HasKey(p => p.Id);
+
+            entity.Property(p => p.Id)
+                .HasColumnName("id");
+
+            entity.Property(p => p.Id_categoria_evento)
+                .HasColumnName("id_categoria_evento");
+
+            entity.Property(p => p.Nombre)
+                .HasColumnName("nombre")
+                .IsRequired();
+
+            entity.Property(p => p.Descripcion)
+                .HasColumnName("descripcion");
+
+            entity.Property(p => p.ImagenUrl)
+                .HasColumnName("imagen_url");
+
+            entity.Property(p => p.Orden)
+                .HasColumnName("orden");
+
+            entity.Property(p => p.Puesto)
+                .HasColumnName("puesto");
+
+            entity.HasIndex(p => new { p.Id_categoria_evento, p.Nombre })
+                .IsUnique();
+
+            entity.HasOne(p => p.CategoriaEvento)
+                .WithMany(c => c.Premios)
+                .HasForeignKey(p => p.Id_categoria_evento)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PremioVotacion>(entity =>
+        {
+            entity.ToTable("PremioVotacion");
+
+            entity.HasKey(pv => new { pv.Id_premio, pv.Id_votacion });
+
+            entity.Property(pv => pv.Id_premio)
+                .HasColumnName("id_premio");
+
+            entity.Property(pv => pv.Id_votacion)
+                .HasColumnName("id_votacion");
+
+            entity.HasOne(pv => pv.Premio)
+                .WithMany(p => p.PremioVotaciones)
+                .HasForeignKey(pv => pv.Id_premio)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(pv => pv.Votacion)
+                .WithMany(v => v.PremioVotaciones)
+                .HasForeignKey(pv => pv.Id_votacion)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

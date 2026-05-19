@@ -14,6 +14,7 @@
 @inject HttpClient Http
 @inject ProtectedSessionStorage sessionStorage
 @inject IVotacion VotacionService
+@inject IPremio PremioService
 @inject UsuarioSesion usuarioSesion
 
 
@@ -276,6 +277,69 @@
         font-weight: 500;
     }
 
+    .premios-votacion {
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 1px solid #fed7aa;
+        border-radius: 12px;
+        background: #fffaf4;
+    }
+
+    .premios-votacion h3 {
+        margin: 0 0 0.7rem;
+        font-size: 1rem;
+        color: #7a4b12;
+    }
+
+    .premios-lista-voto {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .premio-item {
+        display: grid;
+        grid-template-columns: 54px minmax(0, 1fr);
+        align-items: center;
+        gap: 0.65rem;
+        border: 1px solid #fed7aa;
+        border-radius: 12px;
+        background: #ffffff;
+        color: #7a4b12;
+        padding: 0.55rem;
+        font-size: 0.86rem;
+        font-weight: 700;
+    }
+
+    .premio-item img,
+    .premio-foto-placeholder {
+        width: 54px;
+        height: 54px;
+        border-radius: 10px;
+        object-fit: cover;
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+    }
+
+    .premio-foto-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #c56d00;
+    }
+
+    .premio-item strong,
+    .premio-item span {
+        display: block;
+    }
+
+    .premio-item span {
+        margin-top: 0.15rem;
+        color: #8a5a1f;
+        font-size: 0.78rem;
+        font-weight: 500;
+    }
+
     .criterios-proyecto {
         margin-top: 1rem;
         display: flex;
@@ -403,6 +467,40 @@
             </select>
         </div>
 
+        @if (idCategoriaSeleccionada != Guid.Empty && premiosCategoria.Any())
+        {
+            <div class="premios-votacion">
+                <h3>Premios disponibles</h3>
+                <div class="premios-lista-voto">
+                    @foreach (var premio in premiosCategoria)
+                    {
+                        var imagenPremio = string.IsNullOrWhiteSpace(premio.ImagenUrl)
+                            ? null
+                            : GetProxyUrl(premio.ImagenUrl);
+
+                        <div class="premio-item" title="@premio.Descripcion">
+                            @if (string.IsNullOrWhiteSpace(imagenPremio))
+                            {
+                                <div class="premio-foto-placeholder">@premio.Orden</div>
+                            }
+                            else
+                            {
+                                <img src="@imagenPremio" alt="Imagen de @premio.Nombre" />
+                            }
+                            <div>
+                                <strong>@premio.Nombre</strong>
+                                <span>Puesto @premio.Puesto</span>
+                                @if (!string.IsNullOrWhiteSpace(premio.Descripcion))
+                                {
+                                    <span>@premio.Descripcion</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
         @if (idCategoriaSeleccionada != Guid.Empty && !ProyectosDeCategoria.Any())
         {
             <div class="mensaje-info">No hay proyectos inscritos en esta categoría.</div>
@@ -516,6 +614,7 @@
     private Votify.Core.Entities.Usuario usuario;
     private bool yaVoto = false;
     private List<DimensionesDeValor> criterios = new();
+    private List<Premio> premiosCategoria = new();
     private List<CategoriaEvento> categoriasEvento = new();
     private Guid idCategoriaSeleccionada = Guid.Empty;
     private List<Proyecto> ProyectosDeCategoria =>
@@ -620,6 +719,7 @@
         proyectosSeleccionados.Clear();
         await CargarVotacionCategoria();
         await CargarCriteriosVotacion();
+        await CargarPremiosVotacion();
         yaVoto = idVotante != Guid.Empty && await contexto.Voto.AnyAsync(v =>
             v.Id_votacion == idVotacion &&
             v.Id_votante == idVotante &&
@@ -636,6 +736,7 @@
         votacion = null;
         idVotacion = Guid.Empty;
         NumProy = 0;
+        premiosCategoria = new();
 
         if (evento == null || idCategoriaSeleccionada == Guid.Empty)
             return;
@@ -653,6 +754,16 @@
             NumProy = votacion.NumProy;
             idVotacion = votacion.Id;
         }
+    }
+
+    private async Task CargarPremiosVotacion()
+    {
+        premiosCategoria = new();
+
+        if (idVotacion == Guid.Empty || idCategoriaSeleccionada == Guid.Empty)
+            return;
+
+        premiosCategoria = await PremioService.ObtenerPremiosPorVotacionAsync(idVotacion, idCategoriaSeleccionada);
     }
 
     private async Task CargarCriteriosVotacion()

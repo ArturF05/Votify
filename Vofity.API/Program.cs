@@ -23,6 +23,8 @@ builder.Services.AddScoped<IVotacion, VotacionService>();
 builder.Services.AddScoped<IVotacionRepository, VotacionRepository>();
 builder.Services.AddScoped<IVotoRepository, VotoRepository>();
 builder.Services.AddScoped<IDimensionRepository,DimensionRepository>();
+builder.Services.AddScoped<IPremio, PremioService>();
+builder.Services.AddScoped<IPremioRepository, PremioRepository>();
 builder.Services.AddScoped<IEventoUsuarioRolRepository, EventoUsuarioRolRepository>();
 builder.Services.AddScoped<UsuarioSesion>();
 builder.Services.AddScoped<ProtectedSessionStorage>();

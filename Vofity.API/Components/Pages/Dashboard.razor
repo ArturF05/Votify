@@ -1,10 +1,14 @@
 ﻿@page "/Dashboard/{id:guid}"
 @rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
 @using Votify.Core.DTOs
+@using Votify.Core.Entities
 @using Votify.Core.Services
+@using Votify.Infrastructure.Data
 @inject IDashboardService dashboardService
 @inject HttpClient Http
 @inject IJSRuntime JS
+@inject AppDbContext contexto
 <PageTitle>@TituloPagina </PageTitle>
 <div class="dashboard-container">
 
@@ -78,6 +82,54 @@
                         </div>
                     }
 
+                </div>
+            </section>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(mensajePremios))
+        {
+            <section class="premios-resultados-section">
+                <h3 class="section-title">
+                    <span class="title-icon">&#127873;</span>
+                    Premios del evento
+                </h3>
+                <p class="comentario-vacio">@mensajePremios</p>
+            </section>
+        }
+        else if (premiosEvento.Any())
+        {
+            <section class="premios-resultados-section">
+                <h3 class="section-title">
+                    <span class="title-icon">&#127873;</span>
+                    Premios del evento
+                </h3>
+                <div class="premios-resultados-grid">
+                    @foreach (var premio in premiosEvento)
+                    {
+                        var imagen = string.IsNullOrWhiteSpace(premio.ImagenUrl)
+                            ? null
+                            : GetProxyUrl(premio.ImagenUrl);
+
+                        <article class="premio-resultado-card">
+                            @if (string.IsNullOrWhiteSpace(imagen))
+                            {
+                                <div class="premio-resultado-placeholder">@premio.Orden</div>
+                            }
+                            else
+                            {
+                                <img src="@imagen" alt="Imagen de @premio.Nombre" />
+                            }
+
+                            <div>
+                                <span>@premio.CategoriaNombre · Puesto @premio.Puesto</span>
+                                <strong>@premio.Nombre</strong>
+                                @if (!string.IsNullOrWhiteSpace(premio.Descripcion))
+                                {
+                                    <p>@premio.Descripcion</p>
+                                }
+                            </div>
+                        </article>
+                    }
                 </div>
             </section>
         }
@@ -236,12 +288,15 @@
 
     private SintesisIAResultadoDTO? sintesisIA;
     private string mensajeSintesis = "";
+    private List<PremioResultadoItem> premiosEvento = new();
+    private string mensajePremios = "";
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             dashboard = await dashboardService.ObtenerDashboardEvento(id);
+            await CargarPremiosEvento();
 
             if (Ranking.Any())
             {
@@ -259,6 +314,39 @@
         catch(Exception ex)
 {
             errorMsg = $"Error: {ex.Message} | Inner: {ex.InnerException?.Message}";
+        }
+    }
+
+    private async Task CargarPremiosEvento()
+    {
+        premiosEvento = new();
+        mensajePremios = "";
+
+        try
+        {
+            var premios = await contexto.Premio
+                .AsNoTracking()
+                .Include(p => p.CategoriaEvento)
+                .Where(p => p.CategoriaEvento != null && p.CategoriaEvento.Id_evento == id)
+                .OrderBy(p => p.CategoriaEvento!.Nombre)
+                .ThenBy(p => p.Orden)
+                .ThenBy(p => p.Nombre)
+                .ToListAsync();
+
+            premiosEvento = premios.Select(p => new PremioResultadoItem
+            {
+                Nombre = p.Nombre,
+                Descripcion = p.Descripcion,
+                ImagenUrl = p.ImagenUrl,
+                Orden = p.Orden,
+                Puesto = p.Puesto,
+                CategoriaNombre = p.CategoriaEvento?.Nombre ?? "Categoria"
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            var detalle = ex.InnerException?.Message ?? ex.Message;
+            mensajePremios = $"No se pudieron cargar los premios: {detalle}";
         }
     }
 
@@ -302,5 +390,18 @@
         {
             mensajeSintesis = $"No se pudo generar la síntesis con IA: {ex.Message}";
         }
+    }
+
+    private string GetProxyUrl(string url)
+        => $"/api/miniaturas/from-url?url={Uri.EscapeDataString(url)}";
+
+    private class PremioResultadoItem
+    {
+        public string Nombre { get; set; } = "";
+        public string? Descripcion { get; set; }
+        public string? ImagenUrl { get; set; }
+        public int Orden { get; set; }
+        public int Puesto { get; set; }
+        public string CategoriaNombre { get; set; } = "";
     }
 }

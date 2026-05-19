@@ -17,4 +17,5 @@ public class CategoriaEvento
     public Evento Evento { get; set; }
 
     public List<DimensionesDeValor> Criterios { get; set; } = new();
+    public List<Premio> Premios { get; set; } = new();
 }

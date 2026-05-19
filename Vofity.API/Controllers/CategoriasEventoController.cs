@@ -90,6 +90,10 @@ namespace Votify.API.Controllers
             if (tieneVotos)
                 return BadRequest(new { mensaje = "No se puede eliminar una categoría con votos asociados." });
 
+            var tienePremios = await contexto.Premio.AnyAsync(p => p.Id_categoria_evento == idCategoriaEvento);
+            if (tienePremios)
+                return BadRequest(new { mensaje = "No se puede eliminar una categoría con premios asociados." });
+
             contexto.CategoriaEvento.Remove(categoria);
             await contexto.SaveChangesAsync();
 
