@@ -232,7 +232,7 @@ namespace Votify.API.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { mensaje = ex.Message });
-            }
+            } 
         }
         [HttpGet("estadisticas-organizador")]
         public async Task<DashboardOrganizadorStatsDTO> EstadisticasOrganizador([FromQuery] Guid idUsuario)
