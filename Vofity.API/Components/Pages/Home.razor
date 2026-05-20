@@ -12,7 +12,13 @@
 <div class="page">
 
     <div class="header">
-        <h1>Home</h1>
+        @if (usuarioActual == null)
+        {
+            <h1>Home</h1>
+        }
+        else{
+            <h1>Hola @usuarioActual.Nombre</h1>
+        }
         <p>Consulta los eventos en los que participas y apúntate a nuevos</p>
     </div>
 
