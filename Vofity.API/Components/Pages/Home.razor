@@ -37,6 +37,7 @@
                         <span class="item-title">@evento.Nombre</span>
                     </div>
                     </div>
+                    <button class="boton-secundario" @onclick='() => VerInfo(evento.Id)'>Ver Información</button>
                     <button class="btn" @onclick='() => Desapuntarse(evento.Id)'>Desapuntarme</button>
                 </div>
             }
@@ -60,6 +61,7 @@
                         <div>Inicio: @evento.FechaInicio</div>
                         <div>Fin: @evento.FechaFin</div>
                     </div>
+                    <button class="boton-secundario" @onclick='() => VerInfo(evento.Id)'>Ver Información</button>
                     <button class="btn" @onclick='() => Apuntarse(evento.Id)'>Apuntarme</button>
                 </div>
             }
@@ -259,5 +261,10 @@
         {
             mensaje = $"Error al desapuntarse: {ex.Message}";
         }
+    }
+
+    private void VerInfo(Guid eventoId)
+    {
+        nav.NavigateTo($"/DashboardEvento/{eventoId}");
     }
 }

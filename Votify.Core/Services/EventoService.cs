@@ -204,5 +204,71 @@ namespace Votify.Core.Services
                 Proyectos = proyectosDashboard
             };
         }
+        public async Task<EventoDetalleDTO?> ObtenerEventoDetalleAsync(Guid id)
+        {
+            var evento = await eventoRepository.ObtenerEventoDetalleAsync(id);
+
+            if (evento == null)
+                return null;
+
+            var hoy = DateTime.Now;
+
+            return new EventoDetalleDTO
+            {
+                Id = evento.Id,
+
+                Nombre = evento.Nombre,
+
+                Descripcion = evento.Descripcion,
+
+                FechaInicio = evento.FechaInicio,
+
+                FechaFin = evento.FechaFin,
+
+                ImagenUrl = evento.ImagenUrl,
+
+                TipoEvento = evento.Categoria?.Nombre ?? "Sin categoría",
+
+                Organizador = evento.EventoUsuarioRoles?
+                    .FirstOrDefault(eur => eur.Rol.Nombre == "Organizador")
+                    ?.Usuario.Nombre ?? "Desconocido",
+
+                Proyectos = evento.Proyectos
+                    .Select(p => new ProyectoDashboardDTO
+                    {
+                        ProyectoId = p.Id,
+                        TituloProyecto = p.Titulo,
+                        PuntuacionTotal = 0,
+                        Comentarios = new List<string>(),
+                        Criterios = new List<CriterioDashboardDTO>()
+                    })
+                    .ToList(),
+
+                Categorias = new List<string>
+        {
+            evento.Categoria?.Nombre ?? "Sin categoría"
+        },
+
+                Votaciones = evento.Votaciones
+                    .Select(v => new VotacionDetalleDTO
+                    {
+                        Id = v.Id,
+
+                        Nombre = $"Votación {v.Tipo}",
+
+                        FechaInicio = v.FechaInicio,
+
+                        FechaFin = v.FechaFin,
+
+                        Tipo = v.Tipo.ToString(),
+
+                        Estado =
+                            hoy < v.FechaInicio ? "Próxima" :
+                            hoy > v.FechaFin ? "Finalizada" :
+                            "En curso"
+                    })
+                    .ToList()
+            };
+        }
     }
 }

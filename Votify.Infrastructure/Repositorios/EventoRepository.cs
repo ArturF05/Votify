@@ -159,5 +159,17 @@ namespace Votify.Infrastructure.Repositorios
                          && eur.Rol.Nombre == "Organizador"))
             .ToListAsync();
         }
+        public async Task<Evento?> ObtenerEventoDetalleAsync(Guid id)
+        {
+            return await contexto.Evento
+                .Include(e => e.Categoria)
+                .Include(e => e.Proyectos)
+                .Include(e => e.Votaciones)
+                .Include(e => e.EventoUsuarioRoles)
+                    .ThenInclude(eur => eur.Usuario)
+                .Include(e => e.EventoUsuarioRoles)
+                    .ThenInclude(eur => eur.Rol)
+                .FirstOrDefaultAsync(e => e.Id == id);
+        }
     }
 }

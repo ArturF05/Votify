@@ -1,0 +1,189 @@
+﻿@page "/DashboardEvento/{id:guid}"
+@rendermode InteractiveServer
+
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components
+@using Votify.Core.DTOs
+
+@inject HttpClient Http
+@inject NavigationManager nav
+
+@if (cargando)
+{
+    <div class="loading-container">
+        <p>Cargando evento...</p>
+    </div>
+}
+else if (error != null)
+{
+    <div class="loading-container">
+        <p class="error-text">@error</p>
+    </div>
+}
+else if (evento == null)
+{
+    <div class="loading-container">
+        <p class="error-text">Evento no encontrado.</p>
+    </div>
+}
+else
+{
+    <div class="evento-page">
+
+        <header class="evento-header">
+            <div>
+                <button class="boton-secundario" @onclick="Volver">
+                    ← Volver
+                </button>
+
+                <h1>@evento.Nombre</h1>
+
+                <div class="evento-meta">
+                    <span>
+                        📅 @evento.FechaInicio.ToString("dd/MM/yyyy")
+                        -
+                        @evento.FechaFin.ToString("dd/MM/yyyy")
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <section class="descripcion-card">
+            @evento.Descripcion
+        </section>
+
+        <section class="grid-principal">
+
+            <article class="card info-card">
+                <h2>Información del evento</h2>
+
+                <img class="evento-img"
+                     src="@(string.IsNullOrWhiteSpace(evento.ImagenUrl)
+                    ? "img/evento-default.jpg"
+                    : evento.ImagenUrl)"
+                     alt=""
+                     onerror="this.style.display='none'" />
+
+                <div class="info-row">
+                    <span class="icono">📅</span>
+                    <strong>Fecha</strong>
+                    <p>@evento.FechaInicio.ToString("dd/MM/yyyy") - @evento.FechaFin.ToString("dd/MM/yyyy")</p>
+                </div>
+
+                <div class="info-row">
+                    <span class="icono">🏷️</span>
+                    <strong>Tipo</strong>
+                    <p>@evento.TipoEvento</p>
+                </div>
+
+                <div class="info-row">
+                    <span class="icono">👤</span>
+                    <strong>Organizador</strong>
+                    <p>@evento.Organizador</p>
+                </div>
+            </article>
+
+            <article class="card lista-card">
+                <h2>Proyectos</h2>
+
+                <div class="lista">
+                    @foreach (var proyecto in evento.Proyectos)
+                    {
+                        <div class="lista-item">
+                            @proyecto.TituloProyecto
+                            <span>›</span>
+                        </div>
+                    }
+                </div>
+            </article>
+
+            <article class="card lista-card">
+                <h2>Categorías</h2>
+
+                <div class="lista">
+                    @foreach (var categoria in evento.Categorias)
+                    {
+                        <div class="lista-item">
+                            @categoria
+                            <span>›</span>
+                        </div>
+                    }
+                </div>
+            </article>
+
+            <article class="card votaciones-card">
+                <h2>Votaciones</h2>
+
+                @foreach (var votacion in evento.Votaciones)
+                {
+                    <div class="votacion-box">
+                        <span class="estado @(votacion.Estado == "En curso"
+                            ? "estado-verde"
+                            : votacion.Estado == "Finalizada"
+                                ? "estado-gris"
+                                : "estado-morado")">
+                            ● @votacion.Estado
+                        </span>
+
+                        <h3>@votacion.Nombre</h3>
+
+                        <p>
+                            📅 @votacion.FechaInicio.ToString("dd/MM/yyyy HH:mm")
+                            -
+                            @votacion.FechaFin.ToString("dd/MM/yyyy HH:mm")
+                        </p>
+
+                        @if (votacion.Estado == "En curso")
+                        {
+                            <button class="btn-primary" @onclick="() => irAEvento(evento.Id)">Ir a votar</button>
+                        }
+                        else if (votacion.Estado == "Finalizada")
+                        {
+                            <button class="btn-secondary">Ver resultados</button>
+                        }
+                    </div>
+                }
+            </article>
+
+        </section>
+
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid id { get; set; }
+
+    private EventoDetalleDTO? evento;
+    private bool cargando = true;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            evento = await Http.GetFromJsonAsync<EventoDetalleDTO>(
+                $"api/Eventos/{id}/detalle"
+            );
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void Volver()
+    {
+        nav.NavigateTo("/Home");
+    }
+
+    private void irAEvento(Guid eventoId)
+    {
+        
+        nav.NavigateTo($"/Votacion_evento/{eventoId}");
+    }
+}

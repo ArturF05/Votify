@@ -21,5 +21,6 @@ namespace Votify.Core.Interfaces
         Task<DashboardEventoDTO> ObtenerDashboardEventoAsync(Guid id);
         Task<int> NumeroVotosPorEvento(Guid idEvento);
         Task<List<Votify.Core.Entities.Evento>> ObtenerEventosOrganizador(Guid idUsuario);
+        Task<EventoDetalleDTO?> ObtenerEventoDetalleAsync(Guid id);
     }
 }
