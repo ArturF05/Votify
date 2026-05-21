@@ -26,7 +26,7 @@ namespace Votify.Core.DTOs
 
         public List<ProyectoDashboardDTO> Proyectos { get; set; } = new();
 
-        public List<string> Categorias { get; set; } = new();
+        public List<CategoriaEventoResumenDTO> Categorias { get; set; } = new();
 
         public List<VotacionDetalleDTO> Votaciones { get; set; } = new();
     }

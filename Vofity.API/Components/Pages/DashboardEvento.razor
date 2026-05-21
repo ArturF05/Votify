@@ -69,14 +69,16 @@ else
 
             <div class="categorias-chips">
 
-                <button class="categoria-chip activa">
+                <button class="categoria-chip @(categoriaSeleccionadaId == null ? "activa" : "")"
+                        @onclick="() => SeleccionarCategoria(null)">
                     ✓ Todas
                 </button>
 
                 @foreach (var categoria in evento.Categorias)
                 {
-                    <button class="categoria-chip">
-                        @categoria
+                    <button class="categoria-chip @(categoriaSeleccionadaId == categoria.Id ? "activa" : "")"
+                            @onclick="() => SeleccionarCategoria(categoria.Id)">
+                        @categoria.Nombre
                     </button>
                 }
 
@@ -133,12 +135,57 @@ else
 
                 <div class="lista">
 
-                    @foreach (var proyecto in evento.Proyectos)
+                    @foreach (var proyecto in ProyectosMostrados)
                     {
-                        <div class="lista-item">
-                            @proyecto.TituloProyecto
+                        <div class="proyecto-desplegable">
 
-                            <span>›</span>
+                            <div class="lista-item proyecto-clickable"
+                                 @onclick="() => ToggleProyecto(proyecto.ProyectoId)">
+
+                                @proyecto.TituloProyecto
+
+                                <span class="flecha-proyecto @(proyectoDesplegadoId == proyecto.ProyectoId ? "abierta" : "")">
+                                    ›
+                                </span>
+                            </div>
+
+                            @if (proyectoDesplegadoId == proyecto.ProyectoId)
+                            {
+                                <div class="proyecto-detalle">
+
+                                    <div class="proyecto-creador">
+                                        <span class="detalle-label">Creado por</span>
+                                        <strong>@proyecto.CreadorNombre</strong>
+                                    </div>
+
+                                    @if (proyecto.Materiales?.Any() == true)
+                                    {
+                                        <div class="materiales-proyecto">
+                                            @foreach (var material in proyecto.Materiales)
+                                            {
+                                                var materialUrl = GetMaterialUrl(material);
+
+                                                if (!string.IsNullOrWhiteSpace(materialUrl))
+                                                {
+                                                    <a class="material-link @GetMaterialClass(material.Tipo)"
+                                                       href="@materialUrl"
+                                                       target="_blank"
+                                                       rel="noopener noreferrer"
+                                                       title="@material.Nombre">
+                                                        <span class="material-texto">@GetMaterialLabel(material)</span>
+                                                    </a>
+                                                }
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="sin-material">Sin material disponible</span>
+                                    }
+
+                                </div>
+                            }
+
                         </div>
                     }
 
@@ -150,7 +197,7 @@ else
 
                 <h2>Votaciones</h2>
 
-                @foreach (var votacion in evento.Votaciones)
+                @foreach (var votacion in VotacionesMostradas)
                 {
                     <div class="votacion-box">
 
@@ -204,6 +251,25 @@ else
     private EventoDetalleDTO? evento;
     private bool cargando = true;
     private string? error;
+    private Guid? categoriaSeleccionadaId = null;
+    private Guid? proyectoDesplegadoId = null;
+
+    private IEnumerable<ProyectoDashboardDTO> ProyectosMostrados =>
+    evento == null
+        ? Enumerable.Empty<ProyectoDashboardDTO>()
+        : categoriaSeleccionadaId == null
+            ? evento.Proyectos
+            : evento.Proyectos.Where(p => p.IdCategoriaEvento == categoriaSeleccionadaId);
+
+    private IEnumerable<VotacionDetalleDTO> VotacionesMostradas =>
+    evento == null
+        ? Enumerable.Empty<VotacionDetalleDTO>()
+        : categoriaSeleccionadaId == null
+            ? evento.Votaciones
+            : evento.Votaciones.Where(v =>
+                v.IdCategoriaEvento == categoriaSeleccionadaId
+                || v.IdCategoriaEvento == null
+                || v.IdCategoriaEvento == Guid.Empty);
 
     protected override async Task OnInitializedAsync()
     {
@@ -237,4 +303,53 @@ else
     {
         nav.NavigateTo($"/Dashboard/{eventoId}");
     }
+
+    private void SeleccionarCategoria(Guid? idCategoria)
+    {
+        categoriaSeleccionadaId = idCategoria;
+    }
+
+    private void ToggleProyecto(Guid idProyecto)
+    {
+        proyectoDesplegadoId = proyectoDesplegadoId == idProyecto
+            ? null
+            : idProyecto;
+    }
+
+    private string GetProxyUrl(string url) =>
+        $"/api/miniaturas/from-url?url={Uri.EscapeDataString(url)}";
+
+    private string GetMaterialUrl(MaterialDto material)
+    {
+        if (string.IsNullOrWhiteSpace(material.Url))
+            return string.Empty;
+
+        return material.Tipo == "Imagen"
+            ? GetProxyUrl(material.Url)
+            : material.Url;
+    }
+
+    private static string GetMaterialLabel(MaterialDto material)
+    {
+        var prefijo = material.Tipo switch
+        {
+            "Imagen" => "Imagen",
+            "Video" => "Video",
+            "Enlace" => "Enlace",
+            "Archivo" => "Archivo",
+            _ => "Material"
+        };
+
+        return string.IsNullOrWhiteSpace(material.Nombre)
+            ? prefijo
+            : $"{prefijo}: {material.Nombre}";
+    }
+
+    private static string GetMaterialClass(string tipo) => tipo switch
+    {
+        "Imagen" => "material-imagen",
+        "Video" => "material-video",
+        "Enlace" => "material-enlace",
+        _ => "material-archivo"
+    };
 }

@@ -15,5 +15,9 @@ namespace Votify.Core.DTOs
         public string Estado { get; set; } = string.Empty;
 
         public string Tipo { get; set; } = string.Empty;
+
+        public Guid? IdCategoriaEvento { get; set; }
+
+        public string NombreCategoriaEvento { get; set; } = string.Empty;
     }
 }

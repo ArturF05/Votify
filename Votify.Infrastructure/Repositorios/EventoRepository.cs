@@ -163,12 +163,27 @@ namespace Votify.Infrastructure.Repositorios
         {
             return await contexto.Evento
                 .Include(e => e.Categoria)
+                .Include(e => e.CategoriasEvento)
+
                 .Include(e => e.Proyectos)
+                    .ThenInclude(p => p.CategoriaEvento)
+
+                .Include(e => e.Proyectos)
+                    .ThenInclude(p => p.Materiales)
+
+                .Include(e => e.Proyectos)
+                    .ThenInclude(p => p.ProyectoParticipantes)
+                        .ThenInclude(pp => pp.Usuario)
+
                 .Include(e => e.Votaciones)
+                    .ThenInclude(v => v.CategoriaEvento)
+
                 .Include(e => e.EventoUsuarioRoles)
                     .ThenInclude(eur => eur.Usuario)
+
                 .Include(e => e.EventoUsuarioRoles)
                     .ThenInclude(eur => eur.Rol)
+
                 .FirstOrDefaultAsync(e => e.Id == id);
         }
     }

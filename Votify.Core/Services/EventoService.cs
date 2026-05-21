@@ -237,17 +237,43 @@ namespace Votify.Core.Services
                     .Select(p => new ProyectoDashboardDTO
                     {
                         ProyectoId = p.Id,
+
                         TituloProyecto = p.Titulo,
+
                         PuntuacionTotal = 0,
+
+                        IdCategoriaEvento = p.Id_categoria_evento,
+
+                        NombreCategoriaEvento = p.CategoriaEvento?.Nombre ?? string.Empty,
+
+                        CreadorNombre = p.ProyectoParticipantes?
+                            .FirstOrDefault(pp => pp.Id_usuario == p.Id_creador)?
+                            .Usuario.Nombre ?? "Creador desconocido",
+
+                        Materiales = p.Materiales?
+                            .Select(m => new MaterialDto
+                            {
+                                Id = m.Id,
+                                Nombre = m.Nombre,
+                                Tipo = m.Tipo,
+                                Url = m.Url,
+                                FechaSubida = m.FechaSubida
+                            })
+                            .ToList() ?? new List<MaterialDto>(),
+
                         Comentarios = new List<string>(),
+
                         Criterios = new List<CriterioDashboardDTO>()
+                        })
+                        .ToList(),
+
+                Categorias = evento.CategoriasEvento
+                    .Select(c => new CategoriaEventoResumenDTO
+                    {
+                        Id = c.Id,
+                        Nombre = c.Nombre
                     })
                     .ToList(),
-
-                Categorias = new List<string>
-        {
-            evento.Categoria?.Nombre ?? "Sin categoría"
-        },
 
                 Votaciones = evento.Votaciones
                     .Select(v => new VotacionDetalleDTO
@@ -255,12 +281,16 @@ namespace Votify.Core.Services
                         Id = v.Id,
 
                         Nombre = $"Votación {v.Tipo}",
-
+        
                         FechaInicio = v.FechaInicio,
 
                         FechaFin = v.FechaFin,
 
                         Tipo = v.Tipo.ToString(),
+
+                        IdCategoriaEvento = v.Id_categoria_evento,
+
+                        NombreCategoriaEvento = v.CategoriaEvento?.Nombre ?? string.Empty,
 
                         Estado =
                             hoy < v.FechaInicio ? "Próxima" :
