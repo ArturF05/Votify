@@ -108,16 +108,12 @@
         background: #fff7ed;
     }
 
-.grid-principal {
+.grid-principal.dashboard-grid {
     display: grid;
-    grid-template-columns: 1.1fr 1fr 1.05fr;
+    grid-template-columns: 1.05fr 1fr 1fr 1fr;
     gap: 18px;
     margin-bottom: 24px;
     align-items: stretch;
-}
-
-.dashboard-grid {
-    grid-template-columns: 1.1fr 1fr 1.05fr;
 }
 
 .card {
@@ -404,6 +400,194 @@
     color: #166534;
 }
 
+.premiados-card-dashboard {
+    overflow: hidden;
+}
+
+.premiados-dashboard-content {
+    min-height: 330px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #475569;
+}
+
+.trofeo-dashboard {
+    width: 125px;
+    height: 125px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff1df;
+    color: #ff7a00;
+    font-size: 54px;
+    margin-bottom: 28px;
+}
+
+.premiados-dashboard-content h3 {
+    margin: 0 0 10px 0;
+    color: #111827;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.premiados-dashboard-content p {
+    margin: 0 0 28px 0;
+    max-width: 230px;
+    line-height: 1.5;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.btn-premios {
+    border: 1px solid #ff7a00;
+    color: #ff7a00;
+    background: #ffffff;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .btn-premios:hover {
+        background: #fff7ed;
+        box-shadow: 0 6px 16px rgba(255, 122, 0, 0.18);
+        transform: translateY(-1px);
+    }
+
+.premios-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.premios-alerta {
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.premios-alerta-pendiente {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #92400e;
+}
+
+.premios-alerta-ok {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+}
+
+.premio-item {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 14px;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.03);
+}
+
+.premio-img {
+    width: 92px;
+    height: 92px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #fff7ed 0%, #f8fafc 100%);
+}
+
+.premio-info {
+    min-width: 0;
+}
+
+.premio-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.premio-puesto {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #ffedd5;
+    color: #ea580c;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.premio-ganador-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.premio-pendiente-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #ffedd5;
+    color: #ea580c;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.premio-con-ganador {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+}
+
+.premio-pendiente {
+    border-color: #fed7aa;
+    background: #fff7ed;
+}
+
+.premio-puntuacion {
+    display: block;
+    margin-top: 8px;
+    color: #166534;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.premio-info h3 {
+    margin: 0 0 6px 0;
+    color: #111827;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.premio-info p {
+    margin: 0 0 10px 0;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.premio-votacion {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.btn-premios-lista {
+    margin: 4px auto 0 auto;
+}
+
 @media (max-width: 1200px) {
     .grid-principal,
     .dashboard-grid {
@@ -444,5 +628,14 @@
     .categoria-chip {
         width: 100%;
         text-align: left;
+    }
+
+    .premio-item {
+        grid-template-columns: 72px 1fr;
+    }
+
+    .premio-img {
+        width: 72px;
+        height: 72px;
     }
 }

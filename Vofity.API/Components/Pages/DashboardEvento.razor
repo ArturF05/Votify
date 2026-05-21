@@ -239,6 +239,80 @@ else
 
             </article>
 
+            <article class="card premiados-card-dashboard">
+
+                <h2>🏆 Premiados</h2>
+
+                @if (evento.Premios == null || !evento.Premios.Any())
+                {
+                    <div class="premiados-dashboard-content">
+                        <div class="trofeo-dashboard">🏆</div>
+
+                        <h3>Aún no hay premios</h3>
+
+                        <p>
+                            Los premios se publicarán cuando el organizador los registre.
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <div class="premios-lista">
+
+                        @foreach (var premio in evento.Premios)
+                        {
+                            <div class="premio-item @(premio.TieneGanador ? "premio-con-ganador" : premio.VotacionFinalizada ? "premio-finalizado-sin-ganador" : "premio-pendiente")">
+
+                                <img class="premio-img"
+                                     src="@(string.IsNullOrWhiteSpace(premio.ImagenUrl)
+                            ? "img/premio-default.jpg"
+                            : premio.ImagenUrl)"
+                                     alt=""
+                                     onerror="this.style.display='none'" />
+
+                                <div class="premio-info">
+
+                                    <div class="premio-badges">
+                                        <span class="premio-puesto">@premio.Puesto Puesto</span>
+
+                                        @if (premio.TieneGanador)
+                                        {
+                                            <span class="premio-ganador-badge">GANADOR</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="premio-pendiente-badge">PENDIENTE</span>
+                                        }
+                                    </div>
+
+                                    <h3>
+                                        @(premio.TieneGanador
+                                            ? premio.NombreProyectoGanador
+                                            : premio.Nombre)
+                                    </h3>
+
+                                    <p>@premio.Descripcion</p>
+
+                                    <span class="premio-votacion">
+                                        📅 @premio.NombreVotacion
+                                    </span>
+
+                                    @if (premio.TieneGanador && premio.PuntuacionGanador != null)
+                                    {
+                                        <span class="premio-puntuacion">
+                                            ⭐ @premio.PuntuacionGanador puntos
+                                        </span>
+                                    }
+
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+                }
+
+            </article>
         </section>
 
     </div>

@@ -29,5 +29,7 @@ namespace Votify.Core.DTOs
         public List<CategoriaEventoResumenDTO> Categorias { get; set; } = new();
 
         public List<VotacionDetalleDTO> Votaciones { get; set; } = new();
+
+        public List<PremioDetalleDTO> Premios { get; set; } = new();
     }
 }

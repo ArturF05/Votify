@@ -163,7 +163,11 @@ namespace Votify.Infrastructure.Repositorios
         {
             return await contexto.Evento
                 .Include(e => e.Categoria)
+
                 .Include(e => e.CategoriasEvento)
+                    .ThenInclude(c => c.Premios)
+                        .ThenInclude(p => p.PremioVotaciones)
+                            .ThenInclude(pv => pv.Votacion)
 
                 .Include(e => e.Proyectos)
                     .ThenInclude(p => p.CategoriaEvento)
@@ -177,6 +181,11 @@ namespace Votify.Infrastructure.Repositorios
 
                 .Include(e => e.Votaciones)
                     .ThenInclude(v => v.CategoriaEvento)
+
+                .Include(e => e.Votaciones)
+                    .ThenInclude(v => v.DimensionesDeValores)
+                    .ThenInclude(d => d.VotosCriterio)
+                    .ThenInclude(vc => vc.Voto)
 
                 .Include(e => e.EventoUsuarioRoles)
                     .ThenInclude(eur => eur.Usuario)

@@ -16,4 +16,5 @@ public class DimensionesDeValor
     public int Peso {  get; set; }
     public Votacion? Votacion { get; set; }
     public CategoriaEvento? CategoriaEvento { get; set; }
+    public List<VotoCriterio> VotosCriterio { get; set; } = new();
 }

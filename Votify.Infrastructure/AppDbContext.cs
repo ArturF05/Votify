@@ -204,7 +204,7 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(vc => vc.Criterio)
-                .WithMany()
+                .WithMany(c => c.VotosCriterio)
                 .HasForeignKey(vc => vc.Id_criterio)
                 .OnDelete(DeleteBehavior.Restrict);
         });
