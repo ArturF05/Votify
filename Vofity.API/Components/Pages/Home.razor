@@ -43,12 +43,14 @@
                         </div>
                     </div>
 
-                    <span class="estado-evento estado-curso">En curso</span>
+                    <span class="estado-evento @GetEstadoClase(evento)">
+                        @GetEstadoTexto(evento)
+                    </span>
 
                     <div class="item-actions">
                         <div class="card-actions">
                             <button class="boton-secundario" @onclick='() => VerInfo(evento.Id)'>Ver Información</button>
-                            <button class="btn" @onclick='() => Apuntarse(evento.Id)'>Apuntarme</button>
+                            <button class="btn" @onclick='() => Desapuntarse(evento.Id)'>Desapuntarme</button>
                         </div>
                     </div>
                 </div>
@@ -297,5 +299,31 @@
     private void VerInfo(Guid eventoId)
     {
         nav.NavigateTo($"/DashboardEvento/{eventoId}");
+    }
+
+    private string GetEstadoTexto(Votify.Core.Entities.Evento evento)
+    {
+        var ahora = DateTime.Now;
+
+        if (ahora < evento.FechaInicio)
+            return "Próximo";
+
+        if (ahora > evento.FechaFin)
+            return "Finalizado";
+
+        return "En curso";
+    }
+
+    private string GetEstadoClase(Votify.Core.Entities.Evento evento)
+    {
+        var ahora = DateTime.Now;
+
+        if (ahora < evento.FechaInicio)
+            return "estado-proximo";
+
+        if (ahora > evento.FechaFin)
+            return "estado-finalizado";
+
+        return "estado-curso";
     }
 }
