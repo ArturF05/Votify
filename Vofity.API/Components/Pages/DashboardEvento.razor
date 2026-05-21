@@ -31,7 +31,9 @@ else
     <div class="evento-page">
 
         <header class="evento-header">
+
             <div>
+
                 <button class="boton-secundario" @onclick="Volver">
                     ← Volver
                 </button>
@@ -40,109 +42,154 @@ else
 
                 <div class="evento-meta">
                     <span>
-                        📅 @evento.FechaInicio.ToString("dd/MM/yyyy")
+                        📅
+                        @evento.FechaInicio.ToString("dd/MM/yyyy")
                         -
                         @evento.FechaFin.ToString("dd/MM/yyyy")
                     </span>
+
+                    <span>•</span>
+
+                    <span>
+                        🏷️ @evento.TipoEvento
+                    </span>
                 </div>
+
             </div>
+
         </header>
 
         <section class="descripcion-card">
             @evento.Descripcion
         </section>
 
-        <section class="grid-principal">
+        <section class="categorias-filtros-card">
+
+            <h2>Categorías</h2>
+
+            <div class="categorias-chips">
+
+                <button class="categoria-chip activa">
+                    ✓ Todas
+                </button>
+
+                @foreach (var categoria in evento.Categorias)
+                {
+                    <button class="categoria-chip">
+                        @categoria
+                    </button>
+                }
+
+            </div>
+
+        </section>
+
+        <section class="grid-principal dashboard-grid">
 
             <article class="card info-card">
+
                 <h2>Información del evento</h2>
 
                 <img class="evento-img"
                      src="@(string.IsNullOrWhiteSpace(evento.ImagenUrl)
-                    ? "img/evento-default.jpg"
-                    : evento.ImagenUrl)"
+                        ? "img/evento-default.jpg"
+                        : evento.ImagenUrl)"
                      alt=""
                      onerror="this.style.display='none'" />
 
                 <div class="info-row">
                     <span class="icono">📅</span>
+
                     <strong>Fecha</strong>
-                    <p>@evento.FechaInicio.ToString("dd/MM/yyyy") - @evento.FechaFin.ToString("dd/MM/yyyy")</p>
+
+                    <p>
+                        @evento.FechaInicio.ToString("dd/MM/yyyy")
+                        -
+                        @evento.FechaFin.ToString("dd/MM/yyyy")
+                    </p>
                 </div>
 
                 <div class="info-row">
                     <span class="icono">🏷️</span>
+
                     <strong>Tipo</strong>
+
                     <p>@evento.TipoEvento</p>
                 </div>
 
                 <div class="info-row">
                     <span class="icono">👤</span>
+
                     <strong>Organizador</strong>
+
                     <p>@evento.Organizador</p>
                 </div>
+
             </article>
 
             <article class="card lista-card">
+
                 <h2>Proyectos</h2>
 
                 <div class="lista">
+
                     @foreach (var proyecto in evento.Proyectos)
                     {
                         <div class="lista-item">
                             @proyecto.TituloProyecto
+
                             <span>›</span>
                         </div>
                     }
-                </div>
-            </article>
 
-            <article class="card lista-card">
-                <h2>Categorías</h2>
-
-                <div class="lista">
-                    @foreach (var categoria in evento.Categorias)
-                    {
-                        <div class="lista-item">
-                            @categoria
-                            <span>›</span>
-                        </div>
-                    }
                 </div>
+
             </article>
 
             <article class="card votaciones-card">
+
                 <h2>Votaciones</h2>
 
                 @foreach (var votacion in evento.Votaciones)
                 {
                     <div class="votacion-box">
+
                         <span class="estado @(votacion.Estado == "En curso"
                             ? "estado-verde"
                             : votacion.Estado == "Finalizada"
                                 ? "estado-gris"
                                 : "estado-morado")">
+
                             ● @votacion.Estado
                         </span>
 
                         <h3>@votacion.Nombre</h3>
 
                         <p>
-                            📅 @votacion.FechaInicio.ToString("dd/MM/yyyy HH:mm")
+                            📅
+                            @votacion.FechaInicio.ToString("dd/MM/yyyy HH:mm")
                             -
                             @votacion.FechaFin.ToString("dd/MM/yyyy HH:mm")
                         </p>
 
                         @if (votacion.Estado == "En curso")
                         {
-                            <button class="btn-primary" @onclick="() => irAEvento(evento.Id)">Ir a votar</button>
+                            <button class="btn-primary"
+                                    @onclick="() => irAEvento(evento.Id)">
+                                Ir a votar
+                            </button>
                         }
                         else if (votacion.Estado == "Finalizada")
                         {
-                            <button class="btn-secondary">Ver resultados</button>
+                            <button class="btn-secondary"
+                                    @onclick='() => VerDashboard(evento.Id)'>
+                                Ver resultados
+                            </button>
                         }
+
                     </div>
                 }
+
             </article>
 
         </section>
@@ -183,7 +230,11 @@ else
 
     private void irAEvento(Guid eventoId)
     {
-        
         nav.NavigateTo($"/Votacion_evento/{eventoId}");
+    }
+
+    private void VerDashboard(Guid eventoId)
+    {
+        nav.NavigateTo($"/Dashboard/{eventoId}");
     }
 }
