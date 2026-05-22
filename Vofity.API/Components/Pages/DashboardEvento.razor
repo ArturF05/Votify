@@ -259,7 +259,7 @@ else
                 {
                     <div class="premios-lista">
 
-                        @foreach (var premio in evento.Premios)
+                        @foreach (var premio in PremiosMostrados)
                         {
                             <div class="premio-item @(premio.TieneGanador ? "premio-con-ganador" : premio.VotacionFinalizada ? "premio-finalizado-sin-ganador" : "premio-pendiente")">
 
@@ -297,7 +297,7 @@ else
                                         📅 @premio.NombreVotacion
                                     </span>
 
-                                    @if (premio.TieneGanador && premio.PuntuacionGanador != null)
+                                    @if (PremiosMostrados == null || !PremiosMostrados.Any())
                                     {
                                         <span class="premio-puntuacion">
                                             ⭐ @premio.PuntuacionGanador puntos
@@ -344,6 +344,13 @@ else
                 v.IdCategoriaEvento == categoriaSeleccionadaId
                 || v.IdCategoriaEvento == null
                 || v.IdCategoriaEvento == Guid.Empty);
+
+    private IEnumerable<PremioDetalleDTO> PremiosMostrados =>
+    evento == null
+        ? Enumerable.Empty<PremioDetalleDTO>()
+        : categoriaSeleccionadaId == null
+            ? evento.Premios
+            : evento.Premios.Where(p => p.IdCategoriaEvento == categoriaSeleccionadaId);
 
     protected override async Task OnInitializedAsync()
     {

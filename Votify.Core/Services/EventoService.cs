@@ -347,7 +347,10 @@ namespace Votify.Core.Services
                         ? "Pendiente"
                         : ganador != null
                             ? "Ganador publicado"
-                            : "Sin ganador"
+                            : "Sin ganador",
+
+                IdCategoriaEvento = premio.Id_categoria_evento,
+                NombreCategoriaEvento = premio.CategoriaEvento?.Nombre ?? string.Empty,
             };
         }
 

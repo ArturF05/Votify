@@ -33,5 +33,9 @@ namespace Votify.Core.DTOs
         public bool VotacionFinalizada { get; set; }
 
         public string EstadoPremio { get; set; } = string.Empty;
+
+        public Guid? IdCategoriaEvento { get; set; }
+
+        public string NombreCategoriaEvento { get; set; } = string.Empty;
     }
 }
