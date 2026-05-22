@@ -60,7 +60,14 @@ else
         </header>
 
         <section class="descripcion-card">
-            @evento.Descripcion
+            @if(string.IsNullOrEmpty(evento.Descripcion))
+            {
+                <label>Este evento no tiene descripción</label>
+            }
+            else
+            {
+                @evento.Descripcion
+            }
         </section>
 
         <section class="categorias-filtros-card">
