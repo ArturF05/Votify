@@ -208,7 +208,7 @@ namespace Votify.Core.Services
         {
             var evento = await eventoRepository.ObtenerEventoDetalleAsync(id);
 
-            if (evento == null)
+            if (evento == null) 
                 return null;
 
             var hoy = DateTime.Now;
