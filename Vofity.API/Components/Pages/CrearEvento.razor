@@ -129,7 +129,54 @@
             {
                 int i = index;
                 <div class="campo campo-columna campo-completo">
-                    <h4>Votación @(i+1)</h4>
+                    <div class="votacion-header">
+                        <h4 class="votacion-titulo">Votación @(i + 1)</h4>
+                        <div class="votacion-acciones">
+
+                            
+                            <div class="dropdown-wrapper">
+                                <button type="button" class="boton-accion-votacion"
+                                        @onclick="() => TogglePlantillas(i)">
+                                    ☰ Plantillas
+                                </button>
+                                @if (plantillasAbierto == i)
+                                {
+                                    <div class="dropdown-menu">
+                                        @foreach (var plantilla in plantillasDisponibles)
+                                        {
+                                            <button type="button" class="dropdown-item"
+                                                    @onclick="() => AplicarPlantilla(i, plantilla)">
+                                                @plantilla.Nombre
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                            </div>
+
+                            
+                            <button type="button" class="boton-accion-votacion"
+                                    @onclick="() => DuplicarVotacion(i)"
+                                    disabled="@(votaciones.Count >= 3)">
+                                ⧉ Duplicar
+                            </button>
+
+                            
+                            <button type="button"
+                                    class="boton-accion-votacion @(criteriosCopiados != null ? "boton-accion-pegar" : "")"
+                                    @onclick="() => CopiarOPegarCriterios(i)">
+                                @(criteriosCopiados != null ? "📋 Pegar criterios" : "📄 Copiar criterios")
+                            </button>
+
+                        </div>
+                    </div>
+
+                    
+                    @if (criteriosCopiados != null && mensajeCopiadoDe != i)
+                    {
+                        <div class="aviso-criterios-copiados">
+                            Criterios copiados de Votación @(mensajeCopiadoDe + 1). Pulsa "Pegar criterios" en esta votación para aplicarlos.
+                        </div>
+                    }
                     <label>Tipo de votación*:</label>
                     <div class="grupo-botones-votacion">
                         <button type="button"
@@ -249,6 +296,57 @@
     private byte[]? imagenBytes;
     private string? imagenNombre;
 
+    private int? plantillasAbierto = null; 
+    private List<CriterioCopiado>? criteriosCopiados = null;
+    private int mensajeCopiadoDe = -1; 
+
+    private List<PlantillaVotacion> plantillasDisponibles = new()
+    {
+        new PlantillaVotacion
+        {
+            Nombre = "Básica",
+            Tipo = TipoVotacion.Publico,
+            PermiteAutoVoto = 0,
+            VerRes = 1,
+            PermiteComentarios = 1,
+            ComentariosObligatorios = 0,
+            NumProy = 1,
+            Criterios = new List<CriterioCopiado>
+            {
+                new CriterioCopiado { Nombre = "Puntuación", Descripcion = "Valoración general del proyecto", Peso = 100 }
+            }
+        },
+        new PlantillaVotacion
+        {
+            Nombre = "Jurado estándar",
+            Tipo = TipoVotacion.Jurado,
+            PermiteAutoVoto = 0,
+            VerRes = 0,
+            PermiteComentarios = 1,
+            ComentariosObligatorios = 1,
+            NumProy = 3,
+            Criterios = new List<CriterioCopiado>
+            {
+                new CriterioCopiado { Nombre = "Innovación",   Descripcion = "Originalidad e impacto de la idea",   Peso = 40 },
+                new CriterioCopiado { Nombre = "Ejecución",    Descripcion = "Calidad técnica de la implementación", Peso = 40 },
+                new CriterioCopiado { Nombre = "Presentación", Descripcion = "Claridad y calidad de la presentación", Peso = 20 }
+            }
+        },
+        new PlantillaVotacion
+        {
+            Nombre = "Público abierto",
+            Tipo = TipoVotacion.Publico,
+            PermiteAutoVoto = 1,
+            VerRes = 1,
+            PermiteComentarios = 1,
+            ComentariosObligatorios = 0,
+            NumProy = 1,
+            Criterios = new List<CriterioCopiado>
+            {
+                new CriterioCopiado { Nombre = "Puntuación", Descripcion = "Valoración general del proyecto", Peso = 100 }
+            }
+        }
+    };
     protected override async Task OnInitializedAsync()
     {
         categorias = await contexto.Categoria.ToListAsync();
@@ -304,6 +402,105 @@
     private void quitarVotacion(int numeroVotacion)
     {
         votaciones.RemoveAt(numeroVotacion);
+        if (mensajeCopiadoDe == numeroVotacion)
+        {
+            criteriosCopiados = null;
+            mensajeCopiadoDe = -1;
+        }
+    }
+    private void TogglePlantillas(int i)
+    {
+        plantillasAbierto = (plantillasAbierto == i) ? null : i;
+    }
+    private void AplicarPlantilla(int i, PlantillaVotacion plantilla)
+    {
+        votaciones[i].Tipo = plantilla.Tipo;
+        votaciones[i].PermiteAutoVoto = plantilla.PermiteAutoVoto;
+        votaciones[i].VerRes = plantilla.VerRes;
+        votaciones[i].PermiteComentarios = plantilla.PermiteComentarios;
+        votaciones[i].ComentariosObligatorios = plantilla.ComentariosObligatorios;
+        votaciones[i].NumProy = plantilla.NumProy;
+
+        // Aplicar criterios de la plantilla a TODAS las categorías del evento
+        // (los criterios se asignan por categoria al crear; aquí los guardamos en
+        //  la primera categoría disponible si existe, igual que hace el formulario manual)
+        if (plantilla.Criterios.Any() && categoriasEvento.Any())
+        {
+            var primeraCategoria = categoriasEvento[0];
+            foreach (var c in plantilla.Criterios)
+            {
+                if (!primeraCategoria.Criterios.Any(x => x.Nombre == c.Nombre))
+                {
+                    primeraCategoria.Criterios.Add(new DimensionesDeValor
+                    {
+                        Id = Guid.NewGuid(),
+                        Id_votacion = Guid.Empty,
+                        Id_categoria_evento = primeraCategoria.Id,
+                        Nombre = c.Nombre,
+                        Descripcion = c.Descripcion,
+                        Peso = c.Peso
+                    });
+                }
+            }
+        }
+
+        plantillasAbierto = null;
+    }
+    private void DuplicarVotacion(int i)
+    {
+        if (votaciones.Count >= 3) return;
+
+        var origen = votaciones[i];
+        votaciones.Add(new VotacionForm
+        {
+            Tipo = origen.Tipo,
+            Inicio = origen.Inicio,
+            Fin = origen.Fin,
+            PermiteAutoVoto = origen.PermiteAutoVoto,
+            VerRes = origen.VerRes,
+            PermiteComentarios = origen.PermiteComentarios,
+            ComentariosObligatorios = origen.ComentariosObligatorios,
+            NumProy = origen.NumProy,
+        });
+    }
+    private void CopiarOPegarCriterios(int i)
+    {
+        if (criteriosCopiados == null)
+        {
+            // COPIAR: toma todos los criterios de todas las categorías del evento
+            criteriosCopiados = categoriasEvento
+                .SelectMany(cat => cat.Criterios.Select(c => new CriterioCopiado
+                {
+                    Nombre = c.Nombre,
+                    Descripcion = c.Descripcion,
+                    Peso = c.Peso,
+                    IdCategoria = cat.Id
+                }))
+                .ToList();
+            mensajeCopiadoDe = i;
+        }
+        else
+        {
+            // PEGAR: añade los criterios copiados a las categorías que los tengan en origen
+            foreach (var criterio in criteriosCopiados)
+            {
+                var catDestino = categoriasEvento.FirstOrDefault(c => c.Id == criterio.IdCategoria);
+                if (catDestino == null) continue;
+                if (catDestino.Criterios.Any(c => c.Nombre == criterio.Nombre)) continue;
+
+                catDestino.Criterios.Add(new DimensionesDeValor
+                {
+                    Id = Guid.NewGuid(),
+                    Id_votacion = Guid.Empty,
+                    Id_categoria_evento = catDestino.Id,
+                    Nombre = criterio.Nombre,
+                    Descripcion = criterio.Descripcion,
+                    Peso = criterio.Peso
+                });
+            }
+            criteriosCopiados = null;
+            mensajeCopiadoDe = -1;
+        }
     }
     private void cambioPermiteComentarios(ChangeEventArgs e, int i)
     {
@@ -609,5 +806,23 @@
         public int PermiteComentarios { get; set; }
         public int ComentariosObligatorios { get; set; }
         public int NumProy { get; set; } = 1;
+    }
+    class CriterioCopiado
+    {
+        public string Nombre { get; set; } = "";
+        public string Descripcion { get; set; } = "";
+        public int Peso { get; set; }
+        public Guid IdCategoria { get; set; }  
+    }
+    class PlantillaVotacion
+    {
+        public string Nombre { get; set; } = "";
+        public TipoVotacion Tipo { get; set; }
+        public int PermiteAutoVoto { get; set; }
+        public int VerRes { get; set; }
+        public int PermiteComentarios { get; set; }
+        public int ComentariosObligatorios { get; set; }
+        public int NumProy { get; set; }
+        public List<CriterioCopiado> Criterios { get; set; } = new();
     }
 }

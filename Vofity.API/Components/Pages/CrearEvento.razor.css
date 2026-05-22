@@ -391,3 +391,120 @@
         grid-template-columns: 1fr;
     }
 }
+.votacion-bloque {
+    border-top: 2px solid #f1ebe3;
+    padding-top: 1.2rem;
+    margin-top: 0.5rem;
+}
+
+.votacion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.votacion-titulo {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.votacion-acciones {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.boton-accion-votacion {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+}
+
+    .boton-accion-votacion:hover:not(:disabled) {
+        background: #f9fafb;
+        border-color: #f28c28;
+        color: #f28c28;
+    }
+
+    .boton-accion-votacion:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+.boton-accion-pegar {
+    background: #fff7ed;
+    border-color: #f28c28;
+    color: #c2651a;
+    font-weight: 600;
+}
+
+    .boton-accion-pegar:hover {
+        background: #f28c28 !important;
+        color: white !important;
+    }
+
+.dropdown-wrapper {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 100;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+    min-width: 200px;
+    overflow: hidden;
+}
+
+.dropdown-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
+    color: #1f2937;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+    .dropdown-item:last-child {
+        border-bottom: none;
+    }
+
+    .dropdown-item:hover {
+        background: #fff7ed;
+        color: #f28c28;
+    }
+
+.aviso-criterios-copiados {
+    background: #fff7ed;
+    border: 1px solid #f5c18a;
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.85rem;
+    color: #92400e;
+    margin-bottom: 0.75rem;
+}
