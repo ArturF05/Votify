@@ -442,6 +442,7 @@ body {
     font-weight: 500;
     white-space: nowrap;
     color: black;
+    margin-top:20px;
 }
 
     .badge.badge-green {

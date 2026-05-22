@@ -178,8 +178,29 @@
                     <option value="@categoria.Id">@categoria.Nombre</option>
                 }
             </select>
-            <input type="text" placeholder="Nombre" @bind="nombreCriterio" class="input-criterio" />
-            <input type="text" placeholder="Descripción" @bind="descripcionCriterio" class="input-criterio" />
+            <input type="text" placeholder="Nombre criterio" class="input-criterio" maxlength="@MaxNombreCriterio"
+                   value="@nombreCriterio"
+                   @oninput="OnInputNombreCriterio" />
+            @if (nombreCriterio.Length >= MaxNombreCriterio)
+            {
+                <span class="mensaje-limite">⚠️ Límite de @MaxNombreCriterio caracteres alcanzado</span>
+            }
+            else
+            {
+                <span class="contador">@nombreCriterio.Length / @MaxNombreCriterio</span>
+            }
+            <input type="text" placeholder="Descripción" maxlength="@MaxDescripcionCriterio"
+                   value="@descripcionCriterio"
+                   @oninput="OnInputDescripcionCriterio"
+                   class="input-criterio" />
+            @if (descripcionCriterio.Length >= MaxDescripcionCriterio)
+            {
+                <span class="mensaje-limite">⚠️ Límite de @MaxDescripcionCriterio caracteres alcanzado</span>
+            }
+            else
+            {
+                <span class="contador">@descripcionCriterio.Length / @MaxDescripcionCriterio</span>
+            }
             <button type="button" class="boton-principal" @onclick="GuardarCriterio" >Añadir</button>
         </div>
 
@@ -267,6 +288,9 @@
 </div>
 
 @code {
+    private const int MaxNombreCategoriaEvento = 50;
+    private const int MaxNombreCriterio = 50;
+    private const int MaxDescripcionCriterio = 100;
     [Parameter]
     public Guid id { get; set; }
     private string debugInfo = "";
@@ -371,37 +395,6 @@
             .OrderBy(u => u.Nombre)
             .ToListAsync();
     }
-    private async Task ActualizarEstadosVotaciones()
-    {
-        var ahora = DateTime.UtcNow;
-
-        var votaciones = await contexto.Votacion.ToListAsync();
-
-        foreach (var votacion in votaciones)
-        {
-            debugInfo = $"FechaFin: {votacion.FechaFin} | " +
-            $"Kind: {votacion.FechaFin.Kind} | " +
-            $"Ahora UTC: {DateTime.UtcNow} | " +
-            $"Ahora Local: {DateTime.Now}";
-
-            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
-                 votacion.EstadoVotacion == EstadoVotacion.Pausada ||
-                 votacion.EstadoVotacion == EstadoVotacion.Cerrada) &&
-                votacion.FechaFin <= ahora)
-            {
-                votacion.EstadoVotacion = EstadoVotacion.Finalizada;
-            }
-            else if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
-                     votacion.FechaInicio <= ahora)
-            {
-                votacion.EstadoVotacion = EstadoVotacion.Abierta;
-            }
-
-            Console.WriteLine($"Estado después: {votacion.EstadoVotacion}");
-        }
-
-        await contexto.SaveChangesAsync();
-    }
     public async Task SetVotacion(Votify.Core.Entities.Votacion votacion)
     {
         Id_evento = votacion.Id_evento;
@@ -433,6 +426,23 @@
 
         inicioEvento = evento.FechaInicio;
         finEvento = evento.FechaFin;
+    }
+    /* private void OnInputNombreCategoria(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        nombreCategoriaEvento = val.Length > MaxNombreCategoriaEvento ? val[..MaxNombreCategoriaEvento] : val;
+    }*/
+
+    private void OnInputNombreCriterio(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        nombreCriterio = val.Length > MaxNombreCriterio ? val[..MaxNombreCriterio] : val;
+    }
+
+    private void OnInputDescripcionCriterio(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        descripcionCriterio = val.Length > MaxDescripcionCriterio ? val[..MaxDescripcionCriterio] : val;
     }
     private void cambioNumProy(ChangeEventArgs e)
     {

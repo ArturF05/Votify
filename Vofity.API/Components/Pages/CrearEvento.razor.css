@@ -348,7 +348,20 @@
     grid-column: 1 / -1;
     margin-top: 12px;
 }
+.mensaje-limite {
+    color: #e53e3e;
+    font-size: 0.78rem;
+    display: block;
+    margin-top: 3px;
+}
 
+.contador {
+    color: #718096;
+    font-size: 0.78rem;
+    display: block;
+    margin-top: 3px;
+    text-align: right;
+}
 @media (max-width: 900px) {
     .crear-evento-page {
         padding: 1.25rem;

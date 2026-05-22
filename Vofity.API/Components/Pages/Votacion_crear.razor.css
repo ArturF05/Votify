@@ -270,7 +270,20 @@ h3 {
     .input-criterio::placeholder {
         color: #8f8f95;
     }
+.mensaje-limite {
+    color: #e53e3e;
+    font-size: 0.78rem;
+    display: block;
+    margin-top: 3px;
+}
 
+.contador {
+    color: #718096;
+    font-size: 0.78rem;
+    display: block;
+    margin-top: 3px;
+    text-align: right;
+}
 @media (max-width: 900px) {
     .crear-votacion-page {
         padding: 1.25rem;

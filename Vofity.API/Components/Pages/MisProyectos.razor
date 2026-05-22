@@ -64,8 +64,18 @@
                         <div class="form-row">
                             <div class="form-campo">
                                 <label class="form-label">Nombre del material</label>
-                                <input type="text" class="form-input" @bind="nuevoNombre"
-                                       placeholder="Ej: Logo principal" />
+                                <input type="text" class="form-input" maxlength="@MaxNombre"
+                                       value="@nuevoNombre"
+                                       @oninput="OnInputNombre"
+                                       placeholder="Ej: Logo principal"  />
+                                @if (nuevoNombre.Length >= MaxNombre)
+                                {
+                                    <span class="mensaje-limite">⚠️ Límite de @MaxNombre caracteres alcanzado</span>
+                                }
+                                else
+                                {
+                                    <span class="contador">@nuevoNombre.Length / @MaxNombre</span>
+                                }
                             </div>
                             <div class="form-campo">
                                 <label class="form-label">Tipo</label>
@@ -194,6 +204,7 @@
     private bool guardando = false;
     private bool mostrarFormulario = false;
     private bool hayCambios = false;
+    private const int MaxNombre = 20;
 
     private string mensajeError = "";
     private string mensajeExito = "";
@@ -252,6 +263,11 @@
     {
         mensajeError = "";
         mostrarFormulario = true;
+    }
+    private void OnInputNombre(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        nuevoNombre = val.Length > MaxNombre ? val[..MaxNombre] : val;
     }
     private void OnTipoCambiado(ChangeEventArgs e)
     {
