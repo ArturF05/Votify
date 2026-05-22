@@ -49,5 +49,15 @@ namespace Votify.Infrastructure.Repositorios
                     u.Nombre == usuario &&
                     u.Password == password);
         }
+
+        public async Task<List<Usuario>> ObtenerConEmailPorEventoAsync(Guid idEvento)
+        {
+            return await _context.EventoUsuarioRol
+                .Where(eur => eur.EventoId == idEvento)
+                .Select(eur => eur.Usuario)
+                .Where(u => u != null && u.Email != null)
+                .Distinct()
+                .ToListAsync()!;
+        }
     }
 }

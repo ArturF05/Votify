@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Votify.API.Controllers;
 using Votify.Core.Entities;
 using Votify.Core.Interfaces;
+using Votify.Core.Observer;
 using Votify.Core.Services;
 using Votify.Infrastructure.Data;
 using Votify.Infrastructure.Repositorios;
@@ -44,7 +46,8 @@ namespace Votify.Core.Tests.DashboardOrganizador
                 new ProyectoRepository(context),
                 new DimensionRepository(context),
                 new UsuarioRepository(context),
-                new EventoUsuarioRolRepository(context)
+                new EventoUsuarioRolRepository(context),
+                new Mock<IEmailSender>().Object
             );
 
             await CrearDatosDashboardOrganizador();

@@ -7,6 +7,7 @@ using Votify.Core.DTOs;
 using Votify.Core.Entities;
 using Votify.Core.Interfaces;
 using Votify.Core.Factories;
+using Votify.Core.Observer;
 
 namespace Votify.Core.Services
 {
@@ -19,11 +20,12 @@ namespace Votify.Core.Services
         private readonly IEventoUsuarioRolRepository eventoUsuarioRolRepository;
         private readonly IDimensionRepository dimensionRepository;
         private readonly VotacionFactory votacionFactory;
+        private readonly IEmailSender emailSender;
 
         private const decimal PUNTUACION_DEFECTO = 1m;
         private const decimal PORCENTAJE_TOTAL = 100m;
 
-        public VotacionService(IVotacionRepository votacionRepository, IVotoRepository votoRepository, IProyectoRepository proyectoRepository, IDimensionRepository dimensionRepository, IUsuarioRepository usuarioRepository , IEventoUsuarioRolRepository eventoUsuarioRolRepository)
+        public VotacionService(IVotacionRepository votacionRepository, IVotoRepository votoRepository, IProyectoRepository proyectoRepository, IDimensionRepository dimensionRepository, IUsuarioRepository usuarioRepository, IEventoUsuarioRolRepository eventoUsuarioRolRepository, IEmailSender emailSender)
         {
             this.votacionRepository = votacionRepository;
             this.votoRepository = votoRepository;
@@ -31,6 +33,7 @@ namespace Votify.Core.Services
             this.dimensionRepository = dimensionRepository;
             this.usuarioRepository = usuarioRepository;
             this.eventoUsuarioRolRepository = eventoUsuarioRolRepository;
+            this.emailSender = emailSender;
             this.votacionFactory = new ConcreteVotacionFactory();
         }
 
@@ -240,7 +243,25 @@ namespace Votify.Core.Services
 
                 await eventoUsuarioRolRepository.CrearAsync(nuevoJurado);
             }
+
+            if (estadoVotacion == EstadoVotacion.Abierta)
+                await NotificarAperturaVotacionAsync(Id_evento);
         }
+
+        private async Task NotificarAperturaVotacionAsync(Guid idEvento)
+        {
+            var usuarios = await usuarioRepository.ObtenerConEmailPorEventoAsync(idEvento);
+            if (!usuarios.Any()) return;
+
+            var notificador = new EventoNotificador();
+            foreach (var usuario in usuarios)
+                notificador.suscribir(new EmailObserver(usuario.Email!, emailSender));
+
+            notificador.notificar(
+                "¡Nueva votación abierta!",
+                "Se ha abierto una nueva votación en un evento en el que participas. Entra en Votify para votar.");
+        }
+
         public async Task EditarVotacion(Guid Id, Guid Id_evento, Guid? idCategoriaEvento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios, int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool verRes,List<Guid> Jurados, EstadoVotacion estadoVotacion)
         {
             var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);

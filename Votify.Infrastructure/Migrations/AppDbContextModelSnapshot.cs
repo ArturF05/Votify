@@ -37,15 +37,60 @@ namespace Votify.Infrastructure.Migrations
                     b.ToTable("Categoria");
                 });
 
+            modelBuilder.Entity("Votify.Core.Entities.CategoriaEvento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("Id_evento")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_evento");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("nombre");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id_evento");
+
+                    b.ToTable("CategoriaEvento", (string)null);
+                });
+
             modelBuilder.Entity("Votify.Core.Entities.DimensionesDeValor", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("Id_categoria_evento")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_categoria_evento");
+
+                    b.Property<Guid>("Id_votacion")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Peso")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
-                    b.ToTable("DimensionesDeValor");
+                    b.HasIndex("Id_categoria_evento");
+
+                    b.HasIndex("Id_votacion");
+
+                    b.ToTable("DimensionesDeValor", (string)null);
                 });
 
             modelBuilder.Entity("Votify.Core.Entities.Evento", b =>
@@ -66,14 +111,17 @@ namespace Votify.Infrastructure.Migrations
                         .HasMaxLength(21)
                         .HasColumnType("character varying(21)");
 
-                    b.Property<DateOnly>("FechaFin")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("FechaFin")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateOnly>("FechaInicio")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("Id_categoria")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("ImagenUrl")
+                        .HasColumnType("text");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -90,6 +138,117 @@ namespace Votify.Infrastructure.Migrations
                     b.UseTphMappingStrategy();
                 });
 
+            modelBuilder.Entity("Votify.Core.Entities.EventoUsuarioRol", b =>
+                {
+                    b.Property<Guid>("EventoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_evento");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_usuario");
+
+                    b.Property<Guid>("RolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_rol");
+
+                    b.HasKey("EventoId", "UsuarioId", "RolId");
+
+                    b.HasIndex("RolId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("EventoUsuarioRol", (string)null);
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Material", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("FechaSubida")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ProyectoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProyectoId");
+
+                    b.ToTable("Material");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Premio", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("text")
+                        .HasColumnName("descripcion");
+
+                    b.Property<Guid>("Id_categoria_evento")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_categoria_evento");
+
+                    b.Property<string>("ImagenUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("imagen_url");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("nombre");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("integer")
+                        .HasColumnName("orden");
+
+                    b.Property<int>("Puesto")
+                        .HasColumnType("integer")
+                        .HasColumnName("puesto");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id_categoria_evento", "Nombre")
+                        .IsUnique();
+
+                    b.ToTable("Premio", (string)null);
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.PremioVotacion", b =>
+                {
+                    b.Property<Guid>("Id_premio")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_premio");
+
+                    b.Property<Guid>("Id_votacion")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_votacion");
+
+                    b.HasKey("Id_premio", "Id_votacion");
+
+                    b.HasIndex("Id_votacion");
+
+                    b.ToTable("PremioVotacion", (string)null);
+                });
+
             modelBuilder.Entity("Votify.Core.Entities.Proyecto", b =>
                 {
                     b.Property<Guid>("Id")
@@ -100,7 +259,14 @@ namespace Votify.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("Id_evento")
+                    b.Property<Guid?>("Id_categoria_evento")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_categoria_evento");
+
+                    b.Property<Guid>("Id_creador")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Id_evento")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Titulo")
@@ -109,10 +275,28 @@ namespace Votify.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id_evento")
-                        .IsUnique();
+                    b.HasIndex("Id_categoria_evento");
+
+                    b.HasIndex("Id_evento");
 
                     b.ToTable("Proyecto");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.ProyectoParticipantes", b =>
+                {
+                    b.Property<Guid>("Id_proyecto")
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id_proyecto");
+
+                    b.Property<Guid>("Id_usuario")
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id_usuario");
+
+                    b.HasKey("Id_proyecto", "Id_usuario");
+
+                    b.HasIndex("Id_usuario");
+
+                    b.ToTable("ProyectoParticipantes", (string)null);
                 });
 
             modelBuilder.Entity("Votify.Core.Entities.Resultado", b =>
@@ -132,9 +316,13 @@ namespace Votify.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Role");
+                    b.ToTable("Rol");
                 });
 
             modelBuilder.Entity("Votify.Core.Entities.Usuario", b =>
@@ -142,6 +330,13 @@ namespace Votify.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("Id_rol")
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id_rol");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -153,6 +348,8 @@ namespace Votify.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Id_rol");
+
                     b.ToTable("Usuario");
                 });
 
@@ -162,31 +359,62 @@ namespace Votify.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("DimensionesDeValorsId")
-                        .HasColumnType("uuid");
+                    b.Property<bool>("ComentariosObligatorios")
+                        .HasColumnType("boolean");
 
-                    b.Property<DateOnly>("FechaFin")
-                        .HasColumnType("date");
+                    b.Property<int>("EstadoVotacion")
+                        .HasColumnType("integer")
+                        .HasColumnName("EstadoVotacion");
 
-                    b.Property<DateOnly>("FechaInicio")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("FechaFin")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("FechaFin");
+
+                    b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("FechaInicio");
+
+                    b.Property<Guid?>("Id_categoria_evento")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_categoria_evento");
+
+                    b.Property<Guid>("Id_evento")
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id_evento");
+
+                    b.Property<int>("NumProy")
+                        .HasColumnType("integer")
+                        .HasColumnName("NumProy");
 
                     b.Property<bool>("PermiteAutoVoto")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid>("ResultadosId")
+                    b.Property<bool>("PermiteComentarios")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("ResultadosId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("id_evento")
-                        .HasColumnType("uuid");
+                    b.Property<int>("TipoVotacion")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("VerRes")
+                        .HasColumnType("boolean")
+                        .HasColumnName("VerRes");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DimensionesDeValorsId");
+                    b.HasIndex("Id_categoria_evento");
+
+                    b.HasIndex("Id_evento");
 
                     b.HasIndex("ResultadosId");
 
-                    b.ToTable("Votacione");
+                    b.ToTable("Votacion", (string)null);
+
+                    b.HasDiscriminator<int>("TipoVotacion");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Votify.Core.Entities.Voto", b =>
@@ -195,42 +423,70 @@ namespace Votify.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CategoriaId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Comentario")
+                        .HasColumnType("text");
 
-                    b.Property<DateOnly>("Fecha_voto")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("Fecha_voto")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("Id_categoria")
-                        .HasColumnType("uuid");
+                    b.Property<Guid?>("Id_categoria")
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id_categoria");
 
                     b.Property<Guid>("Id_proyecto")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id_proyecto");
 
                     b.Property<Guid>("Id_votacion")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id_votacion");
 
                     b.Property<Guid>("Id_votante")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id_votante");
 
                     b.Property<decimal>("Puntuacion")
                         .HasColumnType("numeric");
 
-                    b.Property<Guid>("UsuarioId")
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id_categoria");
+
+                    b.HasIndex("Id_votacion");
+
+                    b.HasIndex("Id_votante");
+
+                    b.ToTable("Voto");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.VotoCriterio", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("VotacionId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Comentario")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("Id_criterio")
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id_criterio");
+
+                    b.Property<Guid>("Id_voto")
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id_voto");
+
+                    b.Property<int>("Nota")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoriaId");
+                    b.HasIndex("Id_criterio");
 
-                    b.HasIndex("UsuarioId");
+                    b.HasIndex("Id_voto", "Id_criterio")
+                        .IsUnique();
 
-                    b.HasIndex("VotacionId");
-
-                    b.ToTable("Voto");
+                    b.ToTable("VotoCriterio", (string)null);
                 });
 
             modelBuilder.Entity("Votify.Core.Entities.EventoConcurso", b =>
@@ -247,6 +503,57 @@ namespace Votify.Infrastructure.Migrations
                     b.HasDiscriminator().HasValue("EventoHackathon");
                 });
 
+            modelBuilder.Entity("VotacionMixta", b =>
+                {
+                    b.HasBaseType("Votify.Core.Entities.Votacion");
+
+                    b.HasDiscriminator().HasValue(2);
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.VotacionJurado", b =>
+                {
+                    b.HasBaseType("Votify.Core.Entities.Votacion");
+
+                    b.HasDiscriminator().HasValue(1);
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.VotacionPublico", b =>
+                {
+                    b.HasBaseType("Votify.Core.Entities.Votacion");
+
+                    b.HasDiscriminator().HasValue(0);
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.CategoriaEvento", b =>
+                {
+                    b.HasOne("Votify.Core.Entities.Evento", "Evento")
+                        .WithMany("CategoriasEvento")
+                        .HasForeignKey("Id_evento")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Evento");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.DimensionesDeValor", b =>
+                {
+                    b.HasOne("Votify.Core.Entities.CategoriaEvento", "CategoriaEvento")
+                        .WithMany("Criterios")
+                        .HasForeignKey("Id_categoria_evento")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Votify.Core.Entities.Votacion", "Votacion")
+                        .WithMany("DimensionesDeValores")
+                        .HasForeignKey("Id_votacion")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CategoriaEvento");
+
+                    b.Navigation("Votacion");
+                });
+
             modelBuilder.Entity("Votify.Core.Entities.Evento", b =>
                 {
                     b.HasOne("Votify.Core.Entities.Categoria", "Categoria")
@@ -258,59 +565,241 @@ namespace Votify.Infrastructure.Migrations
                     b.Navigation("Categoria");
                 });
 
-            modelBuilder.Entity("Votify.Core.Entities.Proyecto", b =>
+            modelBuilder.Entity("Votify.Core.Entities.EventoUsuarioRol", b =>
                 {
                     b.HasOne("Votify.Core.Entities.Evento", "Evento")
-                        .WithOne()
-                        .HasForeignKey("Votify.Core.Entities.Proyecto", "Id_evento");
+                        .WithMany("EventoUsuarioRoles")
+                        .HasForeignKey("EventoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Votify.Core.Entities.Rol", "Rol")
+                        .WithMany()
+                        .HasForeignKey("RolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Votify.Core.Entities.Usuario", "Usuario")
+                        .WithMany("EventoUsuarioRoles")
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Evento");
+
+                    b.Navigation("Rol");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Material", b =>
+                {
+                    b.HasOne("Votify.Core.Entities.Proyecto", "Proyecto")
+                        .WithMany("Materiales")
+                        .HasForeignKey("ProyectoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Proyecto");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Premio", b =>
+                {
+                    b.HasOne("Votify.Core.Entities.CategoriaEvento", "CategoriaEvento")
+                        .WithMany("Premios")
+                        .HasForeignKey("Id_categoria_evento")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CategoriaEvento");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.PremioVotacion", b =>
+                {
+                    b.HasOne("Votify.Core.Entities.Premio", "Premio")
+                        .WithMany("PremioVotaciones")
+                        .HasForeignKey("Id_premio")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Votify.Core.Entities.Votacion", "Votacion")
+                        .WithMany("PremioVotaciones")
+                        .HasForeignKey("Id_votacion")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Premio");
+
+                    b.Navigation("Votacion");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Proyecto", b =>
+                {
+                    b.HasOne("Votify.Core.Entities.CategoriaEvento", "CategoriaEvento")
+                        .WithMany()
+                        .HasForeignKey("Id_categoria_evento")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Votify.Core.Entities.Evento", "Evento")
+                        .WithMany("Proyectos")
+                        .HasForeignKey("Id_evento")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CategoriaEvento");
 
                     b.Navigation("Evento");
                 });
 
+            modelBuilder.Entity("Votify.Core.Entities.ProyectoParticipantes", b =>
+                {
+                    b.HasOne("Votify.Core.Entities.Proyecto", "Proyecto")
+                        .WithMany("ProyectoParticipantes")
+                        .HasForeignKey("Id_proyecto")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Votify.Core.Entities.Usuario", "Usuario")
+                        .WithMany("ProyectoParticipantes")
+                        .HasForeignKey("Id_usuario")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Proyecto");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Usuario", b =>
+                {
+                    b.HasOne("Votify.Core.Entities.Rol", "Rol")
+                        .WithMany()
+                        .HasForeignKey("Id_rol")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Rol");
+                });
+
             modelBuilder.Entity("Votify.Core.Entities.Votacion", b =>
                 {
-                    b.HasOne("Votify.Core.Entities.DimensionesDeValor", "DimensionesDeValors")
+                    b.HasOne("Votify.Core.Entities.CategoriaEvento", "CategoriaEvento")
                         .WithMany()
-                        .HasForeignKey("DimensionesDeValorsId")
+                        .HasForeignKey("Id_categoria_evento")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Votify.Core.Entities.Evento", null)
+                        .WithMany("Votaciones")
+                        .HasForeignKey("Id_evento")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Votify.Core.Entities.Resultado", "Resultados")
                         .WithMany()
-                        .HasForeignKey("ResultadosId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ResultadosId");
 
-                    b.Navigation("DimensionesDeValors");
+                    b.Navigation("CategoriaEvento");
 
                     b.Navigation("Resultados");
                 });
 
             modelBuilder.Entity("Votify.Core.Entities.Voto", b =>
                 {
-                    b.HasOne("Votify.Core.Entities.Categoria", "Categoria")
+                    b.HasOne("Votify.Core.Entities.CategoriaEvento", "CategoriaEvento")
                         .WithMany()
-                        .HasForeignKey("CategoriaId")
+                        .HasForeignKey("Id_categoria")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Votify.Core.Entities.Votacion", "Votacion")
+                        .WithMany()
+                        .HasForeignKey("Id_votacion")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Votify.Core.Entities.Usuario", "Usuario")
                         .WithMany()
-                        .HasForeignKey("UsuarioId")
+                        .HasForeignKey("Id_votante")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Votify.Core.Entities.Votacion", "Votacion")
-                        .WithMany()
-                        .HasForeignKey("VotacionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Categoria");
+                    b.Navigation("CategoriaEvento");
 
                     b.Navigation("Usuario");
 
                     b.Navigation("Votacion");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.VotoCriterio", b =>
+                {
+                    b.HasOne("Votify.Core.Entities.DimensionesDeValor", "Criterio")
+                        .WithMany("VotosCriterio")
+                        .HasForeignKey("Id_criterio")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Votify.Core.Entities.Voto", "Voto")
+                        .WithMany("VotosCriterio")
+                        .HasForeignKey("Id_voto")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Criterio");
+
+                    b.Navigation("Voto");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.CategoriaEvento", b =>
+                {
+                    b.Navigation("Criterios");
+
+                    b.Navigation("Premios");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.DimensionesDeValor", b =>
+                {
+                    b.Navigation("VotosCriterio");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Evento", b =>
+                {
+                    b.Navigation("CategoriasEvento");
+
+                    b.Navigation("EventoUsuarioRoles");
+
+                    b.Navigation("Proyectos");
+
+                    b.Navigation("Votaciones");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Premio", b =>
+                {
+                    b.Navigation("PremioVotaciones");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Proyecto", b =>
+                {
+                    b.Navigation("Materiales");
+
+                    b.Navigation("ProyectoParticipantes");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Usuario", b =>
+                {
+                    b.Navigation("EventoUsuarioRoles");
+
+                    b.Navigation("ProyectoParticipantes");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Votacion", b =>
+                {
+                    b.Navigation("DimensionesDeValores");
+
+                    b.Navigation("PremioVotaciones");
+                });
+
+            modelBuilder.Entity("Votify.Core.Entities.Voto", b =>
+                {
+                    b.Navigation("VotosCriterio");
                 });
 #pragma warning restore 612, 618
         }

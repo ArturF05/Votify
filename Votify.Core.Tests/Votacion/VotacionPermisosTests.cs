@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Votify.Core.DTOs;
 using Votify.Core.Entities;
 using Votify.Core.Factories;
+using Votify.Core.Observer;
 using Votify.Core.Services;
 using Votify.Infrastructure.Data;
 using Votify.Infrastructure.Repositorios;
@@ -73,7 +75,8 @@ namespace Votify.Core.Tests.Votaciones
                 proyectoRepository,
                 dimensionRepository,
                 usuarioRepository,
-                eventoUsuarioRolRepository
+                eventoUsuarioRolRepository,
+                new Mock<IEmailSender>().Object
             );
 
             idEvento = Guid.NewGuid();

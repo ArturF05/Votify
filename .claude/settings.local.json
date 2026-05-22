@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\hugop\\\\source\\\\repos\\\\Hugotemans0\\\\Proyecto-DDS-PSW\\\\Vofity.API\" -Recurse | Where-Object { $_.Extension -eq \".cs\" } | Select-Object -First 15 FullName)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\hugop\\\\source\\\\repos\\\\Hugotemans0\\\\Proyecto-DDS-PSW\\\\Votify.Core.Tests\" -Recurse | Where-Object { $_.Extension -eq \".cs\" } | Select-Object FullName)",
+      "PowerShell(Get-ChildItem *)",
+      "Bash(dotnet tool *)",
+      "Bash(dotnet ef *)"
+    ]
+  }
+}

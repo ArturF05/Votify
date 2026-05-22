@@ -17,7 +17,7 @@ namespace Votify.Core.Services
             _usuarioRepository = usuarioRepository;
         }
 
-        public async Task<bool> RegistrarUsuarioAsync(string usuario, string password)
+        public async Task<bool> RegistrarUsuarioAsync(string usuario, string password, string? email)
         {
             usuario = usuario?.Trim() ?? "";
             password = password?.Trim() ?? "";
@@ -35,6 +35,7 @@ namespace Votify.Core.Services
                 Id = Guid.NewGuid(),
                 Nombre = usuario,
                 Password = password,
+                Email = string.IsNullOrWhiteSpace(email) ? null : email.Trim(),
                 Id_rol = Guid.Parse("48d34079-ffa9-40bf-8ad4-7c352b481eac")
             };
 

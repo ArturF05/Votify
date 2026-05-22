@@ -37,7 +37,8 @@ namespace Votify.Core.Tests.LoginRegisterUser
         {
             bool resultado = await registerService.RegistrarUsuarioAsync(
                 "usuarioTest",
-                "passTest"
+                "passTest",
+                null
             );
 
             Assert.IsTrue(resultado);
@@ -46,11 +47,12 @@ namespace Votify.Core.Tests.LoginRegisterUser
         [TestMethod]
         public async Task UsuarioDuplicadoNoRegistra()
         {
-            await registerService.RegistrarUsuarioAsync("usuarioDobleTest", "passTest");
+            await registerService.RegistrarUsuarioAsync("usuarioDobleTest", "passTest", null);
 
             bool resultado = await registerService.RegistrarUsuarioAsync(
                 "usuarioDobleTest",
-                "passTest"
+                "passTest",
+                null
             );
 
             Assert.IsFalse(resultado);
@@ -61,7 +63,8 @@ namespace Votify.Core.Tests.LoginRegisterUser
         {
             bool resultado = await registerService.RegistrarUsuarioAsync(
                 "",
-                "passTest"
+                "passTest",
+                null
             );
 
             Assert.IsFalse(resultado);
@@ -72,7 +75,8 @@ namespace Votify.Core.Tests.LoginRegisterUser
         {
             bool resultado = await registerService.RegistrarUsuarioAsync(
                 "usuarioTest",
-                ""
+                "",
+                null
             );
 
             Assert.IsFalse(resultado);

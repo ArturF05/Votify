@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Votify.Core.DTOs;
 using Votify.Core.Entities;
 using Votify.Core.Factories;
+using Votify.Core.Observer;
 using Votify.Core.Services;
 using Votify.Infrastructure.Data;
 using Votify.Infrastructure.Repositorios;
@@ -45,7 +47,8 @@ namespace Votify.Core.Tests.Votacion
                 proyectoRepository,
                 dimensionRepository,
                 usuarioRepository,
-                usuarioRolRepository
+                usuarioRolRepository,
+                new Mock<IEmailSender>().Object
             );
 
 

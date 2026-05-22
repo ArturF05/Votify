@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Votify.API.Components;
 using Votify.Core.Interfaces;
+using Votify.Core.Observer;
 using Votify.Core.Services;
 using Votify.Infrastructure.Data;
 using Votify.Infrastructure.Repositorios;
@@ -31,7 +32,8 @@ builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
 builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
-builder.Services.AddScoped<AzureStorageService>(); 
+builder.Services.AddScoped<AzureStorageService>();
+builder.Services.AddScoped<IEmailSender, LogEmailSender>();
 
 builder.Services.AddScoped<IAzureStorage>(sp =>
 {

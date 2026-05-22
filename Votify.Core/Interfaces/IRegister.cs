@@ -8,7 +8,7 @@ namespace Votify.Core.Interfaces
 {
     public interface IRegister
     {
-        Task<bool> RegistrarUsuarioAsync(string usuario, string password);
+        Task<bool> RegistrarUsuarioAsync(string usuario, string password, string? email);
     }
 }
 
