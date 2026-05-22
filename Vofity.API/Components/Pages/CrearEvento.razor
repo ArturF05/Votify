@@ -212,12 +212,13 @@
 
         <div class="botones">
             <div class="grupo-botones">
-                <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar</button>
+                <button type="button" class="boton-secundario" @onclick="Cancelar" disabled="@creandoEvento">Cancelar</button>
             </div>
 
-            <div class="grupo-botones">
-                <button type="button" class="boton-principal" @onclick="GuardarEvento">Crear Evento</button>
-            </div>
+            <button type="button" class="boton-principal boton-crear-evento" @onclick="GuardarEvento" disabled="@creandoEvento">
+                @if (creandoEvento) { <span class="spinner"></span> }
+                @textoCreando
+            </button>
         </div>
     </div>
 </div>
@@ -248,6 +249,8 @@
     private Votify.Core.Entities.Usuario? usuarioActual;
     private byte[]? imagenBytes;
     private string? imagenNombre;
+    private bool creandoEvento = false;
+    private string textoCreando = "Crear Evento";
 
     protected override async Task OnInitializedAsync()
     {
@@ -341,6 +344,12 @@
     }
     private async Task GuardarEvento()
     {
+        if (creandoEvento)
+            return;
+
+        creandoEvento = true;
+        textoCreando = "Creando evento...";
+
         try
         {
             mensaje = "";
@@ -512,6 +521,11 @@
         catch (Exception ex)
         {
             mensaje = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            creandoEvento = false;
+            textoCreando = "Crear Evento";
         }
     }
 

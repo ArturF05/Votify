@@ -28,7 +28,7 @@
 <div class="busqueda-card">
     <div class="barra-busqueda">
     <input @bind="busqueda" @bind:event="oninput" type="text" placeholder="Buscar eventos..." @onkeypress="EsEnter" />
-    <label class="categoria-label">Categoria: </label>
+    <label class="categoria-label">Tipo: </label>
         <select @bind="Id_Categoria" @bind:event="oninput" @onchange="BuscarEventos">
             <option value="@Guid.Empty">Todas</option>
             @foreach (var cat in categorias)
@@ -46,7 +46,7 @@
         <thead>
             <tr>
                 <th>Evento</th>
-                <th>Categoría</th>
+                <th>Tipo</th>
                 <th>Fecha Inicio</th>
                 <th>Fecha Fin</th>
                 <th>Editar</th>

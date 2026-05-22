@@ -224,10 +224,27 @@
 
     <div class="botones">
         <div>
-            <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar</button>
+            <button type="button"
+                    class="boton-secundario"
+                    @onclick="Cancelar"
+                    disabled="@guardandoVotacion">
+                Cancelar
+            </button>
         </div>
+
         <div>
-            <button type="button" class="boton-principal" @onclick="GuardarVotacion">Crear Votacion</button>
+            <button type="button"
+                    class="boton-principal boton-crear-evento"
+                    @onclick="GuardarVotacion"
+                    disabled="@guardandoVotacion">
+
+                @if (guardandoVotacion)
+                {
+                    <span class="spinner"></span>
+                }
+
+                @textoGuardando
+            </button>
         </div>
     </div>
 </div>
@@ -260,6 +277,8 @@
     private Guid idUsuario;
     private bool cargado = false;
     private int verRes = 1;
+    private bool guardandoVotacion = false;
+    private string textoGuardando = "Crear Votación";
 
     private string busquedaUsuario = "";
 
@@ -367,29 +386,42 @@
     }
     private async Task GuardarVotacion()
     {
+        if (guardandoVotacion)
+            return;
+
+        guardandoVotacion = true;
+        textoGuardando = "Guardando votación...";
+        mensaje = "";
+        mensaje2 = "";
+        mensajeErrorCriterio = "";
+
         try
         {
             votaciones = await contexto.Votacion.ToListAsync();
 
             bool franjaUsada = false;
             bool tipoUsado = false;
+
             if (Id_evento == Guid.Empty)
             {
                 mensaje = "Selecciona un evento";
                 return;
             }
+
             if (finEvento.CompareTo(DateTime.Now) <= 0)
             {
-                mensaje = "no puedes añadir votaciones a eventos finalizados";
+                mensaje = "No puedes añadir votaciones a eventos finalizados";
                 return;
             }
-            foreach (var vot in votaciones.Where(e=> e.Id_evento == Id_evento))
+
+            foreach (var vot in votaciones.Where(e => e.Id_evento == Id_evento))
             {
-                if (inicioVotacion.CompareTo(vot.FechaInicio)>=0 && inicioVotacion.CompareTo(vot.FechaFin)<=0)
+                if (inicioVotacion.CompareTo(vot.FechaInicio) >= 0 && inicioVotacion.CompareTo(vot.FechaFin) <= 0)
                 {
                     franjaUsada = true;
                     break;
                 }
+
                 if (
                     (tipoVotacion == TipoVotacion.Publico && vot is VotacionPublico) ||
                     (tipoVotacion == TipoVotacion.Jurado && vot is VotacionJurado) ||
@@ -400,31 +432,37 @@
                     break;
                 }
             }
+
             if (finVotacion.CompareTo(inicioVotacion) <= 0)
             {
                 mensaje2 = "El final de la votación debe ser posterior al inicio";
                 return;
             }
-            if(inicioVotacion.CompareTo(inicioEvento)<0 || finVotacion.CompareTo(finEvento) > 0)
+
+            if (inicioVotacion.CompareTo(inicioEvento) < 0 || finVotacion.CompareTo(finEvento) > 0)
             {
                 mensaje = "La votación debe de realizarse durante el evento al que corresponde";
                 return;
             }
+
             if (franjaUsada)
             {
                 mensaje = "Hay una votación en esta franja de tiempo, no se permiten votaciones concurrentes en un mismo evento";
                 return;
             }
+
             if (tipoUsado)
             {
                 mensaje = "Ya hay una votación de este tipo registrada para este evento";
                 return;
             }
-            if(numProy<=0)
+
+            if (numProy <= 0)
             {
                 mensaje = "Se tiene que poder votar mínimo 1 proyecto";
                 return;
             }
+
             if (!categoriasEvento.Any())
             {
                 mensajeErrorCriterio = "El evento debe tener al menos una categoría de votación";
@@ -450,8 +488,14 @@
                 }
             }
 
-            if (permiteComentarios == 0) comentariosObligatorios = 0;
-            evento = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).FirstOrDefaultAsync(e => e.Id == Id_evento);
+            if (permiteComentarios == 0)
+                comentariosObligatorios = 0;
+
+            evento = await contexto.Evento
+                .AsNoTracking()
+                .Include(e => e.Categoria)
+                .FirstOrDefaultAsync(e => e.Id == Id_evento);
+
             await GuardarCategoriasEvento();
 
             var dto = new CrearVotacionDTOs
@@ -463,8 +507,8 @@
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion,
                 Num_Proy = numProy,
-                VerRes = verRes==1,
-                EstadoVotacion= EstadoVotacion.Cerrada,
+                VerRes = verRes == 1,
+                EstadoVotacion = EstadoVotacion.Cerrada,
                 Jurados = juradoSeleccionado.Select(u => u.Id).ToList(),
                 Criterios = categoriasEvento
                     .Where(categoria => idCategoriaVotacion == Guid.Empty || categoria.Id == idCategoriaVotacion)
@@ -480,6 +524,7 @@
                 PermiteComentarios = permiteComentarios == 1,
                 ComentariosObligatorios = comentariosObligatorios == 1
             };
+
             var response = await Http.PostAsJsonAsync("api/v1/votaciones", dto);
 
             if (response.IsSuccessStatusCode)
@@ -490,12 +535,16 @@
             {
                 var error = await response.Content.ReadAsStringAsync();
                 mensaje = $"No se pudo crear la votación: {error}";
-                Console.WriteLine(error);
             }
         }
         catch (Exception ex)
         {
             mensaje = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            guardandoVotacion = false;
+            textoGuardando = "Crear Votación";
         }
     }
 

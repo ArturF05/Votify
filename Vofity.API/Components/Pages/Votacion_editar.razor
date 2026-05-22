@@ -251,11 +251,34 @@
 
     <div class="botones">
         <div>
-            <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar</button>
-            <button type="button" class="boton-secundario boton-peligro" @onclick="ConfirmarEliminar">Eliminar Votación</button>
+            <button type="button"
+                    class="boton-secundario"
+                    @onclick="Cancelar"
+                    disabled="@guardandoVotacion">
+                Cancelar
+            </button>
+
+            <button type="button"
+                    class="boton-secundario boton-peligro"
+                    @onclick="ConfirmarEliminar"
+                    disabled="@guardandoVotacion">
+                Eliminar Votación
+            </button>
         </div>
+
         <div>
-            <button type="button" class="boton-principal" @onclick="GuardarVotacion">Guardar Cambios</button>
+            <button type="button"
+                    class="boton-principal boton-crear-evento"
+                    @onclick="GuardarVotacion"
+                    disabled="@guardandoVotacion">
+
+                @if (guardandoVotacion)
+                {
+                    <span class="spinner"></span>
+                }
+
+                @textoGuardando
+            </button>
         </div>
     </div>
     @if (!string.IsNullOrEmpty(debugInfo))
@@ -308,6 +331,8 @@
     private Guid idUsuarioActual = Guid.Empty;
     private int verRes = 1;
     private string busquedaUsuario = "";
+    private bool guardandoVotacion = false;
+    private string textoGuardando = "Guardar Cambios";
 
     private List<Usuario> usuariosDisponibles = new();
     private List<Usuario> juradoSeleccionado = new();
@@ -513,6 +538,15 @@
 
     private async Task GuardarVotacion()
     {
+        if (guardandoVotacion)
+            return;
+
+        guardandoVotacion = true;
+        textoGuardando = "Guardando cambios...";
+        mensaje = "";
+        mensaje2 = "";
+        mensajeErrorCriterio = "";
+
         try
         {
             votaciones = await contexto.Votacion.ToListAsync();
@@ -527,31 +561,36 @@
                     franjaUsada = true;
                     break;
                 }
+
                 if (
-                     (tipoVotacion == TipoVotacion.Publico && vot is VotacionPublico) ||
-                     (tipoVotacion == TipoVotacion.Jurado && vot is VotacionJurado) ||
-                     (tipoVotacion == TipoVotacion.Mixto && vot is VotacionMixta)
-                 )
+                    (tipoVotacion == TipoVotacion.Publico && vot is VotacionPublico) ||
+                    (tipoVotacion == TipoVotacion.Jurado && vot is VotacionJurado) ||
+                    (tipoVotacion == TipoVotacion.Mixto && vot is VotacionMixta)
+                )
                 {
                     tipoUsado = true;
                     break;
                 }
             }
+
             if (finVotacion.CompareTo(inicioVotacion) <= 0)
             {
                 mensaje2 = "El final de la votación debe ser posterior al inicio";
                 return;
             }
+
             if (franjaUsada)
             {
                 mensaje = "Hay una votación en esta franja de tiempo, no se permiten votaciones concurrentes";
                 return;
             }
+
             if (tipoUsado)
             {
                 mensaje = "Ya hay una votación de este tipo registrada para este evento";
                 return;
             }
+
             if (NumProy <= 0)
             {
                 mensaje = "Se tiene que poder votar mínimo 1 proyecto";
@@ -564,7 +603,10 @@
 
             foreach (var categoria in categoriasDeLaVotacion)
             {
-                var criteriosCategoria = criterios.Where(c => c.Id_categoria_evento == categoria.Id).ToList();
+                var criteriosCategoria = criterios
+                    .Where(c => c.Id_categoria_evento == categoria.Id)
+                    .ToList();
+
                 if (!criteriosCategoria.Any())
                 {
                     mensajeErrorCriterio = $"La categoría {categoria.Nombre} debe tener al menos un criterio";
@@ -586,23 +628,24 @@
                 FechaFin = LocalInputToUtc(finVotacion),
                 PermiteAutoVoto = permiteAutoVoto == 1,
                 TipoVotacion = tipoVotacion,
-                VerRes=verRes==1,
+                VerRes = verRes == 1,
                 Num_Proy = NumProy,
                 Jurados = juradoSeleccionado.Select(u => u.Id).ToList(),
-                EstadoVotacion=estadoVotacion,
+                EstadoVotacion = estadoVotacion,
                 Criterios = criterios
-                .Where(c => idCategoriaVotacion == Guid.Empty || c.Id_categoria_evento == idCategoriaVotacion)
-                .Select(c => new Votify.Core.DTOs.CrearCriterioDTO
-                {
-                    Id = c.Id,
-                    IdCategoriaEvento = c.Id_categoria_evento,
-                    Nombre = c.Nombre,
-                    Descripcion = c.Descripcion,
-                    Peso = c.Peso
-                }).ToList(),
+                    .Where(c => idCategoriaVotacion == Guid.Empty || c.Id_categoria_evento == idCategoriaVotacion)
+                    .Select(c => new Votify.Core.DTOs.CrearCriterioDTO
+                    {
+                        Id = c.Id,
+                        IdCategoriaEvento = c.Id_categoria_evento,
+                        Nombre = c.Nombre,
+                        Descripcion = c.Descripcion,
+                        Peso = c.Peso
+                    }).ToList(),
                 PermiteComentarios = permiteComentarios == 1,
                 ComentariosObligatorios = comentariosObligatorios == 1
             };
+
             var response = await Http.PutAsJsonAsync($"api/v1/votaciones/{id}", dto);
 
             if (response.IsSuccessStatusCode)
@@ -613,12 +656,16 @@
             {
                 var error = await response.Content.ReadAsStringAsync();
                 mensaje = $"No se pudo editar la votación: {error}";
-                Console.WriteLine(error);
             }
         }
         catch (Exception ex)
         {
             mensaje = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            guardandoVotacion = false;
+            textoGuardando = "Guardar Cambios";
         }
     }
     async Task ConfirmarEliminar()

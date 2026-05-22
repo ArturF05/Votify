@@ -123,13 +123,25 @@
 
         <div class="botones">
             <div class="grupo-botones">
-                <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar cambios</button>
-                <button type="button" class="boton-secundario boton-peligro" @onclick="ConfirmarEliminar">Eliminar evento</button>
+                <button type="button" class="boton-secundario" @onclick="Cancelar" disabled="@(guardandoEvento || eliminandoEvento)">Cancelar cambios</button>
+                <button type="button" class="boton-secundario boton-peligro" @onclick="ConfirmarEliminar" disabled="@(guardandoEvento || eliminandoEvento)">
+                    @if (eliminandoEvento)
+                    {
+                        <span class="spinner"></span>
+                    }
+                    @textoEliminando
+                </button>
             </div>
 
             <div class="grupo-botones">
-                <button type="button" class="boton-secundario" @onclick="ArchivarEvento">Archivar</button>
-                <button type="button" class="boton-principal" @onclick="GuardarEvento">Guardar cambios</button>
+                <button type="button" class="boton-secundario" @onclick="ArchivarEvento" disabled="@(guardandoEvento || eliminandoEvento)">Archivar</button>
+                <button type="button" class="boton-principal" @onclick="GuardarEvento" disabled="@(guardandoEvento || eliminandoEvento)">
+                    @if (guardandoEvento)
+                    {
+                        <span class="spinner"></span>
+                    }
+                    @textoGuardando
+                </button>
             </div>
         </div>
     </div>
@@ -156,6 +168,10 @@
     private string? imagenNueva;
     [Parameter]
     public Guid id { get; set; }
+    private bool guardandoEvento = false;
+    private string textoGuardando = "Guardar cambios";
+    private bool eliminandoEvento = false;
+    private string textoEliminando = "Eliminar evento";
 
     protected override async Task OnInitializedAsync()
     {
@@ -229,20 +245,45 @@
 
     async Task EliminarEvento()
     {
-        if (evento == null)
+        if (eliminandoEvento)
             return;
 
-        var response = await Http.DeleteAsync($"api/eventos/{evento.Id}");
+        eliminandoEvento = true;
+        textoEliminando = "Eliminando evento...";
 
-        if (response.IsSuccessStatusCode)
+        try
         {
-            await azureStorageService.EliminarArchivoAsync(evento.ImagenUrl);
-            nav.NavigateTo("/Evento");
+            if (evento == null)
+            {
+                mensaje = "No se ha encontrado el evento.";
+                return;
+            }
+
+            var response = await Http.DeleteAsync($"api/eventos/{evento.Id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                if (!string.IsNullOrWhiteSpace(evento.ImagenUrl))
+                {
+                    await azureStorageService.EliminarArchivoAsync(evento.ImagenUrl);
+                }
+
+                nav.NavigateTo("/Evento");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensaje = $"No se pudo eliminar el evento: {error}";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var error = await response.Content.ReadAsStringAsync();
-            mensaje = $"No se pudo eliminar el evento: {error}";
+            mensaje = $"Error al eliminar el evento: {ex.Message}";
+        }
+        finally
+        {
+            eliminandoEvento = false;
+            textoEliminando = "Eliminar evento";
         }
     }
 
@@ -290,37 +331,42 @@
     }
     private async Task GuardarEvento()
     {
-        if (evento == null)
+        if (guardandoEvento)
             return;
 
-        if (Id_categoria == Guid.Empty)
-        {
-            mensaje = "Error, selecciona la categoría del evento";
-            return;
-        }
+        guardandoEvento = true;
+        textoGuardando = "Guardando cambios...";
+        mensaje = "";
+        mensaje2 = "";
 
-        bool nombreVacio = string.IsNullOrWhiteSpace(nombre);
+        try
+        {
+            if (evento == null)
+            {
+                mensaje = "No se ha encontrado el evento.";
+                return;
+            }
 
-        if (nombreVacio)
-        {
-            mensaje = "El nombre del evento es obligatorio";
-        }
-        else
-        {
-            mensaje = "";
-        }
+            if (Id_categoria == Guid.Empty)
+            {
+                mensaje = "Error, selecciona la categoría del evento";
+                return;
+            }
 
-        if (fin.CompareTo(inicio) <= 0)
-        {
-            mensaje2 = "La fecha del fin del evento debe ser posterior a la fecha de inicio";
-        }
-        else
-        {
-            mensaje2 = "";
-        }
+            bool nombreVacio = string.IsNullOrWhiteSpace(nombre);
 
-        if (!nombreVacio && fin.CompareTo(inicio) > 0)
-        {
+            if (nombreVacio)
+            {
+                mensaje = "El nombre del evento es obligatorio";
+                return;
+            }
+
+            if (fin.CompareTo(inicio) <= 0)
+            {
+                mensaje2 = "La fecha del fin del evento debe ser posterior a la fecha de inicio";
+                return;
+            }
+
             var dto = new CrearEventoDTOs
             {
                 Nombre = nombre,
@@ -333,18 +379,21 @@
                 ImagenBytes = imagenBytes,
                 ImagenNombre = imagenNombre
             };
-            bool aux = evento.ImagenUrl == null;
-            string? aux2 = evento.ImagenUrl;
+
+            bool teniaImagen = !string.IsNullOrWhiteSpace(evento.ImagenUrl);
+            string? imagenAnterior = evento.ImagenUrl;
+
             var response = await Http.PutAsJsonAsync($"api/eventos/{evento.Id}", dto);
 
             if (response.IsSuccessStatusCode)
             {
                 await GuardarCategoriasEvento();
 
-                if (imagenBytes != null && !aux)
+                if (imagenBytes != null && teniaImagen && !string.IsNullOrWhiteSpace(imagenAnterior))
                 {
-                    await azureStorageService.EliminarArchivoAsync(aux2);
+                    await azureStorageService.EliminarArchivoAsync(imagenAnterior);
                 }
+
                 nav.NavigateTo("/Evento");
             }
             else
@@ -352,6 +401,15 @@
                 var error = await response.Content.ReadAsStringAsync();
                 mensaje = $"No se pudo editar el evento: {error}";
             }
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error al guardar cambios: {ex.Message}";
+        }
+        finally
+        {
+            guardandoEvento = false;
+            textoGuardando = "Guardar cambios";
         }
     }
 
