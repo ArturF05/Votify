@@ -68,14 +68,8 @@
                                        value="@nuevoNombre"
                                        @oninput="OnInputNombre"
                                        placeholder="Ej: Logo principal"  />
-                                @if (nuevoNombre.Length >= MaxNombre)
-                                {
-                                    <span class="mensaje-limite">⚠️ Límite de @MaxNombre caracteres alcanzado</span>
-                                }
-                                else
-                                {
-                                    <span class="contador">@nuevoNombre.Length / @MaxNombre</span>
-                                }
+                                <span class="contador">@nuevoNombre.Length / @MaxNombre</span>
+
                             </div>
                             <div class="form-campo">
                                 <label class="form-label">Tipo</label>
@@ -107,7 +101,12 @@
                         {
                             <div class="form-campo">
                                 <label class="form-label">URL</label>
-                                <input type="text" class="form-input" @bind="nuevoValor" placeholder="https://" />
+                                <input type="text" class="form-input"
+                                       maxlength="2048"
+                                       value="@nuevoValor"
+                                       @oninput='e => nuevoValor = e.Value?.ToString()?.Length > 2048 ? e.Value.ToString()[..2048] : e.Value?.ToString() ?? ""'
+                                       placeholder="https://" />
+                                <span class="contador">@nuevoValor.Length / 2048</span>
                             </div>
                         }
 

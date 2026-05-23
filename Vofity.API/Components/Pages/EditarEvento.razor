@@ -33,14 +33,8 @@
                    value="@nombre"
                    @oninput="OnInputNombre"
                    placeholder="Nombre del evento..." />
-            @if (nombre.Length >= MaxNombre)
-            {
-                <span class="mensaje-limite">⚠️ Límite de @MaxNombre caracteres alcanzado</span>
-            }
-            else
-            {
-                <span class="contador">@nombre.Length / @MaxNombre</span>
-            }
+            <span class="contador">@nombre.Length / @MaxNombre</span>
+
         </div>
 
         <div class="form-grid">
@@ -64,14 +58,7 @@
                           value="@descripcion"
                           @oninput="OnInputDescripcion"
                           placeholder="Descripción..."></textarea>
-                @if (descripcion.Length >= MaxDescripcion)
-                {
-                    <span class="mensaje-limite">⚠️ Límite de @MaxDescripcion caracteres alcanzado</span>
-                }
-                else
-                {
-                    <span class="contador">@descripcion.Length / @MaxDescripcion</span>
-                }
+                <span class="contador">@descripcion.Length / @MaxDescripcion</span>
             </div>
 
             <div class="campo campo-columna">
@@ -117,14 +104,7 @@
                             <input type="text" class="input-criterio" placeholder="Nombre de categoría" maxlength="@MaxNombreCategoriaEvento"
                            value="@categoria.Nombre"
                            @oninput="OnInputNombreCategoria" />
-                            @if (categoria.Nombre.Length >= MaxNombreCategoriaEvento)
-                            {
-                                <span class="mensaje-limite">⚠️ Límite de @MaxNombreCategoriaEvento caracteres alcanzado</span>
-                            }
-                            else
-                            {
-                                <span class="contador">@categoria.Nombre.Length / @MaxNombreCategoriaEvento</span>
-                            }
+                            <span class="contador">@categoria.Nombre.Length / @MaxNombreCategoriaEvento</span>
                             @if (categoria.TieneVotos)
                             {
                                 <span class="criterio-descripcion">Tiene votos asociados</span>
@@ -143,7 +123,12 @@
             </div>
 
             <div class="criterio-formulario">
-                <input type="text" placeholder="Nombre de categoría" @bind="nombreCategoriaEvento" class="input-criterio" />
+                <input type="text" placeholder="Nombre de categoría" maxlength="@MaxNombreCategoriaEvento" 
+                       value="@nombreCategoriaEvento"
+                       @oninput="OnInputNombreCategoria"
+                       class="input-criterio" />
+                <span class="contador">@nombreCategoriaEvento.Length / @MaxNombreCategoriaEvento</span>
+
                 <button type="button" class="boton-principal" @onclick="AnadirCategoriaEvento">Añadir categoría</button>
             </div>
         </section>
@@ -230,9 +215,14 @@
         }
     }
 
-    void Cancelar()
+    private async Task Cancelar()
     {
-        nav.NavigateTo("/Evento");
+        bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Seguro que cancelar los cambios?");
+
+        if (confirmado)
+        {
+            await JS.InvokeVoidAsync("history.back");
+        }
     }
     private void OnInputNombre(ChangeEventArgs e)
     {
@@ -258,7 +248,7 @@
 
         if (response.IsSuccessStatusCode)
         {
-            nav.NavigateTo("/Evento");
+            await JS.InvokeVoidAsync("history.back");
         }
         else
         {
@@ -287,7 +277,7 @@
         if (response.IsSuccessStatusCode)
         {
             await azureStorageService.EliminarArchivoAsync(evento.ImagenUrl);
-            nav.NavigateTo("/Evento");
+            await JS.InvokeVoidAsync("history.back");
         }
         else
         {
@@ -395,7 +385,7 @@
                 {
                     await azureStorageService.EliminarArchivoAsync(aux2);
                 }
-                nav.NavigateTo("/Evento");
+                await JS.InvokeVoidAsync("history.back");
             }
             else
             {

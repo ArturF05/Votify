@@ -8,13 +8,13 @@
 @inject HttpClient Http
 @inject ProtectedSessionStorage sessionStorage
 @inject NavigationManager nav
-<PageTitle>Home - Votify </PageTitle>
+<PageTitle>Inicio - Votify </PageTitle>
 <div class="page">
 
     <div class="header">
         @if (usuarioActual == null)
         {
-            <h1>Home</h1>
+            <h1>Inicio</h1>
         }
         else{
             <h1>Hola <span>@usuarioActual.Nombre</span> 👋</h1>
@@ -162,7 +162,7 @@
                     .Include(eur => eur.Rol)
                     .Any(eur => eur.EventoId == e.Id
                         && eur.UsuarioId == idUsuario
-                        && eur.Rol.Nombre != "Organizador"))
+                        && eur.Rol.Nombre != "Organizador") && e.FechaFin > DateTime.UtcNow)
                 .ToList();
 
             eventosDisponibles = eventos

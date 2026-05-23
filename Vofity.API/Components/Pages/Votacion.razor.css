@@ -55,6 +55,8 @@
     font-weight: 700;
     color: #1a1a1a;
     text-align: center;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 .evento-card:disabled {
     background-color: #e5e7eb;
@@ -88,6 +90,7 @@
     align-items: center;
     min-height: 0;
     padding: 1rem 1.2rem;
+    width: 100%;
 }
 .evento-media {
     width: 100%;

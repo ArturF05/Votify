@@ -33,14 +33,7 @@
                    value="@nombre"
                    @oninput="OnInputNombre"
                    placeholder="Nombre del evento..." />
-            @if (nombre.Length >= MaxNombre)
-            {
-                <span class="mensaje-limite">⚠️ Límite de @MaxNombre caracteres alcanzado</span>
-            }
-            else
-            {
-                <span class="contador">@nombre.Length / @MaxNombre</span>
-            }
+            <span class="contador">@nombre.Length / @MaxNombre</span>
         </div>
         <div class="campo campo-columna">
             <label>Imagen del evento:</label>
@@ -85,14 +78,7 @@
                           value="@descripcion"
                           @oninput="OnInputDescripcion"
                           placeholder="Descripción..."></textarea>
-                @if (descripcion.Length >= MaxDescripcion)
-                {
-                    <span class="mensaje-limite">⚠️ Límite de @MaxDescripcion caracteres alcanzado</span>
-                }
-                else
-                {
-                    <span class="contador">@descripcion.Length / @MaxDescripcion</span>
-                }
+                <span class="contador">@descripcion.Length / @MaxDescripcion</span>
             </div>
 
             <div class="separador-criterios"></div>
@@ -105,14 +91,8 @@
                            value="@nombreCategoriaEvento"
                            @oninput="OnInputNombreCategoria"
                            class="input-criterio" />
-                    @if (nombreCategoriaEvento.Length >= MaxNombreCategoriaEvento)
-                    {
-                        <span class="mensaje-limite">⚠️ Límite de @MaxNombreCategoriaEvento caracteres alcanzado</span>
-                    }
-                    else
-                    {
-                        <span class="contador">@nombreCategoriaEvento.Length / @MaxNombreCategoriaEvento</span>
-                    }
+                    <span class="contador">@nombreCategoriaEvento.Length / @MaxNombreCategoriaEvento</span>
+
                     <button type="button" class="boton-principal" @onclick="GuardarCategoriaEvento">Añadir categoría</button>
                 </div>
 
@@ -136,26 +116,12 @@
                                value="@nombreCriterio"
                                @oninput="OnInputNombreCriterio"
                                class="input-criterio" />
-                        @if (nombreCriterio.Length >= MaxNombreCriterio)
-                        {
-                            <span class="mensaje-limite">⚠️ Límite de @MaxNombreCriterio caracteres alcanzado</span>
-                        }
-                        else
-                        {
-                            <span class="contador">@nombreCriterio.Length / @MaxNombreCriterio</span>
-                        }
+                        <span class="contador">@nombreCriterio.Length / @MaxNombreCriterio</span>
                         <input type="text" placeholder="Descripción" maxlength="@MaxDescripcionCriterio"
                                value="@descripcionCriterio"
                                @oninput="OnInputDescripcionCriterio"
                                class="input-criterio" />
-                        @if (descripcionCriterio.Length >= MaxDescripcionCriterio)
-                        {
-                            <span class="mensaje-limite">⚠️ Límite de @MaxDescripcionCriterio caracteres alcanzado</span>
-                        }
-                        else
-                        {
-                            <span class="contador">@descripcionCriterio.Length / @MaxDescripcionCriterio</span>
-                        }
+                        <span class="contador">@descripcionCriterio.Length / @MaxDescripcionCriterio</span>
                         <button type="button" class="boton-principal" @onclick="() => GuardarCriterioCategoria(categoria.Id)">Añadir criterio</button>
                     </div>
 

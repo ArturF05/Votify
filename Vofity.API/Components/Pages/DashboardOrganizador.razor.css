@@ -41,7 +41,7 @@ body {
 }
 
 .card {
-    background-color: var(--card);
+    background-color: white;
     border-radius: 12px;
     border: 1px solid var(--border);
     overflow: hidden;
@@ -386,7 +386,7 @@ body {
 .event-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     padding: 12px;
     background-color: rgba(0, 0, 0, 0.02);
     border-radius: 8px;
@@ -421,6 +421,7 @@ body {
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
+    margin-top: 20px;
 }
 
 .event-status-group {
@@ -442,7 +443,6 @@ body {
     font-weight: 500;
     white-space: nowrap;
     color: black;
-    margin-top:20px;
 }
 
     .badge.badge-green {

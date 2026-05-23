@@ -429,6 +429,13 @@
         .textarea-comentario::placeholder {
             color: #8b93a1;
         }
+    .contador {
+        color: #718096;
+        font-size: 0.78rem;
+        display: block;
+        margin-top: 3px;
+        text-align: right;
+    }
 </style>
 <PageTitle>Votar proyectos - Votify </PageTitle>
 <div class="votacion-evento-page">
@@ -556,10 +563,12 @@
                                         <span class="criterio-nombre-voto">@criterio.Nombre</span>
                                         @if (votacion != null && votacion.PermiteComentarios)
                                         {
-                                            <textarea @bind="comentariosPorCriterio[proyecto.Id][criterio.Id]"
+                                            <textarea maxlength="500"
+                                                      value="@comentariosPorCriterio[proyecto.Id][criterio.Id]"
+                                                      @oninput='e => comentariosPorCriterio[proyecto.Id][criterio.Id] = e.Value?.ToString()?.Length > 500 ? e.Value.ToString()[..500] : e.Value?.ToString() ?? ""'
                                                       placeholder="@(yaVoto ? "" : "Comentario sobre este criterio...")"
-                                                      class="textarea-comentario">
-                                                                </textarea>
+                                                      class="textarea-comentario"></textarea>
+                                            <span class="contador">@(comentariosPorCriterio[proyecto.Id][criterio.Id]?.Length ?? 0) / 500</span>
                                         }
                                     </div>
 
