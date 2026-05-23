@@ -325,6 +325,7 @@
                 var posicion = ranking.FindIndex(p => p.ProyectoId == proyecto.Id) + 1;
                 var primero = ranking.FirstOrDefault()?.PuntuacionTotal ?? 0m;
                 var totalParticipantes = ranking.Count == 0 ? 1 : ranking.Count;
+                var criterios = await ObtenerCriteriosProyecto(proyecto);
                 var comentarios = await ObtenerComentariosProyecto(proyecto.Id);
                 var totalEvaluaciones = await contexto.Voto
                     .AsNoTracking()
@@ -345,7 +346,7 @@
                     TotalEvaluaciones = totalEvaluaciones,
                     RepositorioUrl = ObtenerUrlMaterial(proyecto.Materiales, "repo", "repositorio", "github", "gitlab"),
                     DemoUrl = ObtenerUrlMaterial(proyecto.Materiales, "demo", "video", "enlace"),
-                    Criterios = CompletarCriterios(rankingProyecto?.Criterios ?? new()),
+                    Criterios = criterios,
                     Comentarios = comentarios,
                     Evolucion = CrearEvolucion(posicion == 0 ? totalParticipantes : posicion, totalParticipantes)
                 });
@@ -376,6 +377,63 @@
         {
             error = ex.InnerException?.Message ?? ex.Message;
         }
+    }
+
+    private async Task<List<CriterioDashboardDTO>> ObtenerCriteriosProyecto(Proyecto proyecto)
+    {
+        var votacion = await contexto.Votacion
+            .AsNoTracking()
+            .Include(v => v.DimensionesDeValores)
+            .Where(v => v.Id_evento == proyecto.Id_evento)
+            .Where(v => proyecto.Id_categoria_evento == null || v.Id_categoria_evento == proyecto.Id_categoria_evento)
+            .OrderByDescending(v => v.FechaInicio)
+            .FirstOrDefaultAsync();
+
+        votacion ??= await contexto.Votacion
+            .AsNoTracking()
+            .Include(v => v.DimensionesDeValores)
+            .Where(v => v.Id_evento == proyecto.Id_evento)
+            .OrderByDescending(v => v.FechaInicio)
+            .FirstOrDefaultAsync();
+
+        if (votacion == null)
+            return new List<CriterioDashboardDTO>();
+
+        var criterios = votacion.DimensionesDeValores
+            .Where(d => proyecto.Id_categoria_evento == null || d.Id_categoria_evento == proyecto.Id_categoria_evento)
+            .OrderBy(d => d.Nombre)
+            .ToList();
+
+        if (!criterios.Any())
+            criterios = votacion.DimensionesDeValores.OrderBy(d => d.Nombre).ToList();
+
+        var criterioIds = criterios.Select(c => c.Id).ToList();
+        var votosCriterio = await contexto.VotoCriterio
+            .AsNoTracking()
+            .Where(vc => criterioIds.Contains(vc.Id_criterio) && vc.Voto.Id_proyecto == proyecto.Id)
+            .ToListAsync();
+
+        return criterios.Select(criterio =>
+        {
+            var notas = votosCriterio
+                .Where(vc => vc.Id_criterio == criterio.Id)
+                .ToList();
+
+            return new CriterioDashboardDTO
+            {
+                CriterioId = criterio.Id,
+                Nombre = criterio.Nombre,
+                Descripcion = criterio.Descripcion ?? "",
+                Peso = criterio.Peso,
+                PuntuacionMedia = notas.Any()
+                    ? (decimal)notas.Average(vc => vc.Nota)
+                    : 0m,
+                Comentarios = notas
+                    .Where(vc => !string.IsNullOrWhiteSpace(vc.Comentario))
+                    .Select(vc => vc.Comentario!)
+                    .ToList()
+            };
+        }).ToList();
     }
 
     private async Task<List<ComentarioCompetidorVm>> ObtenerComentariosProyecto(Guid proyectoId)
