@@ -1,0 +1,514 @@
+@page "/DashboardCompetidor"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Microsoft.EntityFrameworkCore
+@using Votify.Core.DTOs
+@using Votify.Core.Entities
+@using Votify.Core.Services
+@using Votify.Infrastructure.Data
+@inject ProtectedSessionStorage sessionStorage
+@inject NavigationManager nav
+@inject AppDbContext contexto
+@inject IDashboardService dashboardService
+
+<PageTitle>Dashboard Competidor - Votify</PageTitle>
+
+<div class="competitor-dashboard">
+    <header class="competitor-header">
+        <div>
+            <p class="eyebrow">Panel de rendimiento</p>
+            <h1>Dashboard Competidor</h1>
+            <p class="subtitle">Resumen de tus proyectos, ranking y feedback recibido en cada evento.</p>
+        </div>
+
+        <div class="dashboard-switcher" aria-label="Cambiar tipo de dashboard">
+            <button type="button" @onclick='() => nav.NavigateTo("/DashboardOrganizador")'>
+                Organizador
+            </button>
+            <button type="button" class="active">
+                Competidor
+            </button>
+        </div>
+    </header>
+
+    @if (cargando)
+    {
+        <section class="empty-state">
+            <div class="loader"></div>
+            <p>Cargando rendimiento...</p>
+        </section>
+    }
+    else if (!string.IsNullOrWhiteSpace(error))
+    {
+        <section class="empty-state error">
+            <strong>No se pudo cargar el dashboard</strong>
+            <p>@error</p>
+        </section>
+    }
+    else if (!proyectos.Any())
+    {
+        <section class="empty-state">
+            <strong>Todavía no participas en proyectos</strong>
+            <p>Cuando crees o te unan a un proyecto, verás aquí tus métricas y comentarios.</p>
+            <button type="button" class="primary-action" @onclick='() => nav.NavigateTo("/AltaProyecto")'>Crear proyecto</button>
+        </section>
+    }
+    else
+    {
+        <section class="summary-grid">
+            <article class="summary-card">
+                <span class="summary-label">Proyectos</span>
+                <strong>@proyectos.Count</strong>
+                <small>en seguimiento</small>
+            </article>
+            <article class="summary-card">
+                <span class="summary-label">Eventos activos</span>
+                <strong>@proyectos.Count(p => p.EventoActivo)</strong>
+                <small>con votación o plazo abierto</small>
+            </article>
+            <article class="summary-card">
+                <span class="summary-label">Mejor posición</span>
+                <strong>@MejorPosicionTexto</strong>
+                <small>ranking actual</small>
+            </article>
+            <article class="summary-card">
+                <span class="summary-label">Evaluaciones</span>
+                <strong>@proyectos.Sum(p => p.TotalEvaluaciones)</strong>
+                <small>votos recibidos</small>
+            </article>
+        </section>
+
+        <section class="toolbar-card">
+            <div class="filter-group">
+                <label for="eventoFiltro">Evento</label>
+                <select id="eventoFiltro" @bind="eventoSeleccionado">
+                    <option value="">Todos los eventos</option>
+                    @foreach (var evento in eventosFiltro)
+                    {
+                        <option value="@evento.Id">@evento.Nombre</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="ordenFiltro">Orden</label>
+                <select id="ordenFiltro" @bind="ordenSeleccionado">
+                    <option value="score">Mayor puntuación</option>
+                    <option value="position">Mejor posición</option>
+                    <option value="date">Evento más reciente</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="projects-list">
+            @foreach (var proyecto in ProyectosFiltrados)
+            {
+                <article class="project-card">
+                    <div class="project-hero">
+                        <div>
+                            <div class="project-meta">
+                                <span class="badge @(proyecto.EventoActivo ? "badge-green" : "badge-gray")">
+                                    @(proyecto.EventoActivo ? "Activo" : "Finalizado")
+                                </span>
+                                @if (proyecto.Posicion <= 3 && proyecto.Posicion > 0)
+                                {
+                                    <span class="badge badge-top">Top @proyecto.Posicion</span>
+                                }
+                            </div>
+                            <h2>@proyecto.NombreProyecto</h2>
+                            <p>@proyecto.NombreEvento</p>
+                        </div>
+
+                        <div class="project-actions">
+                            <a class="secondary-action @(string.IsNullOrWhiteSpace(proyecto.RepositorioUrl) ? "disabled" : "")"
+                               href="@proyecto.RepositorioUrl"
+                               target="_blank"
+                               aria-disabled="@string.IsNullOrWhiteSpace(proyecto.RepositorioUrl)">
+                                Repositorio
+                            </a>
+                            <a class="secondary-action @(string.IsNullOrWhiteSpace(proyecto.DemoUrl) ? "disabled" : "")"
+                               href="@proyecto.DemoUrl"
+                               target="_blank"
+                               aria-disabled="@string.IsNullOrWhiteSpace(proyecto.DemoUrl)">
+                                Demo
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="metrics-strip">
+                        <div>
+                            <span>Posición</span>
+                            <strong>#@proyecto.Posicion</strong>
+                            <small>de @proyecto.TotalParticipantes</small>
+                        </div>
+                        <div>
+                            <span>Puntuación</span>
+                            <strong>@proyecto.PuntuacionTotal.ToString("0.##")</strong>
+                            <small>puntos</small>
+                        </div>
+                        <div>
+                            <span>Evaluaciones</span>
+                            <strong>@proyecto.TotalEvaluaciones</strong>
+                            <small>recibidas</small>
+                        </div>
+                        <div>
+                            <span>Diferencia al #1</span>
+                            <strong>@proyecto.DiferenciaPrimerPuesto.ToString("0.##")</strong>
+                            <small>puntos</small>
+                        </div>
+                    </div>
+
+                    <div class="ranking-panel">
+                        <div>
+                            <h3>Ranking y evolución</h3>
+                            <p>@GetMensajeRanking(proyecto)</p>
+                        </div>
+                        <div class="position-chart" aria-label="Evolución de posición">
+                            @foreach (var punto in proyecto.Evolucion)
+                            {
+                                <span style="height: @(punto)%"></span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="detail-grid">
+                        <section class="score-card">
+                            <h3>Desglose de puntuaciones</h3>
+                            <div class="criteria-list">
+                                @foreach (var criterio in proyecto.Criterios)
+                                {
+                                    var porcentaje = Math.Clamp((double)criterio.PuntuacionMedia * 10, 0, 100);
+                                    <div class="criterion-row">
+                                        <div class="criterion-head">
+                                            <strong>@criterio.Nombre</strong>
+                                            <span>@criterio.PuntuacionMedia.ToString("0.##") / 10 · @criterio.Peso%</span>
+                                        </div>
+                                        <div class="criterion-bar">
+                                            <span style="width: @porcentaje.ToString("0")%"></span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </section>
+
+                        <section class="comments-card">
+                            <h3>Comentarios recibidos</h3>
+                            @if (!proyecto.Comentarios.Any())
+                            {
+                                <p class="muted">Aún no hay comentarios para este proyecto.</p>
+                            }
+                            else
+                            {
+                                <div class="comments-list">
+                                    @foreach (var comentario in proyecto.Comentarios.Take(5))
+                                    {
+                                        <article class="comment-item">
+                                            <div class="judge-avatar">@comentario.Inicial</div>
+                                            <div>
+                                                <div class="comment-meta">
+                                                    <strong>@comentario.Juez</strong>
+                                                    <span>@comentario.Criterio</span>
+                                                </div>
+                                                <p>@comentario.Texto</p>
+                                            </div>
+                                        </article>
+                                    }
+                                </div>
+                            }
+                        </section>
+                    </div>
+                </article>
+            }
+        </section>
+
+        <section class="events-card">
+            <div class="section-heading">
+                <h2>Eventos del competidor</h2>
+                <span>@eventosCompetidor.Count eventos</span>
+            </div>
+
+            <div class="events-list">
+                @foreach (var evento in eventosCompetidor)
+                {
+                    var expandido = eventosExpandidos.Contains(evento.EventoId);
+                    <article class="event-row">
+                        <button type="button" class="event-summary" @onclick="() => ToggleEvento(evento.EventoId)">
+                            <div>
+                                <strong>@evento.NombreEvento</strong>
+                                <span>@evento.Fecha.ToString("dd/MM/yyyy") · @evento.Estado</span>
+                            </div>
+                            <div>
+                                <span>@evento.Proyecto</span>
+                                <strong>#@evento.PosicionObtenida</strong>
+                            </div>
+                        </button>
+                        @if (expandido)
+                        {
+                            <div class="event-details">
+                                <span>Proyecto asociado: @evento.Proyecto</span>
+                                <span>Puntuación: @evento.Puntuacion.ToString("0.##") pts</span>
+                                <span>Participantes: @evento.TotalParticipantes</span>
+                            </div>
+                        }
+                    </article>
+                }
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    private bool cargando = true;
+    private string error = "";
+    private string eventoSeleccionado = "";
+    private string ordenSeleccionado = "score";
+    private List<ProyectoCompetidorVm> proyectos = new();
+    private List<EventoFiltroVm> eventosFiltro = new();
+    private List<EventoCompetidorVm> eventosCompetidor = new();
+    private HashSet<Guid> eventosExpandidos = new();
+
+    private string MejorPosicionTexto => proyectos.Any()
+        ? $"#{proyectos.Min(p => p.Posicion)}"
+        : "-";
+
+    private IEnumerable<ProyectoCompetidorVm> ProyectosFiltrados
+    {
+        get
+        {
+            var query = proyectos.AsEnumerable();
+
+            if (Guid.TryParse(eventoSeleccionado, out var eventoId))
+                query = query.Where(p => p.EventoId == eventoId);
+
+            return ordenSeleccionado switch
+            {
+                "position" => query.OrderBy(p => p.Posicion).ThenByDescending(p => p.PuntuacionTotal),
+                "date" => query.OrderByDescending(p => p.FechaEvento),
+                _ => query.OrderByDescending(p => p.PuntuacionTotal)
+            };
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        await CargarDashboard();
+        cargando = false;
+        StateHasChanged();
+    }
+
+    private async Task CargarDashboard()
+    {
+        try
+        {
+            var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
+            if (!resultado.Success || resultado.Value == Guid.Empty)
+            {
+                nav.NavigateTo("/Login");
+                return;
+            }
+
+            var usuarioId = resultado.Value;
+            var proyectosUsuario = await contexto.Proyecto
+                .AsNoTracking()
+                .Include(p => p.Evento)
+                .Include(p => p.Materiales)
+                .Include(p => p.ProyectoParticipantes)
+                .Where(p => p.Id_creador == usuarioId || p.ProyectoParticipantes.Any(pp => pp.Id_usuario == usuarioId))
+                .OrderByDescending(p => p.Evento.FechaInicio)
+                .ToListAsync();
+
+            foreach (var proyecto in proyectosUsuario)
+            {
+                var ranking = await dashboardService.ObtenerRankingProyectos(proyecto.Id_evento);
+                var rankingProyecto = ranking.FirstOrDefault(p => p.ProyectoId == proyecto.Id);
+                var posicion = ranking.FindIndex(p => p.ProyectoId == proyecto.Id) + 1;
+                var primero = ranking.FirstOrDefault()?.PuntuacionTotal ?? 0m;
+                var totalParticipantes = ranking.Count == 0 ? 1 : ranking.Count;
+                var comentarios = await ObtenerComentariosProyecto(proyecto.Id);
+                var totalEvaluaciones = await contexto.Voto
+                    .AsNoTracking()
+                    .CountAsync(v => v.Id_proyecto == proyecto.Id);
+
+                proyectos.Add(new ProyectoCompetidorVm
+                {
+                    ProyectoId = proyecto.Id,
+                    EventoId = proyecto.Id_evento,
+                    NombreProyecto = proyecto.Titulo,
+                    NombreEvento = proyecto.Evento?.Nombre ?? "Evento",
+                    FechaEvento = proyecto.Evento?.FechaInicio ?? DateTime.UtcNow,
+                    EventoActivo = proyecto.Evento != null && !proyecto.Evento.Archivado && proyecto.Evento.FechaFin.ToUniversalTime() >= DateTime.UtcNow,
+                    Posicion = posicion == 0 ? totalParticipantes : posicion,
+                    TotalParticipantes = totalParticipantes,
+                    PuntuacionTotal = rankingProyecto?.PuntuacionTotal ?? 0m,
+                    DiferenciaPrimerPuesto = Math.Max(0, primero - (rankingProyecto?.PuntuacionTotal ?? 0m)),
+                    TotalEvaluaciones = totalEvaluaciones,
+                    RepositorioUrl = ObtenerUrlMaterial(proyecto.Materiales, "repo", "repositorio", "github", "gitlab"),
+                    DemoUrl = ObtenerUrlMaterial(proyecto.Materiales, "demo", "video", "enlace"),
+                    Criterios = CompletarCriterios(rankingProyecto?.Criterios ?? new()),
+                    Comentarios = comentarios,
+                    Evolucion = CrearEvolucion(posicion == 0 ? totalParticipantes : posicion, totalParticipantes)
+                });
+            }
+
+            eventosFiltro = proyectos
+                .GroupBy(p => new { p.EventoId, p.NombreEvento })
+                .Select(g => new EventoFiltroVm(g.Key.EventoId, g.Key.NombreEvento))
+                .OrderBy(e => e.Nombre)
+                .ToList();
+
+            eventosCompetidor = proyectos
+                .Select(p => new EventoCompetidorVm
+                {
+                    EventoId = p.EventoId,
+                    NombreEvento = p.NombreEvento,
+                    Fecha = p.FechaEvento,
+                    Estado = p.EventoActivo ? "Activo" : "Finalizado",
+                    PosicionObtenida = p.Posicion,
+                    Proyecto = p.NombreProyecto,
+                    Puntuacion = p.PuntuacionTotal,
+                    TotalParticipantes = p.TotalParticipantes
+                })
+                .OrderByDescending(e => e.Fecha)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            error = ex.InnerException?.Message ?? ex.Message;
+        }
+    }
+
+    private async Task<List<ComentarioCompetidorVm>> ObtenerComentariosProyecto(Guid proyectoId)
+    {
+        var votos = await contexto.Voto
+            .AsNoTracking()
+            .Include(v => v.Usuario)
+            .Include(v => v.VotosCriterio)
+                .ThenInclude(vc => vc.Criterio)
+            .Where(v => v.Id_proyecto == proyectoId)
+            .OrderByDescending(v => v.Fecha_voto)
+            .ToListAsync();
+
+        var comentarios = votos
+            .SelectMany(v => v.VotosCriterio
+                .Where(vc => !string.IsNullOrWhiteSpace(vc.Comentario))
+                .Select(vc => CrearComentario(v.Usuario?.Nombre, vc.Criterio?.Nombre, vc.Comentario!)))
+            .ToList();
+
+        comentarios.AddRange(votos
+            .Where(v => !string.IsNullOrWhiteSpace(v.Comentario))
+            .Select(v => CrearComentario(v.Usuario?.Nombre, "General", v.Comentario!)));
+
+        return comentarios;
+    }
+
+    private static ComentarioCompetidorVm CrearComentario(string? juez, string? criterio, string texto)
+    {
+        var nombreJuez = string.IsNullOrWhiteSpace(juez) ? "Juez" : juez;
+
+        return new ComentarioCompetidorVm
+        {
+            Juez = nombreJuez,
+            Inicial = nombreJuez[0].ToString().ToUpper(),
+            Criterio = string.IsNullOrWhiteSpace(criterio) ? "Criterio" : criterio,
+            Texto = texto
+        };
+    }
+
+    private static List<CriterioDashboardDTO> CompletarCriterios(List<CriterioDashboardDTO> criterios)
+    {
+        var nombresBase = new[] { "Creatividad", "Impacto", "Implementación", "UX", "Innovación", "Viabilidad" };
+        var resultado = criterios.ToList();
+
+        foreach (var nombre in nombresBase.Where(n => resultado.All(c => !string.Equals(c.Nombre, n, StringComparison.OrdinalIgnoreCase))))
+        {
+            resultado.Add(new CriterioDashboardDTO
+            {
+                Nombre = nombre,
+                Peso = 0,
+                PuntuacionMedia = 0
+            });
+        }
+
+        return resultado;
+    }
+
+    private static string? ObtenerUrlMaterial(IEnumerable<Material>? materiales, params string[] claves)
+    {
+        return materiales?
+            .FirstOrDefault(m => claves.Any(c =>
+                (m.Tipo?.Contains(c, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (m.Nombre?.Contains(c, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (m.Url?.Contains(c, StringComparison.OrdinalIgnoreCase) ?? false)))
+            ?.Url;
+    }
+
+    private static List<int> CrearEvolucion(int posicion, int total)
+    {
+        var baseValue = total <= 1 ? 90 : Math.Clamp(100 - ((posicion - 1) * 70 / total), 24, 92);
+        return new List<int>
+        {
+            Math.Clamp(baseValue - 18, 18, 92),
+            Math.Clamp(baseValue - 8, 18, 94),
+            Math.Clamp(baseValue + 6, 18, 96),
+            Math.Clamp(baseValue - 3, 18, 94),
+            Math.Clamp(baseValue + 10, 18, 98)
+        };
+    }
+
+    private static string GetMensajeRanking(ProyectoCompetidorVm proyecto)
+    {
+        if (proyecto.Posicion == 1)
+            return "Tu proyecto lidera actualmente este evento.";
+
+        return $"Estás a {proyecto.DiferenciaPrimerPuesto:0.##} puntos del primer puesto.";
+    }
+
+    private void ToggleEvento(Guid eventoId)
+    {
+        if (!eventosExpandidos.Add(eventoId))
+            eventosExpandidos.Remove(eventoId);
+    }
+
+    private class ProyectoCompetidorVm
+    {
+        public Guid ProyectoId { get; set; }
+        public Guid EventoId { get; set; }
+        public string NombreProyecto { get; set; } = "";
+        public string NombreEvento { get; set; } = "";
+        public DateTime FechaEvento { get; set; }
+        public bool EventoActivo { get; set; }
+        public int Posicion { get; set; }
+        public int TotalParticipantes { get; set; }
+        public decimal PuntuacionTotal { get; set; }
+        public decimal DiferenciaPrimerPuesto { get; set; }
+        public int TotalEvaluaciones { get; set; }
+        public string? RepositorioUrl { get; set; }
+        public string? DemoUrl { get; set; }
+        public List<CriterioDashboardDTO> Criterios { get; set; } = new();
+        public List<ComentarioCompetidorVm> Comentarios { get; set; } = new();
+        public List<int> Evolucion { get; set; } = new();
+    }
+
+    private record EventoFiltroVm(Guid Id, string Nombre);
+
+    private class ComentarioCompetidorVm
+    {
+        public string Juez { get; set; } = "";
+        public string Inicial { get; set; } = "";
+        public string Criterio { get; set; } = "";
+        public string Texto { get; set; } = "";
+    }
+
+    private class EventoCompetidorVm
+    {
+        public Guid EventoId { get; set; }
+        public string NombreEvento { get; set; } = "";
+        public DateTime Fecha { get; set; }
+        public string Estado { get; set; } = "";
+        public int PosicionObtenida { get; set; }
+        public string Proyecto { get; set; } = "";
+        public decimal Puntuacion { get; set; }
+        public int TotalParticipantes { get; set; }
+    }
+}
