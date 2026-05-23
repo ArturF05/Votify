@@ -99,7 +99,14 @@
           </div>
 
           <div class="card-content premios-dashboard-content">
-              @if (!string.IsNullOrWhiteSpace(mensajePremiosDashboard))
+              @if (!cargado)
+              {
+                  <div class="loading-box">
+                      <div class="spinner"></div>
+                      <p>Cargando premios...</p>
+                  </div>
+              }
+              else if (!string.IsNullOrWhiteSpace(mensajePremiosDashboard))
               {
                   <p class="voting-empty">@mensajePremiosDashboard</p>
               }
@@ -160,8 +167,14 @@
  
                 <div class="card-content">
                     <div class="voting-list">
- 
-                        @if (votaciones == null || !votaciones.Any(v =>
+                        @if (!cargado)
+                        {
+                            <div class="loading-box">
+                                <div class="spinner"></div>
+                                <p>Cargando votaciones...</p>
+                            </div>
+                        }
+                        else if (votaciones == null || !votaciones.Any(v =>
                             v.EstadoVotacion == EstadoVotacion.Abierta ||
                             v.EstadoVotacion == EstadoVotacion.Pausada ))
                         {
@@ -282,8 +295,14 @@
 
             <div class="card-content">
                 <div class="events-list">
-
-                    @if (eventos == null || !eventos.Any())
+                    @if (!cargado)
+                    {
+                        <div class="loading-box">
+                            <div class="spinner"></div>
+                            <p>Cargando eventos...</p>
+                        </div>
+                    }
+                    else if (eventos == null || !eventos.Any())
                     {
                         <p class="voting-empty">No hay eventos disponibles.</p>
                     }

@@ -429,13 +429,43 @@
         .textarea-comentario::placeholder {
             color: #8b93a1;
         }
+
+    .loading-box {
+        min-height: 180px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0.8rem;
+        color: #737373;
+        font-weight: 600;
+    }
+
+    .spinner-carga {
+        width: 40px;
+        height: 40px;
+        border: 5px solid #e5e7eb;
+        border-top-color: #f28c28;
+        border-radius: 50%;
+        animation: spinnerCarga 0.8s linear infinite;
+    }
+
+    @@keyframes spinnerCarga {
+        to {
+            transform: rotate(360deg);
+        }
+    }
 </style>
 <PageTitle>Votar proyectos - Votify </PageTitle>
 <div class="votacion-evento-page">
     @if (evento == null)
     {
         <div class="estado-card">
-            <label>Cargando proyectos...</label>
+            <div class="loading-box">
+                <div class="spinner-carga"></div>
+                <p>Cargando proyectos...</p>
+            </div>
         </div>
     }
     else if (evento.Proyectos == null || evento.Proyectos.Count == 0)

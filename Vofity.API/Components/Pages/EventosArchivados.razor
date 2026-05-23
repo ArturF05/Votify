@@ -29,24 +29,38 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var evento in eventos.Where(e => e.Archivado == true))
+                    @if (cargando)
                     {
                         <tr>
-                            <td>@evento.Nombre</td>
-                            <td>@evento.Categoria.Nombre</td>
-                            <td>@evento.FechaInicio</td>
-                            <td>@evento.FechaFin</td>
-                            <td>
-                                <button class="boton-secundario" @onclick='() => Desarchivar(evento.Id)'>
-                                    Desarchivar
-                                </button>
-                            </td>
-                            <td>
-                                <button class="boton-secundario boton-peligro" @onclick='() => Eliminar(evento.Id)'>
-                                    Eliminar
-                                </button>
+                            <td colspan="6">
+                                <div class="loading-box">
+                                    <div class="spinner"></div>
+                                    <p>Cargando eventos archivados...</p>
+                                </div>
                             </td>
                         </tr>
+                    }
+                    else
+                    {
+                        @foreach (var evento in eventos.Where(e => e.Archivado == true))
+                        {
+                            <tr>
+                                <td>@evento.Nombre</td>
+                                <td>@evento.Categoria.Nombre</td>
+                                <td>@evento.FechaInicio</td>
+                                <td>@evento.FechaFin</td>
+                                <td>
+                                    <button class="boton-secundario" @onclick='() => Desarchivar(evento.Id)'>
+                                        Desarchivar
+                                    </button>
+                                </td>
+                                <td>
+                                    <button class="boton-secundario boton-peligro" @onclick='() => Eliminar(evento.Id)'>
+                                        Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
@@ -69,11 +83,20 @@
 @code {
     List<Votify.Core.Entities.Evento> eventos = new();
     private string noHayArchivados = "";
+    private bool cargando = true;
 
     protected override async Task OnInitializedAsync()
     {
-        eventos = await contexto.Evento.AsNoTracking().Include(e => e.Categoria).ToListAsync();
+        cargando = true;
+
+        eventos = await contexto.Evento
+            .AsNoTracking()
+            .Include(e => e.Categoria)
+            .ToListAsync();
+
         HayEventos();
+
+        cargando = false;
     }
 
     private async Task Desarchivar(Guid eventoId)

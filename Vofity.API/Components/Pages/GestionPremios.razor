@@ -31,7 +31,12 @@
 
     @if (!cargado)
     {
-        <div class="estado-panel">Cargando premios...</div>
+        <div class="estado-panel">
+            <div class="loading-box">
+                <div class="spinner-carga"></div>
+                <p>Cargando premios...</p>
+            </div>
+        </div>
     }
     else if (!eventos.Any())
     {
