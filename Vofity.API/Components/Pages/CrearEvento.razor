@@ -8,6 +8,7 @@
 @using Votify.API.DTOs
 @using System.Net.Http.Json
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager nav
 @inject AppDbContext contexto
 @inject HttpClient Http
@@ -23,17 +24,38 @@
     <div class="form-evento">
         <div class="evento-header">
             <h3>Nuevo evento</h3>
+            <div class="plantillas-wrapper">
+                <button type="button" class="boton-accion-votacion @(plantillasGeneralesAbierto ? "activo" : "")"
+                        @onclick="TogglePlantillasGenerales">
+                    ☰ Plantillas evento
+                </button>
+                @if (plantillasGeneralesAbierto)
+                {
+                    <div class="plantillas-inline">
+                        @foreach (var pg in plantillasGenerales)
+                        {
+                            <button type="button" class="dropdown-item"
+                                    title="@GetTooltipGeneral(pg)"
+                                    @onclick="() => AplicarPlantillaGeneral(pg)">
+                                @pg.Nombre
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
         </div>
 
         <hr class="linea">
 
         <div class="campo campo-columna">
             <label>Nombre*:</label>
-            <input type="text" class="input-ancho" maxlength="@MaxNombre"
+            <div class="input-ancho">
+            <input type="text" maxlength="@MaxNombre"
                    value="@nombre"
                    @oninput="OnInputNombre"
                    placeholder="Nombre del evento..." />
             <span class="contador">@nombre.Length / @MaxNombre</span>
+            </div>
         </div>
         <div class="campo campo-columna">
             <label>Imagen del evento:</label>
@@ -83,69 +105,141 @@
 
             <div class="separador-criterios"></div>
 
-            <section class="bloque-criterios campo-completo">
-                <h3 class="titulo-criterios">Categorías de votación</h3>
-
-                <div class="criterio-formulario">
-                    <input type="text" placeholder="Nombre de categoría" maxlength="@MaxNombreCategoriaEvento"
-                           value="@nombreCategoriaEvento"
-                           @oninput="OnInputNombreCategoria"
-                           class="input-criterio" />
-                    <span class="contador">@nombreCategoriaEvento.Length / @MaxNombreCategoriaEvento</span>
-
-                    <button type="button" class="boton-principal" @onclick="GuardarCategoriaEvento">Añadir categoría</button>
+            <section class="bloque-criterios-ev campo-completo">
+                <h4 class="titulo-criterios">Añadir categoría</h4>
+                <div class="criterio-formulario-añadir">
+                    <div class="input-y-contador">
+                        <input type="text" placeholder="Nombre de categoría"
+                               maxlength="@MaxNombreCategoriaEvento"
+                               value="@nombreCategoriaEvento"
+                               @oninput="OnInputNombreCategoria"
+                               class="input-criterio" />
+                        <span class="contador">@nombreCategoriaEvento.Length / @MaxNombreCategoriaEvento</span>
+                    </div>
+                    <button type="button" class="boton-principal" @onclick="GuardarCategoriaEvento">
+                        Añadir categoría
+                    </button>
                 </div>
-
-                @foreach (var categoria in categoriasEvento)
-                {
-                    <div class="criterio-item">
-                        <div class="criterio-texto">
-                            <span class="criterio-nombre">@categoria.Nombre</span>
-                            @foreach (var criterio in categoria.Criterios)
-                            {
-                                <span class="criterio-descripcion">@criterio.Nombre - @criterio.Descripcion (@criterio.Peso%)</span>
-                            }
-                        </div>
-                        <div class="criterio-acciones">
-                            <button type="button" class="boton-secundario" @onclick="() => QuitarCategoriaEvento(categoria.Id)">Quitar</button>
-                        </div>
-                    </div>
-
-                    <div class="criterio-formulario">
-                        <input type="text" placeholder="Nombre criterio" maxlength="@MaxNombreCriterio"
-                               value="@nombreCriterio"
-                               @oninput="OnInputNombreCriterio"
-                               class="input-criterio" />
-                        <span class="contador">@nombreCriterio.Length / @MaxNombreCriterio</span>
-                        <input type="text" placeholder="Descripción" maxlength="@MaxDescripcionCriterio"
-                               value="@descripcionCriterio"
-                               @oninput="OnInputDescripcionCriterio"
-                               class="input-criterio" />
-                        <span class="contador">@descripcionCriterio.Length / @MaxDescripcionCriterio</span>
-                        <button type="button" class="boton-principal" @onclick="() => GuardarCriterioCategoria(categoria.Id)">Añadir criterio</button>
-                    </div>
-
-                    <div class="lista-criterios">
-                        @foreach (var criterio in categoria.Criterios)
+                <div class="separador-criterios"></div>
+                <div class="titulo-con-boton">
+                    <h4 class="titulo-criterios">Categorías de votación</h4>
+                    <div class="plantillas-wrapper">
+                        <button type="button" class="boton-accion-votacion @(plantillasCategoriasAbierto ? "activo" : "")"
+                                @onclick="TogglePlantillasCategorias">
+                            ☰ Plantillas categorías
+                        </button>
+                        @if (plantillasCategoriasAbierto)
                         {
-                            <div class="criterio-item">
-                                <div class="criterio-texto">
-                                    <span class="criterio-nombre">@criterio.Nombre</span>
-                                    <span class="criterio-descripcion">@criterio.Descripcion</span>
-                                </div>
-                                <div class="criterio-acciones">
-                                    <span class="criterio-descripcion">Peso (%):</span>
-                                    <input type="text" class="criterio-peso" @bind="criterio.Peso" />
-                                    <button type="button" class="boton-secundario" @onclick="() => QuitarCriterioCategoria(categoria.Id, criterio.Id)">Quitar</button>
-                                </div>
+                            <div class="plantillas-inline">
+                                @foreach (var pc in plantillasCategorias)
+                                {
+                                    <button type="button" class="dropdown-item"
+                                            title="@GetTooltipCategorias(pc)"
+                                            @onclick="() => AplicarPlantillaCategorias(pc)">
+                                        @pc.Nombre
+                                    </button>
+                                }
                             </div>
                         }
                     </div>
-                }
+                </div>
+                <div class="lista-criterios">
+                    @if (!categoriasEvento.Any())
+                    {
+                        <label>No se ha creado ninguna categoría para este evento</label>
+                    }
+                    @foreach (var categoria in categoriasEvento)
+                    {
+                        <div class="criterio-item criterio-item-categoria">
+                            <div class="criterio-texto">
+                                <span class="criterio-nombre">@categoria.Nombre</span>
+                            </div>
+                            <div class="criterio-acciones">
+                                <button type="button"
+                                        class="boton-accion-votacion @(criteriosCopiadosCategoria != null && idCategoriaCopiadaDe == categoria.Id ? "boton-accion-pegar" : "")"
+                                        @onclick="() => CopiarCriteriosCategoria(categoria.Id)">
+                                    @if (criteriosCopiadosCategoria == null)
+                                    {
+                                        <text>📄 Copiar criterios</text>
+                                    }
+                                    else if (idCategoriaCopiadaDe == categoria.Id)
+                                    {
+                                        <text>❌ Cancelar copia</text>
+                                    }
+                                    else
+                                    {
+                                        <text>📋 Pegar criterios</text>
+                                    }
+                                </button>
+                                <button type="button" class="boton-secundario"
+                                        @onclick="() => QuitarCategoriaEvento(categoria.Id)">
+                                    Quitar
+                                </button>
+                            </div>
+                        </div>
 
+                        <div class="lista-criterios lista-criterios-sangria">
+                            @foreach (var criterio in categoria.Criterios)
+                            {
+                                <div class="criterio-item">
+                                    <div class="criterio-texto">
+                                        <span class="criterio-nombre">@criterio.Nombre</span>
+                                        <span class="criterio-descripcion">@criterio.Descripcion</span>
+                                    </div>
+                                    <div class="criterio-acciones">
+                                        <span class="criterio-descripcion">Peso (%):</span>
+                                        <input type="number" class="criterio-peso" @bind="criterio.Peso" />
+                                        <button type="button" class="boton-secundario"
+                                                @onclick="() => QuitarCriterioCategoria(categoria.Id, criterio.Id)">
+                                            Quitar
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="separador-criterios"></div>
+                <h4 class="titulo-criterios">Crear nuevos criterios</h4>
+                <div class="criterio-formulario-ev-crear">
+                    <div class="criterio-fila-superior">
+                        <div class="criterio-campo">
+                            <label>Categoría:</label>
+                            <select @bind="idCategoriaNuevoCriterio" class="input-criterio">
+                                <option value="@Guid.Empty">Selecciona categoría</option>
+                                @foreach (var cat in categoriasEvento)
+                                {
+                                    <option value="@cat.Id">@cat.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="criterio-campo">
+                            <label>Nombre del criterio:</label>
+                            <input type="text" placeholder="Nombre criterio" class="input-criterio"
+                                   maxlength="@MaxNombreCriterio"
+                                   value="@nombreCriterio"
+                                   @oninput="OnInputNombreCriterio" />
+                            <span class="contador">@nombreCriterio.Length / @MaxNombreCriterio</span>
+                        </div>
+                    </div>
+                    <div class="criterio-campo">
+                        <label>Descripción del criterio:</label>
+                        <input type="text" placeholder="Descripción" class="input-criterio"
+                               maxlength="@MaxDescripcionCriterio"
+                               value="@descripcionCriterio"
+                               @oninput="OnInputDescripcionCriterio" />
+                        <span class="contador">@descripcionCriterio.Length / @MaxDescripcionCriterio</span>
+                    </div>
+                    <button type="button" class="boton-principal"
+                            @onclick="GuardarCriterioConSelector">
+                        Añadir
+                    </button>
+                </div>
                 <div><label style="color:red">@mensajeErrorCriterio</label></div>
             </section>
-
+            <div class="separador-criterios"></div>
+            <h4 class="titulo-criterios">Crear Votaciones</h4>
             @for(int index = 0; index<votaciones.Count; index++)
             {
                 int i = index;
@@ -155,17 +249,18 @@
                         <div class="votacion-acciones">
 
                             
-                            <div class="dropdown-wrapper">
-                                <button type="button" class="boton-accion-votacion"
+                            <div class="plantillas-wrapper">
+                                <button type="button" class="boton-accion-votacion @(plantillasAbierto == i ? "activo" : "")"
                                         @onclick="() => TogglePlantillas(i)">
-                                    ☰ Plantillas
+                                    ☰ Plantillas votación
                                 </button>
                                 @if (plantillasAbierto == i)
                                 {
-                                    <div class="dropdown-menu">
+                                    <div class="plantillas-inline">
                                         @foreach (var plantilla in plantillasDisponibles)
                                         {
                                             <button type="button" class="dropdown-item"
+                                                    title="@GetTooltipVotacion(plantilla)"
                                                     @onclick="() => AplicarPlantilla(i, plantilla)">
                                                 @plantilla.Nombre
                                             </button>
@@ -173,31 +268,25 @@
                                     </div>
                                 }
                             </div>
-
-                            
-                            <button type="button" class="boton-accion-votacion"
-                                    @onclick="() => DuplicarVotacion(i)"
-                                    disabled="@(votaciones.Count >= 3)">
-                                ⧉ Duplicar
-                            </button>
-
-                            
-                            <button type="button"
-                                    class="boton-accion-votacion @(criteriosCopiados != null ? "boton-accion-pegar" : "")"
-                                    @onclick="() => CopiarOPegarCriterios(i)">
-                                @(criteriosCopiados != null ? "📋 Pegar criterios" : "📄 Copiar criterios")
-                            </button>
-
                         </div>
                     </div>
-
-                    
-                    @if (criteriosCopiados != null && mensajeCopiadoDe != i)
-                    {
-                        <div class="aviso-criterios-copiados">
-                            Criterios copiados de Votación @(mensajeCopiadoDe + 1). Pulsa "Pegar criterios" en esta votación para aplicarlos.
-                        </div>
-                    }
+                    <div class="campo campo-columna campo-completo">
+                        <label>Categoría de la votación*:</label>
+                        <select @bind="votaciones[i].IdCategoriaVotacion"
+                                disabled="@(!categoriasEvento.Any())">
+                            <option value="@Guid.Empty">Todas las categorías</option>
+                            @foreach (var cat in categoriasEvento.OrderBy(c => c.Nombre))
+                            {
+                                <option value="@cat.Id">@cat.Nombre</option>
+                            }
+                        </select>
+                        @if (!categoriasEvento.Any())
+                        {
+                            <span style="color:#9ca3af; font-size:0.85rem;">
+                                Crea primero al menos una categoría de votación
+                            </span>
+                        }
+                    </div>
                     <label>Tipo de votación*:</label>
                     <div class="grupo-botones-votacion">
                         <button type="button"
@@ -255,39 +344,67 @@
                 <div class="campo campo-columna">
                     <label>Comentarios obligatorios*</label>
                     <select @bind="votaciones[i].ComentariosObligatorios" disabled="@(votaciones[i].PermiteComentarios ==0)" 
-                        title="@(votaciones[i].PermiteComentarios == 0 ? "No se puede modificar porque no se permiten comentarios": null)">>
+                        title="@(votaciones[i].PermiteComentarios == 0 ? "No se puede modificar porque no se permiten comentarios": null)">
                         <option value="0">No</option>
                         <option value="1">Sí</option>
                     </select>
                 </div>
                 <div class="grupo-botones-votacion">
-                    <button type="button" class="boton-votacion" @onclick='() => quitarVotacion(i)' disabled="@(votaciones.Count<=1)">Quitar votación</button>
+                    <button type="button" class="boton-duplicar-votacion"
+                            @onclick="() => DuplicarVotacion(i)"
+                            title="Añade una nueva votación a la lista con los mismos parámetros que esta">
+                        ⧉ Duplicar
+                    </button>
+                    <button type="button" class="boton-quitar-votacion" @onclick='() => quitarVotacion(i)' disabled="@(votaciones.Count <= 1)"
+                            title="@(votaciones.Count <= 1 ? "Un evento debe tener como mínimo una votación" : null)">
+                        Quitar votación
+                    </button>
                 </div>
-
+                @if (index != votaciones.Count -1)
+                {
+                    <div class="separador-votaciones"></div>
+                }
             }
             <div class="grupo-botones-votacion boton-add-votacion-wrapper">
-                <button type="button" class="boton-votacion" @onclick="otraVotacion" disabled="@(votaciones.Count >= 3)">Añadir votación</button>
+                <button type="button" class="boton-votacion" @onclick="otraVotacion">Añadir votación</button>
             </div>
 
             
 
     </div>
 
-        <div>
-            <div><label style="color:red">@mensaje</label></div>
-            <div><label style="color:red">@mensaje2</label></div>
-        </div>
-
         <div class="botones">
             <div class="grupo-botones">
                 <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar</button>
             </div>
-
-            <div class="grupo-botones">
+            <div class="zona-guardado">
+                @if (errorGuardado)
+                {
+                    <div class="mensaje-error-guardado">
+                        @if (!string.IsNullOrEmpty(mensaje))
+                        {
+                            <span>@mensaje</span>
+                        }
+                        @if (!string.IsNullOrEmpty(mensaje2))
+                        {
+                            <span>@mensaje2</span>
+                        }
+                        @if (!string.IsNullOrEmpty(mensajeErrorCriterio))
+                        {
+                            <span>@mensajeErrorCriterio</span>
+                        }
+                        @if (string.IsNullOrEmpty(mensaje) && string.IsNullOrEmpty(mensaje2) && string.IsNullOrEmpty(mensajeErrorCriterio))
+                        {
+                            <span>No se ha podido crear el evento porque faltan datos obligatorios o hay errores pendientes de resolver</span>
+                        }
+                    </div>
+                }
                 <button type="button" class="boton-principal" @onclick="GuardarEvento">Crear Evento</button>
             </div>
         </div>
     </div>
+    <NavigationLock ConfirmExternalNavigation="true"
+                    OnBeforeInternalNavigation="ConfirmarSalida" />
 </div>
 
            
@@ -298,6 +415,7 @@
     List<VotacionForm> votaciones = new();
     private string nombre = "";
     private Guid Id_categoria = new Guid("0d4e9ac5-56ee-4a5c-817e-ee78bf8a8ed9");
+    private Guid idCategoriaNuevoCriterio = Guid.Empty;
     private string descripcion = "";
     private string mensaje = "";
     private string mensaje2 = "";
@@ -323,57 +441,64 @@
     private const int MaxNombreCriterio = 50;
     private const int MaxDescripcionCriterio = 100;
 
+    private bool plantillasGeneralesAbierto = false;
+    private bool plantillasCategoriasAbierto = false;
     private int? plantillasAbierto = null; 
-    private List<CriterioCopiado>? criteriosCopiados = null;
-    private int mensajeCopiadoDe = -1; 
 
-    private List<PlantillaVotacion> plantillasDisponibles = new()
+    private bool errorGuardado = false;
+    private bool hayCambios = false;
+
+    private List<DimensionesDeValor>? criteriosCopiadosCategoria = null;
+    private Guid idCategoriaCopiadaDe = Guid.Empty;
+
+
+    private void AplicarPlantillaGeneral(PlantillaGeneral pg)
     {
-        new PlantillaVotacion
+        hayCambios = true;
+        tipo = pg.Tipo;
+        categoriasEvento.Clear();
+        foreach (var cat in pg.Categorias)
         {
-            Nombre = "Básica",
-            Tipo = TipoVotacion.Publico,
-            PermiteAutoVoto = 0,
-            VerRes = 1,
-            PermiteComentarios = 1,
-            ComentariosObligatorios = 0,
-            NumProy = 1,
-            Criterios = new List<CriterioCopiado>
-            {
-                new CriterioCopiado { Nombre = "Puntuación", Descripcion = "Valoración general del proyecto", Peso = 100 }
-            }
-        },
-        new PlantillaVotacion
-        {
-            Nombre = "Jurado estándar",
-            Tipo = TipoVotacion.Jurado,
-            PermiteAutoVoto = 0,
-            VerRes = 0,
-            PermiteComentarios = 1,
-            ComentariosObligatorios = 1,
-            NumProy = 3,
-            Criterios = new List<CriterioCopiado>
-            {
-                new CriterioCopiado { Nombre = "Innovación",   Descripcion = "Originalidad e impacto de la idea",   Peso = 40 },
-                new CriterioCopiado { Nombre = "Ejecución",    Descripcion = "Calidad técnica de la implementación", Peso = 40 },
-                new CriterioCopiado { Nombre = "Presentación", Descripcion = "Claridad y calidad de la presentación", Peso = 20 }
-            }
-        },
-        new PlantillaVotacion
-        {
-            Nombre = "Público abierto",
-            Tipo = TipoVotacion.Publico,
-            PermiteAutoVoto = 1,
-            VerRes = 1,
-            PermiteComentarios = 1,
-            ComentariosObligatorios = 0,
-            NumProy = 1,
-            Criterios = new List<CriterioCopiado>
-            {
-                new CriterioCopiado { Nombre = "Puntuación", Descripcion = "Valoración general del proyecto", Peso = 100 }
-            }
+            var nueva = new CategoriaEventoForm { Id = Guid.NewGuid(), Nombre = cat.Nombre };
+            foreach (var c in cat.Criterios)
+                nueva.Criterios.Add(new DimensionesDeValor
+                {
+                    Id = Guid.NewGuid(),
+                    Id_votacion = Guid.Empty,
+                    Id_categoria_evento = nueva.Id,
+                    Nombre = c.Nombre,
+                    Descripcion = c.Descripcion,
+                    Peso = c.Peso
+                });
+            categoriasEvento.Add(nueva);
         }
-    };
+        // Aplica también la votación predefinida en la primera ranura
+        if (votaciones.Any()) AplicarPlantilla(0, pg.Votacion);
+        plantillasGeneralesAbierto = false;
+    }
+
+    private void AplicarPlantillaCategorias(PlantillaCategorias pc)
+    {
+        hayCambios = true;
+        foreach (var cat in pc.Categorias)
+        {
+            if (categoriasEvento.Any(c => c.Nombre.Equals(cat.Nombre, StringComparison.OrdinalIgnoreCase)))
+                continue;
+            var nueva = new CategoriaEventoForm { Id = Guid.NewGuid(), Nombre = cat.Nombre };
+            foreach (var c in cat.Criterios)
+                nueva.Criterios.Add(new DimensionesDeValor
+                {
+                    Id = Guid.NewGuid(),
+                    Id_votacion = Guid.Empty,
+                    Id_categoria_evento = nueva.Id,
+                    Nombre = c.Nombre,
+                    Descripcion = c.Descripcion,
+                    Peso = c.Peso
+                });
+            categoriasEvento.Add(nueva);
+        }
+        plantillasCategoriasAbierto = false;
+    }
     protected override async Task OnInitializedAsync()
     {
         categorias = await contexto.Categoria.ToListAsync();
@@ -405,36 +530,56 @@
             .FirstOrDefaultAsync(u => u.Id == idUsuario);
         otraVotacion();
     }
-
+    private async Task ConfirmarSalida(LocationChangingContext context)
+    {
+        if (!hayCambios) return;
+        var confirmado = await JS.InvokeAsync<bool>("confirm",
+            "Tienes cambios sin guardar. ¿Seguro que quieres salir?");
+        if (!confirmado) context.PreventNavigation();
+    }
     private async Task Cancelar() => await JS.InvokeVoidAsync("history.back");
     private void OnInputNombre(ChangeEventArgs e)
     {
+        hayCambios = true;
         var val = e.Value?.ToString() ?? "";
         nombre = val.Length > MaxNombre ? val[..MaxNombre] : val;
     }
 
     private void OnInputDescripcion(ChangeEventArgs e)
     {
+        hayCambios = true;
         var val = e.Value?.ToString() ?? "";
         descripcion = val.Length > MaxDescripcion ? val[..MaxDescripcion] : val;
     }
 
     private void OnInputNombreCategoria(ChangeEventArgs e)
     {
+        hayCambios = true;
         var val = e.Value?.ToString() ?? "";
         nombreCategoriaEvento = val.Length > MaxNombreCategoriaEvento ? val[..MaxNombreCategoriaEvento] : val;
     }
 
     private void OnInputNombreCriterio(ChangeEventArgs e)
     {
+        hayCambios = true;
         var val = e.Value?.ToString() ?? "";
         nombreCriterio = val.Length > MaxNombreCriterio ? val[..MaxNombreCriterio] : val;
     }
 
     private void OnInputDescripcionCriterio(ChangeEventArgs e)
     {
+        hayCambios = true;
         var val = e.Value?.ToString() ?? "";
         descripcionCriterio = val.Length > MaxDescripcionCriterio ? val[..MaxDescripcionCriterio] : val;
+    }
+    private void GuardarCriterioConSelector()
+    {
+        if (idCategoriaNuevoCriterio == Guid.Empty)
+        {
+            mensajeErrorCriterio = "Selecciona la categoría del criterio";
+            return;
+        }
+        GuardarCriterioCategoria(idCategoriaNuevoCriterio);
     }
     void SeleccionarTipo(TipoVotacion tipo, int numeroVotacion)
     {
@@ -442,6 +587,7 @@
     }
     private void otraVotacion()
     {
+        hayCambios = true;
         votaciones.Add(new VotacionForm
         {
             Tipo = TipoVotacion.Publico,
@@ -456,55 +602,43 @@
     }
     private void quitarVotacion(int numeroVotacion)
     {
+        hayCambios = true;
         votaciones.RemoveAt(numeroVotacion);
-        if (mensajeCopiadoDe == numeroVotacion)
+        /*if (mensajeCopiadoDe == numeroVotacion)
         {
             criteriosCopiados = null;
             mensajeCopiadoDe = -1;
-        }
+            }*/
+    }
+    private void TogglePlantillasGenerales()
+    {
+        plantillasGeneralesAbierto = !plantillasGeneralesAbierto;
+        StateHasChanged();
+    }
+
+    private void TogglePlantillasCategorias()
+    {
+        plantillasCategoriasAbierto = !plantillasCategoriasAbierto;
+        StateHasChanged();
     }
     private void TogglePlantillas(int i)
     {
         plantillasAbierto = (plantillasAbierto == i) ? null : i;
+        StateHasChanged();
     }
     private void AplicarPlantilla(int i, PlantillaVotacion plantilla)
     {
+        hayCambios = true;
         votaciones[i].Tipo = plantilla.Tipo;
         votaciones[i].PermiteAutoVoto = plantilla.PermiteAutoVoto;
         votaciones[i].VerRes = plantilla.VerRes;
         votaciones[i].PermiteComentarios = plantilla.PermiteComentarios;
         votaciones[i].ComentariosObligatorios = plantilla.ComentariosObligatorios;
         votaciones[i].NumProy = plantilla.NumProy;
-
-        // Aplicar criterios de la plantilla a TODAS las categorías del evento
-        // (los criterios se asignan por categoria al crear; aquí los guardamos en
-        //  la primera categoría disponible si existe, igual que hace el formulario manual)
-        if (plantilla.Criterios.Any() && categoriasEvento.Any())
-        {
-            var primeraCategoria = categoriasEvento[0];
-            foreach (var c in plantilla.Criterios)
-            {
-                if (!primeraCategoria.Criterios.Any(x => x.Nombre == c.Nombre))
-                {
-                    primeraCategoria.Criterios.Add(new DimensionesDeValor
-                    {
-                        Id = Guid.NewGuid(),
-                        Id_votacion = Guid.Empty,
-                        Id_categoria_evento = primeraCategoria.Id,
-                        Nombre = c.Nombre,
-                        Descripcion = c.Descripcion,
-                        Peso = c.Peso
-                    });
-                }
-            }
-        }
-
         plantillasAbierto = null;
     }
     private void DuplicarVotacion(int i)
     {
-        if (votaciones.Count >= 3) return;
-
         var origen = votaciones[i];
         votaciones.Add(new VotacionForm
         {
@@ -518,47 +652,67 @@
             NumProy = origen.NumProy,
         });
     }
-    private void CopiarOPegarCriterios(int i)
-    {
-        if (criteriosCopiados == null)
-        {
-            // COPIAR: toma todos los criterios de todas las categorías del evento
-            criteriosCopiados = categoriasEvento
-                .SelectMany(cat => cat.Criterios.Select(c => new CriterioCopiado
-                {
-                    Nombre = c.Nombre,
-                    Descripcion = c.Descripcion,
-                    Peso = c.Peso,
-                    IdCategoria = cat.Id
-                }))
-                .ToList();
-            mensajeCopiadoDe = i;
-        }
-        else
-        {
-            // PEGAR: añade los criterios copiados a las categorías que los tengan en origen
-            foreach (var criterio in criteriosCopiados)
-            {
-                var catDestino = categoriasEvento.FirstOrDefault(c => c.Id == criterio.IdCategoria);
-                if (catDestino == null) continue;
-                if (catDestino.Criterios.Any(c => c.Nombre == criterio.Nombre)) continue;
 
-                catDestino.Criterios.Add(new DimensionesDeValor
+
+    private void CopiarCriteriosCategoria(Guid idCategoriaDestino)
+    {
+        var categoriaDestino = categoriasEvento
+            .FirstOrDefault(c => c.Id == idCategoriaDestino);
+
+        if (categoriaDestino == null)
+            return;
+
+        // Si todavía no hay nada copiado = copiar
+        if (criteriosCopiadosCategoria == null)
+        {
+            criteriosCopiadosCategoria = categoriaDestino.Criterios
+                .Select(c => new DimensionesDeValor
                 {
                     Id = Guid.NewGuid(),
                     Id_votacion = Guid.Empty,
-                    Id_categoria_evento = catDestino.Id,
-                    Nombre = criterio.Nombre,
-                    Descripcion = criterio.Descripcion,
-                    Peso = criterio.Peso
-                });
-            }
-            criteriosCopiados = null;
-            mensajeCopiadoDe = -1;
+                    Id_categoria_evento = categoriaDestino.Id,
+                    Nombre = c.Nombre,
+                    Descripcion = c.Descripcion,
+                    Peso = c.Peso
+                }).ToList();
+
+            idCategoriaCopiadaDe = idCategoriaDestino;
+            return;
         }
+
+        // Click sobre la misma categoría = cancelar copiado
+        if (idCategoriaCopiadaDe == idCategoriaDestino)
+        {
+            criteriosCopiadosCategoria = null;
+            idCategoriaCopiadaDe = Guid.Empty;
+            return;
+        }
+
+        // PEGAR
+        foreach (var c in criteriosCopiadosCategoria)
+        {
+            if (categoriaDestino.Criterios.Any(x =>
+                x.Nombre.Equals(c.Nombre, StringComparison.OrdinalIgnoreCase)))
+                continue;
+
+            categoriaDestino.Criterios.Add(new DimensionesDeValor
+            {
+                Id = Guid.NewGuid(),
+                Id_votacion = Guid.Empty,
+                Id_categoria_evento = categoriaDestino.Id,
+                Nombre = c.Nombre,
+                Descripcion = c.Descripcion,
+                Peso = c.Peso
+            });
+        }
+
+        criteriosCopiadosCategoria = null;
+        idCategoriaCopiadaDe = Guid.Empty;
+        hayCambios = true;
     }
     private void cambioPermiteComentarios(ChangeEventArgs e, int i)
     {
+        hayCambios = true;
         int nuevoValor = int.Parse(e.Value.ToString());
         votaciones[i].PermiteComentarios = nuevoValor;
         if (nuevoValor == 0) votaciones[i].ComentariosObligatorios = 0;
@@ -593,6 +747,7 @@
     }
     private async Task GuardarEvento()
     {
+        errorGuardado = false;
         try
         {
             mensaje = "";
@@ -609,6 +764,7 @@
             if (nombreVacio)
             {
                 mensaje = "El nombre del evento es obligatorio";
+                errorGuardado = true;
                 return;
             }
 
@@ -624,16 +780,17 @@
             if (nombreUsado)
             {
                 mensaje = "El nombre del evento ya está en uso";
+                errorGuardado = true;
                 return;
             }
 
             if (fin.CompareTo(inicio) <= 0)
             {
                 mensaje2 = "La fecha del fin del evento debe ser posterior a la fecha de inicio";
+                errorGuardado = true;
                 return;
             }
             bool franjaUsada = false;
-            bool tipoUsado = false;
             for (int i = 0; i < votaciones.Count; i++)
             {
                 for (int j = 0; j<votaciones.Count; j++)
@@ -641,32 +798,30 @@
                     if (j != i)
                     {
                         franjaUsada = (votaciones[i].Inicio < votaciones[j].Fin && votaciones[i].Fin > votaciones[j].Inicio) || franjaUsada;
-                        tipoUsado = (votaciones[i].Tipo == votaciones[j].Tipo) || tipoUsado;
                     }
                 }
                 if (votaciones[i].Inicio.CompareTo(inicio) < 0 || votaciones[i].Fin.CompareTo(fin) > 0)
                 {
                     mensaje = "La votación " +(i+1)+ " debe de realizarse durante el evento";
+                    errorGuardado = true;
                     return;
                 }
                 if (votaciones[i].Fin.CompareTo(votaciones[i].Inicio) <= 0)
                 {
                     mensaje2 = "El final de la votación "+ (i+1) + " debe ser posterior a su inicio";
+                    errorGuardado = true;
                     return;
                 }
                 if (franjaUsada)
                 {
                     mensaje = "No se permiten votaciones concurrentes en un mismo evento";
-                    return;
-                }
-                if (tipoUsado)
-                {
-                    mensaje = "Sólo se permite una votación por tipo en cada evento";
+                    errorGuardado = true;
                     return;
                 }
                 if (votaciones[i].NumProy <= 0)
                 {
                     mensaje = $"La votación {i + 1} debe permitir votar al menos 1 proyecto";
+                    errorGuardado = true;
                     return;
                 }
                 if (votaciones[i].PermiteComentarios == 0) votaciones[i].ComentariosObligatorios = 0;
@@ -675,24 +830,34 @@
             if (!categoriasEvento.Any())
             {
                 mensajeErrorCriterio = "Debes crear al menos una categoría de votación";
+                errorGuardado = true;
                 return;
             }
 
-            foreach (var categoria in categoriasEvento)
+            for (int i = 0; i < votaciones.Count; i++)
             {
-                if (!categoria.Criterios.Any())
-                {
-                    mensajeErrorCriterio = $"La categoría {categoria.Nombre} debe tener al menos un criterio";
-                    return;
-                }
+                var categoriasDeLaVotacion = categoriasEvento
+                    .Where(c => votaciones[i].IdCategoriaVotacion == Guid.Empty ||
+                                c.Id == votaciones[i].IdCategoriaVotacion)
+                    .ToList();
 
-                if (categoria.Criterios.Sum(c => c.Peso) != 100)
+                foreach (var categoria in categoriasDeLaVotacion)
                 {
-                    mensajeErrorCriterio = $"La suma de pesos de la categoría {categoria.Nombre} debe ser 100";
-                    return;
+                    if (!categoria.Criterios.Any())
+                    {
+                        mensajeErrorCriterio = $"La categoría {categoria.Nombre} (votación {i + 1}) debe tener al menos un criterio";
+                        errorGuardado = true;
+                        return;
+                    }
+                    if (categoria.Criterios.Sum(c => c.Peso) != 100)
+                    {
+                        mensajeErrorCriterio = $"La suma de pesos de la categoría {categoria.Nombre} (votación {i + 1}) debe ser 100";
+                        errorGuardado = true;
+                        return;
+                    }
                 }
             }
-            
+
             List<CrearVotacionDTOs> crearVotacionDTOs = new();
             for (int i = 0; i < votaciones.Count; i++)
             {
@@ -706,7 +871,12 @@
                     EstadoVotacion = EstadoVotacion.Cerrada,
                     PermiteComentarios = votaciones[i].PermiteComentarios == 1,
                     ComentariosObligatorios = votaciones[i].ComentariosObligatorios == 1,
-                    Criterios = categoriasEvento
+                    Id_categoria_evento = votaciones[i].IdCategoriaVotacion == Guid.Empty
+                        ? null
+                        : votaciones[i].IdCategoriaVotacion,
+                    Criterios = categoriasEvento.Where(categoria =>     
+                        votaciones[i].IdCategoriaVotacion == Guid.Empty ||
+                        categoria.Id == votaciones[i].IdCategoriaVotacion)
                         .SelectMany(categoria => categoria.Criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
                         {
                             Id = Guid.NewGuid(),
@@ -752,7 +922,8 @@
 
             if (responseEvento.IsSuccessStatusCode)
             {
-                nav.NavigateTo("/Evento");
+                hayCambios = false;
+                await JS.InvokeVoidAsync("history.back");
 
             }
             else
@@ -780,7 +951,7 @@
             mensajeErrorCriterio = "Ya existe una categoría con ese nombre";
             return;
         }
-
+        hayCambios = true;
         var nuevaCategoria = new CategoriaEventoForm
         {
             Id = Guid.NewGuid(),
@@ -794,6 +965,7 @@
 
     private void QuitarCategoriaEvento(Guid idCategoria)
     {
+        hayCambios = true;
         categoriasEvento.RemoveAll(c => c.Id == idCategoria);
     }
 
@@ -820,7 +992,7 @@
             mensajeErrorCriterio = "No se puede añadir el criterio: Ya existe un criterio con ese nombre en esta categoría";
             return;
         }
-
+        hayCambios = true;
         categoria.Criterios.Add(new DimensionesDeValor
             {
                 Id = Guid.NewGuid(),
@@ -840,10 +1012,370 @@
 
     private void QuitarCriterioCategoria(Guid idCategoria, Guid idCriterio)
     {
+        hayCambios = true;
         var categoria = categoriasEvento.FirstOrDefault(c => c.Id == idCategoria);
         categoria?.Criterios.RemoveAll(c => c.Id == idCriterio);
     }
+    private string GetTooltipGeneral(PlantillaGeneral pg)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"Tipo de evento: {pg.Tipo}");
+        sb.AppendLine($"Votación: {pg.Votacion.Tipo} | Autovoto: {(pg.Votacion.PermiteAutoVoto == 1 ? "Sí" : "No")} | Ver resultados en vivo: {(pg.Votacion.VerRes == 1 ? "Sí" : "No")}");
+        sb.AppendLine($"Comentarios: {(pg.Votacion.PermiteComentarios == 1 ? "Sí" : "No")} | Obligatorios: {(pg.Votacion.ComentariosObligatorios == 1 ? "Sí" : "No")} | Proyectos votables: {pg.Votacion.NumProy}");
+        foreach (var cat in pg.Categorias)
+        {
+            sb.AppendLine($"Categoría: {cat.Nombre}");
+            foreach (var c in cat.Criterios)
+                sb.AppendLine($"  · {c.Nombre} ({c.Peso}%): {c.Descripcion}");
+        }
+        return sb.ToString();
+    }
 
+    private string GetTooltipCategorias(PlantillaCategorias pc)
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var cat in pc.Categorias)
+        {
+            sb.AppendLine($"Categoría: {cat.Nombre}");
+            foreach (var c in cat.Criterios)
+                sb.AppendLine($"  · {c.Nombre} ({c.Peso}%): {c.Descripcion}");
+        }
+        return sb.ToString();
+    }
+
+    private string GetTooltipVotacion(PlantillaVotacion p)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"Tipo: {p.Tipo}");
+        sb.AppendLine($"Autovoto: {(p.PermiteAutoVoto == 1 ? "Sí" : "No")}");
+        sb.AppendLine($"Ver resultados en vivo: {(p.VerRes == 1 ? "Sí" : "No")}");
+        sb.AppendLine($"Comentarios: {(p.PermiteComentarios == 1 ? "Sí" : "No")} | Obligatorios: {(p.ComentariosObligatorios == 1 ? "Sí" : "No")}");
+        sb.AppendLine($"Proyectos votables: {p.NumProy}");
+        return sb.ToString();
+    }
+    private List<PlantillaVotacion> plantillasDisponibles = new()
+{
+    new PlantillaVotacion
+    {
+        Nombre = "Votación pública simple",
+        Tipo = TipoVotacion.Publico,
+        PermiteAutoVoto = 0,
+        VerRes = 1,
+        PermiteComentarios = 0,
+        ComentariosObligatorios = 0,
+        NumProy = 1
+    },
+    new PlantillaVotacion
+    {
+        Nombre = "Votación pública con comentarios",
+        Tipo = TipoVotacion.Publico,
+        PermiteAutoVoto = 0,
+        VerRes = 1,
+        PermiteComentarios = 1,
+        ComentariosObligatorios = 0,
+        NumProy = 1
+    },
+    new PlantillaVotacion
+    {
+        Nombre = "Jurado estándar",
+        Tipo = TipoVotacion.Jurado,
+        PermiteAutoVoto = 0,
+        VerRes = 0,
+        PermiteComentarios = 1,
+        ComentariosObligatorios = 1,
+        NumProy = 3
+    },
+    new PlantillaVotacion
+    {
+        Nombre = "Jurado abierto",
+        Tipo = TipoVotacion.Jurado,
+        PermiteAutoVoto = 0,
+        VerRes = 1,
+        PermiteComentarios = 1,
+        ComentariosObligatorios = 0,
+        NumProy = 3
+    },
+    new PlantillaVotacion
+    {
+        Nombre = "Mixta con autovoto",
+        Tipo = TipoVotacion.Mixto,
+        PermiteAutoVoto = 1,
+        VerRes = 1,
+        PermiteComentarios = 1,
+        ComentariosObligatorios = 0,
+        NumProy = 1
+    },
+    new PlantillaVotacion
+    {
+        Nombre = "Mixta sin autovoto",
+        Tipo = TipoVotacion.Mixto,
+        PermiteAutoVoto = 0,
+        VerRes = 0,
+        PermiteComentarios = 1,
+        ComentariosObligatorios = 1,
+        NumProy = 2
+    }
+};
+
+    private List<PlantillaGeneral> plantillasGenerales = new()
+{
+    new PlantillaGeneral
+    {
+        Nombre = "Hackathon estándar",
+        Tipo = "Hackathon",
+        Categorias = new List<CategoriaPlantilla>
+        {
+            new CategoriaPlantilla
+            {
+                Nombre = "General",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Innovación", Descripcion = "Originalidad de la idea", Peso = 40 },
+                    new CriterioCopiado { Nombre = "Ejecución", Descripcion = "Calidad técnica", Peso = 40 },
+                    new CriterioCopiado { Nombre = "Presentación", Descripcion = "Claridad expositiva", Peso = 20 }
+                }
+            }
+        },
+        Votacion = new PlantillaVotacion
+        {
+            Nombre = "Jurado estándar", Tipo = TipoVotacion.Jurado,
+            PermiteAutoVoto = 0, VerRes = 0,
+            PermiteComentarios = 1, ComentariosObligatorios = 1, NumProy = 3
+        }
+    },
+    new PlantillaGeneral
+    {
+        Nombre = "Hackathon con voto público",
+        Tipo = "Hackathon",
+        Categorias = new List<CategoriaPlantilla>
+        {
+            new CategoriaPlantilla
+            {
+                Nombre = "General",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Innovación", Descripcion = "Originalidad de la idea", Peso = 40 },
+                    new CriterioCopiado { Nombre = "Ejecución", Descripcion = "Calidad técnica", Peso = 40 },
+                    new CriterioCopiado { Nombre = "Presentación", Descripcion = "Claridad expositiva", Peso = 20 }
+                }
+            }
+        },
+        Votacion = new PlantillaVotacion
+        {
+            Nombre = "Votación pública simple", Tipo = TipoVotacion.Publico,
+            PermiteAutoVoto = 0, VerRes = 1,
+            PermiteComentarios = 0, ComentariosObligatorios = 0, NumProy = 1
+        }
+    },
+    new PlantillaGeneral
+    {
+        Nombre = "Hackathon mixto",
+        Tipo = "Hackathon",
+        Categorias = new List<CategoriaPlantilla>
+        {
+            new CategoriaPlantilla
+            {
+                Nombre = "General",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Innovación", Descripcion = "Originalidad de la idea", Peso = 40 },
+                    new CriterioCopiado { Nombre = "Ejecución", Descripcion = "Calidad técnica", Peso = 40 },
+                    new CriterioCopiado { Nombre = "Presentación", Descripcion = "Claridad expositiva", Peso = 20 }
+                }
+            }
+        },
+        Votacion = new PlantillaVotacion
+        {
+            Nombre = "Mixta sin autovoto", Tipo = TipoVotacion.Mixto,
+            PermiteAutoVoto = 0, VerRes = 0,
+            PermiteComentarios = 1, ComentariosObligatorios = 1, NumProy = 2
+        }
+    },
+    new PlantillaGeneral
+    {
+        Nombre = "Concurso público",
+        Tipo = "Concurso",
+        Categorias = new List<CategoriaPlantilla>
+        {
+            new CategoriaPlantilla
+            {
+                Nombre = "General",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Puntuación", Descripcion = "Valoración general", Peso = 100 }
+                }
+            }
+        },
+        Votacion = new PlantillaVotacion
+        {
+            Nombre = "Votación pública simple", Tipo = TipoVotacion.Publico,
+            PermiteAutoVoto = 0, VerRes = 1,
+            PermiteComentarios = 0, ComentariosObligatorios = 0, NumProy = 1
+        }
+    },
+    new PlantillaGeneral
+    {
+        Nombre = "Concurso con jurado",
+        Tipo = "Concurso",
+        Categorias = new List<CategoriaPlantilla>
+        {
+            new CategoriaPlantilla
+            {
+                Nombre = "General",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Puntuación", Descripcion = "Valoración general", Peso = 100 }
+                }
+            }
+        },
+        Votacion = new PlantillaVotacion
+        {
+            Nombre = "Jurado estándar", Tipo = TipoVotacion.Jurado,
+            PermiteAutoVoto = 0, VerRes = 0,
+            PermiteComentarios = 1, ComentariosObligatorios = 1, NumProy = 3
+        }
+    },
+    new PlantillaGeneral
+    {
+        Nombre = "Concurso mixto",
+        Tipo = "Concurso",
+        Categorias = new List<CategoriaPlantilla>
+        {
+            new CategoriaPlantilla
+            {
+                Nombre = "General",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Puntuación", Descripcion = "Valoración general", Peso = 100 }
+                }
+            }
+        },
+        Votacion = new PlantillaVotacion
+        {
+            Nombre = "Mixta sin autovoto", Tipo = TipoVotacion.Mixto,
+            PermiteAutoVoto = 0, VerRes = 0,
+            PermiteComentarios = 1, ComentariosObligatorios = 1, NumProy = 2
+        }
+    }
+};
+
+    private List<PlantillaCategorias> plantillasCategorias = new()
+{
+    new PlantillaCategorias
+    {
+        Nombre = "General básica",
+        Categorias = new List<CategoriaPlantilla>
+        {
+            new CategoriaPlantilla
+            {
+                Nombre = "General",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Puntuación", Descripcion = "Valoración general del proyecto", Peso = 100 }
+                }
+            }
+        }
+    },
+    new PlantillaCategorias
+    {
+        Nombre = "Diseño + Técnica",
+        Categorias = new List<CategoriaPlantilla>
+        {
+            new CategoriaPlantilla
+            {
+                Nombre = "Diseño",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Estética", Descripcion = "Calidad visual", Peso = 60 },
+                    new CriterioCopiado { Nombre = "Usabilidad", Descripcion = "Facilidad de uso", Peso = 40 }
+                }
+            },
+            new CategoriaPlantilla
+            {
+                Nombre = "Técnica",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Código", Descripcion = "Calidad del código", Peso = 50 },
+                    new CriterioCopiado { Nombre = "Rendimiento", Descripcion = "Velocidad y eficiencia", Peso = 50 }
+                }
+            }
+        }
+    },
+    new PlantillaCategorias
+    {
+        Nombre = "Innovación + Impacto",
+        Categorias = new List<CategoriaPlantilla>
+        {
+            new CategoriaPlantilla
+            {
+                Nombre = "Innovación",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Originalidad", Descripcion = "Novedad de la idea", Peso = 100 }
+                }
+            },
+            new CategoriaPlantilla
+            {
+                Nombre = "Impacto",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Alcance social", Descripcion = "Beneficio para la sociedad", Peso = 100 }
+                }
+            }
+        }
+    },
+    new PlantillaCategorias
+    {
+        Nombre = "Hackathon completa",
+        Categorias = new List<CategoriaPlantilla>
+        {
+            new CategoriaPlantilla
+            {
+                Nombre = "General",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Innovación", Descripcion = "Originalidad de la idea", Peso = 40 },
+                    new CriterioCopiado { Nombre = "Ejecución", Descripcion = "Calidad técnica", Peso = 40 },
+                    new CriterioCopiado { Nombre = "Presentación", Descripcion = "Claridad expositiva", Peso = 20 }
+                }
+            }
+        }
+    },
+    new PlantillaCategorias
+    {
+        Nombre = "Diseño + Técnica + Negocio",
+        Categorias = new List<CategoriaPlantilla>
+        {
+            new CategoriaPlantilla
+            {
+                Nombre = "Diseño",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Estética", Descripcion = "Calidad visual", Peso = 60 },
+                    new CriterioCopiado { Nombre = "Usabilidad", Descripcion = "Facilidad de uso", Peso = 40 }
+                }
+            },
+            new CategoriaPlantilla
+            {
+                Nombre = "Técnica",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Código", Descripcion = "Calidad del código", Peso = 50 },
+                    new CriterioCopiado { Nombre = "Rendimiento", Descripcion = "Velocidad y eficiencia", Peso = 50 }
+                }
+            },
+            new CategoriaPlantilla
+            {
+                Nombre = "Negocio",
+                Criterios = new List<CriterioCopiado>
+                {
+                    new CriterioCopiado { Nombre = "Viabilidad", Descripcion = "Viabilidad económica del proyecto", Peso = 50 },
+                    new CriterioCopiado { Nombre = "Escalabilidad", Descripcion = "Potencial de crecimiento", Peso = 50 }
+                }
+            }
+        }
+    }
+};
     class CategoriaEventoForm
     {
         public Guid Id { get; set; }
@@ -861,6 +1393,7 @@
         public int PermiteComentarios { get; set; }
         public int ComentariosObligatorios { get; set; }
         public int NumProy { get; set; } = 1;
+        public Guid IdCategoriaVotacion { get; set; } = Guid.Empty;
     }
     class CriterioCopiado
     {
@@ -879,5 +1412,24 @@
         public int ComentariosObligatorios { get; set; }
         public int NumProy { get; set; }
         public List<CriterioCopiado> Criterios { get; set; } = new();
+    }
+    class CategoriaPlantilla
+    {
+        public string Nombre { get; set; } = "";
+        public List<CriterioCopiado> Criterios { get; set; } = new();
+    }
+
+    class PlantillaGeneral
+    {
+        public string Nombre { get; set; } = "";
+        public string Tipo { get; set; } = "Hackathon";
+        public List<CategoriaPlantilla> Categorias { get; set; } = new();
+        public PlantillaVotacion Votacion { get; set; } = new();
+    }
+
+    class PlantillaCategorias
+    {
+        public string Nombre { get; set; } = "";
+        public List<CategoriaPlantilla> Categorias { get; set; } = new();
     }
 }

@@ -22,17 +22,35 @@
     }
 
     .campo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
         margin-bottom: 15px;
     }
+.campo-columna {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
 
+.campo label {
+    font-weight: 600;
+    font-size: 0.98rem;
+    color: #1f2937;
+}
+
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem 2rem;
+}
+
+.campo-completo {
+    grid-column: 1 / -1;
+}
 
 
         .campo input,
         .campo select {
-            max-width: 100%;
+            width: 100%;
             background-color: #f3f4f6;
             border: 2px solid transparent;
             border-radius: 18px;
@@ -62,11 +80,14 @@
     .labels {
         display: flex;
         gap: 40px;
-        margin-left: 40px;
         margin-bottom: 10px;
         flex-wrap: wrap;
     }
-
+        .labels label {
+            font-weight: 400;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
     .botones {
         margin-top: 1.8rem;
         display: flex;
@@ -241,23 +262,16 @@
         padding: 12px 14px;
     }
 
-    .criterio-texto {
-        display: flex;
-        align-items: baseline;
-        gap: 4px;
-        flex-wrap: wrap;
-    }
+.criterio-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
 
-    .criterio-nombre {
-        font-size: 1rem;
-        font-weight: 700;
-        color: #1f1f1f;
-    }
 
-    .criterio-descripcion {
-        font-size: 0.9rem;
-        color: #2d2d2d;
-    }
+
 
     .criterio-acciones {
         display: flex;
@@ -276,13 +290,25 @@
         padding: 6px 10px;
     }
 
-    .criterio-formulario {
-        display: grid;
-        grid-template-columns: 1fr 1fr auto;
-        gap: 12px;
-        align-items: center;
+.criterio-formulario {
+    display: flex;
+    flex-direction: column;
+    margin-top: 12px;
+}
+    .criterio-formulario .boton-principal {
+        align-self: flex-start;
     }
+.criterio-fila-superior {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
 
+.input-criterio-textarea {
+    min-height: 80px;
+    resize: vertical;
+    font-family: Arial, Helvetica, sans-serif;
+}
     .input-criterio {
         width: 100%;
         border: none;
@@ -298,7 +324,13 @@
         .input-criterio::placeholder {
             color: #8f8f95;
         }
-
+.contador {
+    color: #718096;
+    font-size: 0.78rem;
+    display: block;
+    margin-top: 3px;
+    text-align: right;
+}
     @media (max-width: 768px) {
         .campo {
             flex-direction: column;
@@ -436,53 +468,111 @@
     color: #8b95a1;
     font-size: 14px;
 }
-    }
+    
 
     .grupo-botones-estados {
         display: flex;
         gap: 12px;
-        margin: 14px 0 25px 0;
+        margin: 8px 0 16px 0;
         flex-wrap: wrap;
-        align-items: center;
     }
 
-    .boton-control {
-        border: none;
-        border-radius: 999px;
-        padding: 11px 20px;
-        font-size: 0.95rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
+.boton-control {
+    border: none;
+    border-radius: 12px;
+    width: 130px;
+    height: 48px;
+    padding: 11px 20px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, Helvetica, sans-serif;
+}
+        .boton-control-icono {
+            font-size: 1rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .boton-control span:last-child {
+            font-size: 0.88rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
 
         .boton-control.detener {
             background: linear-gradient(135deg, #f5a623 0%, #ff8c00 100%);
             color: white;
+            box-shadow: 0 4px 12px rgba(245, 166, 35, 0.3);
         }
 
         .boton-control.abrir,
         .boton-control.reanudar {
             background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
             color: white;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
         }
 
         .boton-control.cerrar {
             background: linear-gradient(135deg, #ff3b3b 0%, #ff1f3d 100%);
             color: white;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
         }
 
         .boton-control:hover:not(:disabled) {
             transform: translateY(-2px);
-            filter: brightness(1.05);
+            filter: brightness(1.08);
         }
 
         .boton-control:disabled {
-            opacity: 0.45;
+            opacity: 0.4;
             cursor: not-allowed;
             transform: none;
             filter: none;
+            box-shadow: none;
         }
+
+.criterio-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+    .criterio-campo label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+.labels {
+    display: flex;
+    gap: 16px;
+    font-size: 0.82rem;
+    color: #6b7280;
+    margin-top: 4px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.zona-guardado {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.6rem;
+}
+
+.mensaje-error-guardado {
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    max-width: 420px;
+    text-align: right;
+}

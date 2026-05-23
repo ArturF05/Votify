@@ -30,6 +30,7 @@
     padding: 2rem;
     border: 1px solid #f1ebe3;
     max-width: 1100px;
+    overflow: visible !important;
 }
 
 .evento-header h3 {
@@ -45,6 +46,8 @@
     border: none;
     border-radius: 999px;
     margin: 1.4rem 0 1.8rem;
+    position:relative;
+    z-index: -1;
 }
 
 .campo {
@@ -112,13 +115,14 @@
             box-shadow: none;
         }
 .input-ancho {
-    max-width: 440px;
+    max-width: 580px;
 }
 
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.4rem 2rem;
+    overflow: visible;
 }
 
 .campo-completo {
@@ -247,7 +251,13 @@
     background-color: #e7ddd4;
     margin: 28px 0 22px 0;
 }
-
+.separador-votaciones {
+    width: 100%;
+    height: 0.5px;
+    background-color: #e7ddd4;
+    margin: 28px 0 22px 0;
+    grid-column: 1 / -1;
+}
 .bloque-criterios {
     width: 100%;
 }
@@ -442,6 +452,11 @@
     transition: all 0.18s ease;
     white-space: nowrap;
 }
+    .boton-accion-votacion.activo {
+        background: #fff7ed;
+        border-color: #f28c28;
+        color: #f28c28;
+    }
 
     .boton-accion-votacion:hover:not(:disabled) {
         background: #f9fafb;
@@ -466,22 +481,6 @@
         color: white !important;
     }
 
-.dropdown-wrapper {
-    position: relative;
-}
-
-.dropdown-menu {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    z-index: 100;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
-    min-width: 200px;
-    overflow: hidden;
-}
 
 .dropdown-item {
     display: block;
@@ -515,3 +514,207 @@
     color: #92400e;
     margin-bottom: 0.75rem;
 }
+.bloque-criterios-ev {
+    border: 1px solid #f1ebe3;
+    border-radius: 14px;
+    padding: 1.25rem;
+    background: white;
+    margin-bottom: 1rem;
+    overflow:visible;
+}
+
+.criterio-item-categoria {
+    background-color: #fff7ed;
+    border: 1px solid #f5c18a;
+    border-left: 4px solid #f28c28;
+}
+
+.lista-criterios-sangria {
+    margin-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.criterio-formulario-ev-crear {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+    .criterio-formulario-ev-crear .boton-principal {
+        align-self: flex-start;
+    }
+
+.criterio-fila-superior {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+}
+
+.criterio-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+    .criterio-campo label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+.criterio-formulario-añadir {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    align-items: flex-start;
+}
+
+    .criterio-formulario-añadir .input-y-contador {
+        flex: 1;
+    }
+
+.input-y-contador {
+    display: flex;
+    flex-direction: column;
+}
+.evento-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.titulo-con-boton {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 18px;
+}
+
+    .titulo-con-boton .titulo-criterios {
+        margin-bottom: 0; 
+    }
+.votacion-acciones,
+.votacion-header,
+.titulo-con-boton,
+.evento-header,
+.form-grid,
+.form-evento,
+.bloque-criterios-ev {
+    overflow: visible;
+}
+.crear-evento-page,
+.form-evento,
+.form-grid,
+.evento-header,
+.votacion-header,
+.votacion-acciones,
+.titulo-con-boton,
+.bloque-criterios-ev {
+    overflow: visible !important;
+
+    -webkit-transform: translateZ(0); 
+}
+.plantillas-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.plantillas-inline {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    min-width: 200px;
+    overflow: hidden;
+}
+.zona-guardado {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.6rem;
+}
+
+.mensaje-error-guardado {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    max-width: 420px;
+    text-align: right;
+}
+.boton-duplicar-votacion {
+    background-color: #FFF7F0;
+    border: 1px solid #F2C9A5;
+    color: #7A4B21;
+    padding: 10px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+    min-width: 110px;
+    transition: all 0.2s ease;
+}
+
+    .boton-duplicar-votacion:hover {
+        background-color: #FFE8D1;
+        border-color: #F28C2F;
+        color: #C96A1B;
+    }
+
+    .boton-duplicar-votacion:active {
+        transform: scale(0.97);
+    }
+
+.boton-quitar-votacion {
+    background-color: #FFF5F5;
+    border: 1px solid #FECACA;
+    color: #991B1B;
+    padding: 10px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+    min-width: 110px;
+    transition: all 0.2s ease;
+}
+
+    .boton-quitar-votacion:hover {
+        background-color: #FEE2E2;
+        border-color: #EF4444;
+        color: #7F1D1D;
+    }
+
+    .boton-quitar-votacion:active {
+        transform: scale(0.97);
+    }
+
+    .boton-quitar-votacion:disabled {
+        background-color: #e5e7eb;
+        border-color: #d1d5db;
+        color: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+        .boton-quitar-votacion:disabled:hover {
+            background-color: #e5e7eb;
+            border-color: #d1d5db;
+            color: #9ca3af;
+        }

@@ -8,6 +8,7 @@
 @using Votify.API.DTOs
 @using System.Net.Http.Json
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Microsoft.AspNetCore.Components.Routing
 @inject ProtectedSessionStorage sessionStorage
 @inject NavigationManager nav
 @inject AppDbContext contexto
@@ -17,128 +18,151 @@
 <div class="form-evento">
     <h3>Editar votación</h3>
     <hr class="linea">
-    <div class="campo">
-        <label>Evento de la votación*: </label>
-        <select @bind="Id_evento" disabled>
-            <option value="@Guid.Empty"></option>
-            @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateTime.Now)>=0))
-            {
-                <option value="@evento.Id">@evento.Nombre</option>
-            }
-        </select>
-    </div>
-    <div class="labels">
-        <label>Inicio del evento: @inicioEvento    </label>
-        <label>Fin del evento: @finEvento</label>
-    </div>
-    <div class="campo">
-        <label>Categoría de la votación*:</label>
-        <select @bind="idCategoriaVotacion">
-            <option value="@Guid.Empty">Todas las categorías</option>
-            @foreach (var categoria in categoriasEvento)
-            {
-                <option value="@categoria.Id">@categoria.Nombre</option>
-            }
-        </select>
-    </div>
-    <hr>
-    <label>Tipo de votación*:</label>
-    <div class="grupo-botones-votacion">
-        <button type="button"
-        class="boton-votacion @(tipoVotacion == TipoVotacion.Publico ? "activo" : "")"
-        @onclick='() => SeleccionarTipo(TipoVotacion.Publico)'>
-            Público
-        </button>
+    <div class="form-grid">
+        <div class="campo campo-columna">
+            <label>Evento de la votación*: </label>
+            <select @bind="Id_evento" disabled title="No puedes modificar el evento al que pertenece una votación ya creada">
+                <option value="@Guid.Empty"></option>
+                @foreach (var evento in eventos.Where(e => e.FechaFin.CompareTo(DateTime.Now)>=0))
+                {
+                    <option value="@evento.Id">@evento.Nombre</option>
+                }
+            </select>
+            <div class="labels">
+                <label>Inicio del evento: @inicioEvento    </label>
+                <label>Fin del evento: @finEvento</label>
+            </div>
+        </div>
+        <div class="campo campo-columna">
+            <label>Categoría de la votación*:</label>
+            <select value="@idCategoriaVotacion"
+                    @onchange="CategoriaVotacionSeleccionada">
+                <option value="@Guid.Empty">Todas las categorías</option>
+                @foreach (var categoria in categoriasEvento.OrderBy(c=> c.Nombre))
+                {
+                    <option value="@categoria.Id">@categoria.Nombre</option>
+                }
+            </select>
+        </div>
+        <div class="campo campo-columna campo-completo">
+            <label> Estado Votacion: @estadoVotacion </label>
+            <div class="grupo-botones-estados">
+                <button type="button"
+                        class="boton-control abrir"
+                        disabled="@(estadoVotacion != EstadoVotacion.Cerrada)"
+                        title="@(estadoVotacion != EstadoVotacion.Cerrada ? "Solo se puede abrir una votación cerrada" : null)"
+                        @onclick='() => SeleccionarEstado(EstadoVotacion.Abierta)'>
+                    <span class="boton-control-icono">▷</span>
+                    Abrir
+                </button>
+                <button type="button"
+                        class="boton-control detener"
+                        disabled="@(estadoVotacion == EstadoVotacion.Pausada || estadoVotacion == EstadoVotacion.Cerrada)"
+                        title="@(estadoVotacion == EstadoVotacion.Pausada ? "La votación ya está pausada" : estadoVotacion == EstadoVotacion.Cerrada ? "No se puede pausar una votación cerrada" : null)"
+                        @onclick='() => SeleccionarEstado(EstadoVotacion.Pausada)'>
+                    <span class="boton-control-icono">⏸</span>
+                    Pausar
+                </button>
+                <button type="button"
+                        class="boton-control reanudar"
+                        disabled="@(estadoVotacion != EstadoVotacion.Pausada)"
+                        title="@(estadoVotacion != EstadoVotacion.Pausada ? "Solo se puede reanudar una votación pausada" : null)"
+                        @onclick='() => SeleccionarEstado(EstadoVotacion.Abierta)'>
+                    <span class="boton-control-icono">▷</span>
+                    Reanudar
+                </button>
+                <button type="button"
+                        class="boton-control cerrar"
+                        disabled="@(estadoVotacion == EstadoVotacion.Cerrada)"
+                        title="@(estadoVotacion == EstadoVotacion.Cerrada ? "La votación ya está cerrada" : null)"
+                        @onclick='() => SeleccionarEstado(EstadoVotacion.Cerrada)'>
+                    <span class="boton-control-icono">⊙</span>
+                    Cerrar
+                </button>
+            </div>
+        </div>
+        <div class="campo campo-columna campo-completo">
+            <label>Tipo de votación*:</label>
+            <div class="grupo-botones-votacion">
+                <button type="button"
+                class="boton-votacion @(tipoVotacion == TipoVotacion.Publico ? "activo" : "")"
+                @onclick='() => SeleccionarTipo(TipoVotacion.Publico)'>
+                    Público
+                </button>
 
-        <button type="button"
-        class="boton-votacion @(tipoVotacion == TipoVotacion.Jurado ? "activo" : "")"
-        @onclick='() => SeleccionarTipo(TipoVotacion.Jurado)'>
-            Jurado
-        </button>
+                <button type="button"
+                class="boton-votacion @(tipoVotacion == TipoVotacion.Jurado ? "activo" : "")"
+                @onclick='() => SeleccionarTipo(TipoVotacion.Jurado)'>
+                    Jurado
+                </button>
     
-        <button type="button"
-        class="boton-votacion @(tipoVotacion == TipoVotacion.Mixto ? "activo" : "")"
-        @onclick='() => SeleccionarTipo(TipoVotacion.Mixto)'>
-            Mixto
-        </button>
-    </div>
-    <label> Estado Votacion: @estadoVotacion </label>
-    <div class="grupo-botones-estados">
-        <button type="button"
-                class="boton-control abrir"
-                disabled="@(estadoVotacion != EstadoVotacion.Cerrada)"
-                @onclick='() => SeleccionarEstado(EstadoVotacion.Abierta)'>
-            ▷ Abrir
-        </button>
-        <button type="button"
-                class="boton-control detener"
-                disabled="@(estadoVotacion == EstadoVotacion.Pausada || estadoVotacion == EstadoVotacion.Cerrada)"
-                @onclick='() => SeleccionarEstado(EstadoVotacion.Pausada)'>
-            ⏸ Pausar
-        </button>
-        <button type="button"
-                class="boton-control reanudar"
-                disabled="@(estadoVotacion != EstadoVotacion.Pausada)"
-                @onclick='() => SeleccionarEstado(EstadoVotacion.Abierta)'>
-            ▷ Reanudar
-        </button>
-        <button type="button"
-                class="boton-control cerrar"
-                disabled="@(estadoVotacion == EstadoVotacion.Cerrada)"
-                @onclick='() => SeleccionarEstado(EstadoVotacion.Cerrada)'>
-            ⊙ Cerrar
-        </button>
-    </div>
-    <div class="campo">
-        <label>Permitir Autovoto*:</label>
-        <select @onchange="cambioPermiteAutoVoto">
-            <option value="1">Sí</option>
-            <option value="0">No</option>
-        </select>
-    </div>
-    <div class="campo campo-columna">
-        <label>Permitir ver resultados en vivo*:</label>
-        <select @bind="verRes">
-            <option value="1">Sí</option>
-            <option value="0">No</option>
-        </select>
-    </div>
-    <div class="campo">
-        <label>Inicio de la votación*:</label>
-        <input type="datetime-local" @bind-value="inicioVotacion" @bind-value:event="onchange" disabled="@(inicioVotacion < DateTime.Now)" 
-               title='@(inicioVotacion < DateTime.Now
-                        ? "No se puede modificar el inicio de una votación en curso"
-                        : null)'/>
-    </div>
-    <div class="campo">
-        <label>Fin de la votación*:</label>
-        <input type="datetime-local" @bind-value="finVotacion" @bind-value:event="onchange" />
-    </div>
-    <div class="campo campo-columna">
-        <label>Número de proyectos votables*:</label>
-        <input type="number" min=1 value="@NumProy" @onchange="cambioNumProy" />
-    </div>
-    <div class="campo">
-        <label>Permitir Comentarios*:</label>
-        <select value="@permiteComentarios" @onchange="cambioPermiteComentarios">
-            <option value="1">Sí</option>
-            <option value="0">No</option>
-        </select>
-    </div>
-    <div class="campo campo-columna">
-        <label>Comentarios Obligatorios*:</label>
-        <select value="@comentariosObligatorios" @onchange="cambioComentariosObligatorios" disabled="@(permiteComentarios == 0)"
-                title="@(permiteComentarios == 0 ? "No se puede modificar porque no se permiten comentarios" : null)">
-            <option value="0">No</option>
-            <option value="1">Sí</option>
-        </select>
+                <button type="button"
+                class="boton-votacion @(tipoVotacion == TipoVotacion.Mixto ? "activo" : "")"
+                @onclick='() => SeleccionarTipo(TipoVotacion.Mixto)'>
+                    Mixto
+                </button>
+            </div>
+        </div>
+        <div class="campo campo-columna">
+            <label>Permitir Autovoto*:</label>
+            <select @onchange="cambioPermiteAutoVoto">
+                <option value="1">Sí</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        <div class="campo campo-columna">
+            <label>Permitir ver resultados en vivo*:</label>
+            <select @bind="verRes">
+                <option value="1">Sí</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        <div class="campo campo-columna">
+            <label>Inicio de la votación*:</label>
+            <input type="datetime-local" @bind-value="inicioVotacion" @bind-value:event="onchange" disabled="@(inicioVotacion < DateTime.Now)" 
+                   title='@(inicioVotacion < DateTime.Now
+                            ? "No se puede modificar el inicio de una votación en curso"
+                            : null)'/>
+        </div>
+        <div class="campo campo-columna">
+            <label>Fin de la votación*:</label>
+            <input type="datetime-local" @bind-value="finVotacion" @bind-value:event="onchange" />
+        </div>
+        <div class="campo campo-columna">
+            <label>Número de proyectos votables*:</label>
+            <input type="number" min=1 value="@NumProy" @onchange="cambioNumProy" />
+        </div>
+        <div class="campo campo-columna">
+            <label>Permitir Comentarios*:</label>
+            <select value="@permiteComentarios" @onchange="cambioPermiteComentarios">
+                <option value="1">Sí</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        <div class="campo campo-columna">
+            <label>Comentarios Obligatorios*:</label>
+            <select value="@comentariosObligatorios" @onchange="cambioComentariosObligatorios" disabled="@(permiteComentarios == 0)"
+                    title="@(permiteComentarios == 0 ? "No se puede modificar porque no se permiten comentarios" : null)">
+                <option value="0">No</option>
+                <option value="1">Sí</option>
+            </select>
+        </div>
     </div>
     <div class="errores">
-        <div><label style="color:red">@mensaje5</label></div>
-        <div><label style="color:red">@mensaje3</label></div>
-        <div><label style="color:red">@mensaje4</label></div>
-        <div><label style="color:red">@mensaje</label></div>
-        <div><label style="color:red">@mensaje2</label></div>
+        @{
+            var mensajesActivos = new[] { mensaje5, mensaje3, mensaje4, mensaje, mensaje2, mensaje6 }
+                .Where(m => !string.IsNullOrEmpty(m))
+                .ToList();
+        }
+        @if (mensajesActivos.Any())
+        {
+            <div class="errores">
+                @foreach (var msg in mensajesActivos)
+                {
+                    <label style="color:red">@msg</label>
+                }
+            </div>
+        }
     </div>
 
     <div class="separador-criterios"></div>
@@ -146,54 +170,77 @@
     <section class="bloque-criterios">
         <h3 class="titulo-criterios">Criterios</h3>
 
-        @foreach (var categoria in categoriasEvento.Where(c => idCategoriaVotacion == Guid.Empty || c.Id == idCategoriaVotacion))
+        @foreach (var categoria in categoriasEvento.Where(c => idCategoriaVotacion == Guid.Empty || c.Id == idCategoriaVotacion).OrderBy(c=> c.Nombre))
         {
             <h4>@categoria.Nombre</h4>
             <div class="lista-criterios">
-            @foreach (var c in criterios.Where(c => c.Id_categoria_evento == categoria.Id))
-            {
-                <div class="criterio-item">
-                    <div class="criterio-texto">
-                        <input type="text" class="input-criterio" placeholder="Nombre" maxlength="@MaxNombreCriterio"
-                            value="@c.Nombre"
-                            @oninput="OnInputNombreCriterio"  />
-                            <span class="contador">@c.Nombre.Length / @MaxNombreCriterio</span>
-                        <input type="text" class="input-criterio"placeholder="Descripción" maxlength="@MaxDescripcionCriterio"
-                            value="@c.Descripcion"
-                            @oninput="OnInputDescripcionCriterio"/>
-                            <span class="contador">@c.Descripcion.Length / @MaxNombreCriterio</span>
-                    </div>
+            @{var auxiliar = criterios.Where(c => c.Id_categoria_evento == categoria.Id);}
+            @if(auxiliar.Any()){
+                    @foreach (var c in criterios.Where(c => c.Id_categoria_evento == categoria.Id).OrderBy(c=> c.Nombre))
+                    {
+                        <div class="criterio-item">
+                            <div class="criterio-texto">
+                                <div class="criterio-campo">
+                                <label>Nombre del criterio</label>
+                                <input type="text" class="input-criterio" placeholder="Nombre" maxlength="@MaxNombreCriterio"
+                                       value="@c.Nombre"
+                                       @oninput='e => c.Nombre = e.Value?.ToString()?.Length > MaxNombreCriterio ? e.Value.ToString()[..MaxNombreCriterio] : e.Value?.ToString() ?? ""' />
+                                    <span class="contador">@c.Nombre.Length / @MaxNombreCriterio</span>
+                                </div>
+                                <div class="criterio-campo">
+                                    <label>Descripción del criterio</label>
+                                <input type="text" class="input-criterio" placeholder="Descripción" maxlength="@MaxDescripcionCriterio"
+                                       value="@c.Descripcion"
+                                           @oninput='e => c.Descripcion = e.Value?.ToString()?.Length > MaxDescripcionCriterio ? e.Value.ToString()[..MaxDescripcionCriterio] : e.Value?.ToString() ?? ""' />
+                                <span class="contador">@c.Descripcion.Length / @MaxDescripcionCriterio</span>
+                                </div>
+                            </div>
 
-                    <div class="criterio-acciones">
-                        <span class="criterio-descripcion">Peso (%):</span>
-                        <input type="text" class="criterio-peso" @bind="c.Peso" />
-                        <button type="button" class="boton-secundario" @onclick='() => QuitarCriterio(c.Id)'>Quitar</button>
-                    </div>
-                </div>
+                            <div class="criterio-acciones">
+                                <span class="criterio-descripcion">Peso (%):</span>
+                                <input type="text" class="criterio-peso" @bind="c.Peso" />
+                                <button type="button" class="boton-secundario" @onclick='() => QuitarCriterio(c.Id)'>Quitar</button>
+                            </div>
+                        </div>
+                    }
+            } else{
+                <label>No hay criterios de votación para esta categoría</label>
             }
+            
             </div>
         }
 
         <div><label style="color:black">@mensajeNoCriterio</label></div>
-
+        <div class="separador-criterios"></div>
+        <h4 class="titulo-criterios">Crear nuevos criterios</h4>
         <div class="criterio-formulario">
-            <select @bind="idCategoriaCriterio" class="input-criterio">
-                <option value="@Guid.Empty">Selecciona categoría</option>
-                @foreach (var categoria in categoriasEvento)
-                {
-                    <option value="@categoria.Id">@categoria.Nombre</option>
-                }
-            </select>
-            <input type="text" placeholder="Nombre criterio" class="input-criterio" maxlength="@MaxNombreCriterio"
-                   value="@nombreCriterio"
-                   @oninput="OnInputNombreCriterio" />
-            <span class="contador">@nombreCriterio.Length / @MaxNombreCriterio</span>
+            <div class="criterio-fila-superior">
+                <div class="criterio-campo">
+                    <label>Categoría:</label>
+                    <select @bind="idCategoriaCriterio" class="input-criterio">
+                        <option value="@Guid.Empty">Selecciona categoría</option>
+                        @foreach (var categoria in categoriasEvento.Where(c => idCategoriaVotacion == Guid.Empty || c.Id == idCategoriaVotacion).OrderBy(c=> c.Nombre))
+                        {
+                            <option value="@categoria.Id">@categoria.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="criterio-campo">
+                    <label>Nombre del criterio:</label>
+                    <input type="text" placeholder="Nombre criterio" class="input-criterio" maxlength="@MaxNombreCriterio"
+                           value="@nombreCriterio"
+                           @oninput="OnInputNombreCriterio" />
+                    <span class="contador">@nombreCriterio.Length / @MaxNombreCriterio</span>
+                </div>
+            </div>
+            <div class="criterio-campo">
+            <label>Descripción del criterio:</label>
             <input type="text" placeholder="Descripción" maxlength="@MaxDescripcionCriterio"
                    value="@descripcionCriterio"
                    @oninput="OnInputDescripcionCriterio"
                    class="input-criterio" />
             <span class="contador">@descripcionCriterio.Length / @MaxDescripcionCriterio</span>
-
+            </div>
             <button type="button" class="boton-principal" @onclick="GuardarCriterio" >Añadir</button>
         </div>
 
@@ -202,9 +249,40 @@
         </div>
 
     </section>
+    @if (idCategoriaVotacion == Guid.Empty)
+    {
+        <div class="separador-criterios"></div>
+        <div class="bloque-criterios">
+            <h4 class="titulo-criterios">Añadir categoría de votación</h4>
 
+            <div class="criterio-formulario">
+                <div class="criterio-campo">
+                    <input type="text"
+                           placeholder="Nombre de categoría"
+                           maxlength="@MaxNombreCategoriaEvento"
+                           value="@nombreNuevaCategoria"
+                           @oninput="OnInputNombreCategoria"
+                           class="input-criterio" />
+
+                    <span class="contador">
+                        @nombreNuevaCategoria.Length / @MaxNombreCategoriaEvento
+                    </span>
+                </div>
+
+                <button type="button"
+                        class="boton-principal"
+                        @onclick="AnadirCategoriaEvento">
+                    Añadir categoría
+                </button>
+            </div>
+
+            <label style="color:red">@mensajeCategoria</label>
+        </div>
+    }
+    <div class="separador-criterios"></div>
     @if (tipoVotacion != TipoVotacion.Publico)
     {
+        <h3 class="titulo-criterios">Seleccionar Jurado</h3>
         <div class="jurado-section">
             <div class="jurado-column">
                 <h3>Usuarios disponibles</h3>
@@ -245,7 +323,7 @@
                     }
                     else
                     {
-                        @foreach (var usuario in juradoSeleccionado)
+                        @foreach (var usuario in juradoSeleccionado.OrderBy(u => u.Nombre))
                         {
                             <div class="fila-jurado">
                                 <span>@usuario.Nombre</span>
@@ -268,16 +346,18 @@
             <button type="button" class="boton-secundario" @onclick="Cancelar">Cancelar</button>
             <button type="button" class="boton-secundario boton-peligro" @onclick="ConfirmarEliminar">Eliminar Votación</button>
         </div>
-        <div>
+        <div class="zona-guardado">
+            @if (errorGuardado)
+            {
+                <div class="mensaje-error-guardado">
+                    No se ha podido guardar la votación porque faltan datos obligatorios o hay errores pendientes de resolver
+                </div>
+            }
             <button type="button" class="boton-principal" @onclick="GuardarVotacion">Guardar Cambios</button>
         </div>
     </div>
-    @if (!string.IsNullOrEmpty(debugInfo))
-    {
-        <div style="background:#fff3cd; padding:10px; border-radius:8px; margin-bottom:10px;">
-            @debugInfo
-        </div>
-    }
+    <NavigationLock ConfirmExternalNavigation="true"
+                    OnBeforeInternalNavigation="ConfirmarSalida" />
 </div>
 
 @code {
@@ -286,7 +366,6 @@
     private const int MaxDescripcionCriterio = 100;
     [Parameter]
     public Guid id { get; set; }
-    private string debugInfo = "";
     private Votify.Core.Entities.Votacion votacion;
     private int NumProy = 0;
     private int permiteAutoVoto = 1;
@@ -309,11 +388,12 @@
     private string mensaje4 = "";
     private string mensaje5 = "";
     private string mensaje6 = "";
-
     private string mensajeErrorCriterio = "";
     private string mensajeNoCriterio = "";
     private string nombreCriterio = "";
     private string descripcionCriterio = "";
+    private string nombreNuevaCategoria = "";
+    private string mensajeCategoria = "";
     private int pesoCriterio = 0;
     private Guid idCategoriaCriterio = Guid.Empty;
     private EstadoVotacion estadoVotacion=0;
@@ -322,19 +402,19 @@
     List<Votify.Core.Entities.DimensionesDeValor> criterios = new();
     List<Votify.Core.Entities.CategoriaEvento> categoriasEvento = new();
     private Votify.Core.Entities.Evento? evento;
-    private Guid idUsuarioActual = Guid.Empty;
     private int verRes = 1;
     private string busquedaUsuario = "";
+    private bool hayCambios = false;
 
     private List<Usuario> usuariosDisponibles = new();
     private List<Usuario> juradoSeleccionado = new();
-
+    private bool errorGuardado = false;
     private List<Usuario> UsuariosDisponiblesFiltrados =>
         usuariosDisponibles
             .Where(u => !juradoSeleccionado.Any(j => j.Id == u.Id))
             .Where(u =>
                 string.IsNullOrWhiteSpace(busquedaUsuario)
-                || (u.Nombre ?? "").Contains(busquedaUsuario, StringComparison.OrdinalIgnoreCase))
+                || (u.Nombre ?? "").Contains(busquedaUsuario, StringComparison.OrdinalIgnoreCase)).OrderBy(u => u.Nombre)
             .ToList();
 
     protected override async Task OnInitializedAsync()
@@ -420,113 +500,166 @@
         inicioEvento = evento.FechaInicio;
         finEvento = evento.FechaFin;
     }
-    /* private void OnInputNombreCategoria(ChangeEventArgs e)
+    private async Task ConfirmarSalida(LocationChangingContext context)
     {
+        if (!hayCambios) return;
+        var confirmado = await JS.InvokeAsync<bool>("confirm",
+            "Tienes cambios sin guardar. ¿Seguro que quieres salir?");
+        if (!confirmado) context.PreventNavigation();
+    }
+    private void CategoriaVotacionSeleccionada(ChangeEventArgs e)
+    {
+        hayCambios = true;
+        if (Guid.TryParse(e.Value?.ToString(), out var idCategoria))
+        {
+            idCategoriaVotacion = idCategoria;
+        }
+        else
+        {
+            idCategoriaVotacion = Guid.Empty;
+        }
+
+        mensajeErrorCriterio = "";
+    }
+    private void OnInputNombreCategoria(ChangeEventArgs e)
+    {
+        hayCambios = true;
         var val = e.Value?.ToString() ?? "";
-    nombreCategoriaEvento = val.Length > MaxNombreCategoriaEvento ? val[..MaxNombreCategoriaEvento] : val;
-    }*/
+        nombreNuevaCategoria = val.Length > MaxNombreCategoriaEvento ? val[..MaxNombreCategoriaEvento] : val;
+    }
 
     private void OnInputNombreCriterio(ChangeEventArgs e)
     {
-    var val = e.Value?.ToString() ?? "";
-    nombreCriterio = val.Length > MaxNombreCriterio ? val[..MaxNombreCriterio] : val;
+        hayCambios = true;
+        var val = e.Value?.ToString() ?? "";
+        nombreCriterio = val.Length > MaxNombreCriterio ? val[..MaxNombreCriterio] : val;
     }
 
     private void OnInputDescripcionCriterio(ChangeEventArgs e)
     {
-    var val = e.Value?.ToString() ?? "";
-    descripcionCriterio = val.Length > MaxDescripcionCriterio ? val[..MaxDescripcionCriterio] : val;
+        hayCambios = true;
+        var val = e.Value?.ToString() ?? "";
+        descripcionCriterio = val.Length > MaxDescripcionCriterio ? val[..MaxDescripcionCriterio] : val;
     }
     private void cambioNumProy(ChangeEventArgs e)
     {
-    int nuevoValor = int.Parse(e.Value.ToString());
-    if ((numProyAUX != nuevoValor)) mensaje6 = "Atención, el cambio en el número de proyectos votables no es retroactivo";
-    else mensaje6 = "";
-    NumProy = nuevoValor;
+        hayCambios = true;
+        int nuevoValor = int.Parse(e.Value.ToString());
+        if ((numProyAUX != nuevoValor)) mensaje6 = "Atención, el cambio en el número de proyectos votables no es retroactivo";
+        else mensaje6 = "";
+        NumProy = nuevoValor;
     }
     private void cambioPermiteAutoVoto(ChangeEventArgs e)
     {
-    int nuevoValor = int.Parse(e.Value.ToString());
-    if ((permiteAutoVotoAUX != nuevoValor)) mensaje5 = "Atención, el cambio en permitir autovoto no es retroactivo";
-    else mensaje5 = "";
-    permiteAutoVoto = nuevoValor;
+        hayCambios = true;
+        int nuevoValor = int.Parse(e.Value.ToString());
+        if ((permiteAutoVotoAUX != nuevoValor)) mensaje5 = "Atención, el cambio en permitir autovoto no es retroactivo";
+        else mensaje5 = "";
+        permiteAutoVoto = nuevoValor;
     }
     private static TimeZoneInfo ZonaEspaña()
     {
-    try
-    {
-        return TimeZoneInfo.FindSystemTimeZoneById("Europe/Madrid");
-    }
-    catch
-    {
-        return TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time");
-    }
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("Europe/Madrid");
+        }
+        catch
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time");
+        }
     }
 
     private static DateTime UtcFromDbToLocal(DateTime utc)
     {
-    var zona = ZonaEspaña();
+        var zona = ZonaEspaña();
 
-    return TimeZoneInfo.ConvertTimeFromUtc(
-        DateTime.SpecifyKind(utc, DateTimeKind.Utc),
-        zona
-    );
+        return TimeZoneInfo.ConvertTimeFromUtc(
+            DateTime.SpecifyKind(utc, DateTimeKind.Utc),
+            zona
+        );
     }
 
     private static DateTime LocalInputToUtc(DateTime local)
     {
-    var zona = ZonaEspaña();
+        var zona = ZonaEspaña();
 
-    return TimeZoneInfo.ConvertTimeToUtc(
-        DateTime.SpecifyKind(local, DateTimeKind.Unspecified),
-        zona
-    );
+        return TimeZoneInfo.ConvertTimeToUtc(
+            DateTime.SpecifyKind(local, DateTimeKind.Unspecified),
+            zona
+        );
     }
     private void cambioPermiteComentarios(ChangeEventArgs e)
     {
-    int nuevoValor = int.Parse(e.Value.ToString());
-    if ((permiteComentariosAUX != nuevoValor)) mensaje3 = "Atención, el cambio en permitir comentarios no es retroactivo";
-    else mensaje3 = "";
-    permiteComentarios = nuevoValor;
-    if (permiteComentarios == 0 && comentariosObligatorios == 1) cambioComentariosObligatorios(new ChangeEventArgs { Value = 0 });
+        hayCambios = true;
+        int nuevoValor = int.Parse(e.Value.ToString());
+        if ((permiteComentariosAUX != nuevoValor)) mensaje3 = "Atención, el cambio en permitir comentarios no es retroactivo";
+        else mensaje3 = "";
+        permiteComentarios = nuevoValor;
+        if (permiteComentarios == 0 && comentariosObligatorios == 1) cambioComentariosObligatorios(new ChangeEventArgs { Value = 0 });
     }
     private void cambioComentariosObligatorios(ChangeEventArgs e)
     {
-    int nuevoValor = int.Parse(e.Value.ToString());
-    if (comentariosObligatoriosAUX != nuevoValor) mensaje4 = "Atención, el cambio en la obligación o no a introducir comentarios no es retroactivo";
-    else mensaje4 = "";
-    comentariosObligatorios = nuevoValor;
+        hayCambios = true;
+        int nuevoValor = int.Parse(e.Value.ToString());
+        if (comentariosObligatoriosAUX != nuevoValor) mensaje4 = "Atención, el cambio en la obligación o no a introducir comentarios no es retroactivo";
+        else mensaje4 = "";
+        comentariosObligatorios = nuevoValor;
     }
     void SeleccionarTipo(TipoVotacion tipo)
     {
-    tipoVotacion = tipo;
+        hayCambios = true;
+        tipoVotacion = tipo;
     }
     void SeleccionarEstado(EstadoVotacion estado)
     {
-    estadoVotacion = estado;
+        hayCambios = true;
+        estadoVotacion = estado;
     }
     void VerResultados(int verRes)
     {
-    this.verRes = verRes;
+        this.verRes = verRes;
     }
     private async Task Cancelar()
     {
-    bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Seguro que quieres cancelar los cambios?");
-
-        if (confirmado)
-        {
-            nav.NavigateTo("/GestionarVotaciones");
-        }
+        await JS.InvokeVoidAsync("history.back");
     }
+    private void AnadirCategoriaEvento()
+    {
+        mensajeCategoria = "";
 
+        if (string.IsNullOrWhiteSpace(nombreNuevaCategoria))
+        {
+            mensajeCategoria = "El nombre es obligatorio";
+            return;
+        }
+
+        if (categoriasEvento.Any(c =>
+            c.Nombre.Equals(nombreNuevaCategoria.Trim(),
+            StringComparison.OrdinalIgnoreCase)))
+        {
+            mensajeCategoria = "Ya existe una categoría con ese nombre";
+            return;
+        }
+
+        categoriasEvento.Add(new CategoriaEvento
+        {
+            Id = Guid.NewGuid(),
+            Id_evento = Id_evento,
+            Nombre = nombreNuevaCategoria.Trim()
+        });
+
+        nombreNuevaCategoria = "";
+        mensajeErrorCriterio = "";
+        hayCambios = true;
+    }
     private async Task GuardarVotacion()
     {
+        errorGuardado = false;
         try
         {
             votaciones = await contexto.Votacion.ToListAsync();
 
             bool franjaUsada = false;
-            bool tipoUsado = false;
 
             foreach (var vot in votaciones.Where(v => v.Id != votacion.Id && v.Id_evento == Id_evento))
             {
@@ -535,34 +668,23 @@
                     franjaUsada = true;
                     break;
                 }
-                if (
-                     (tipoVotacion == TipoVotacion.Publico && vot is VotacionPublico) ||
-                     (tipoVotacion == TipoVotacion.Jurado && vot is VotacionJurado) ||
-                     (tipoVotacion == TipoVotacion.Mixto && vot is VotacionMixta)
-                 )
-                {
-                    tipoUsado = true;
-                    break;
-                }
             }
             if (finVotacion.CompareTo(inicioVotacion) <= 0)
             {
                 mensaje2 = "El final de la votación debe ser posterior al inicio";
+                errorGuardado = true;
                 return;
             }
             if (franjaUsada)
             {
                 mensaje = "Hay una votación en esta franja de tiempo, no se permiten votaciones concurrentes";
-                return;
-            }
-            if (tipoUsado)
-            {
-                mensaje = "Ya hay una votación de este tipo registrada para este evento";
+                errorGuardado = true;
                 return;
             }
             if (NumProy <= 0)
             {
                 mensaje = "Se tiene que poder votar mínimo 1 proyecto";
+                errorGuardado = true;
                 return;
             }
 
@@ -576,16 +698,28 @@
                 if (!criteriosCategoria.Any())
                 {
                     mensajeErrorCriterio = $"La categoría {categoria.Nombre} debe tener al menos un criterio";
+                    errorGuardado = true;
                     return;
                 }
 
                 if (criteriosCategoria.Sum(c => c.Peso) != 100)
                 {
                     mensajeErrorCriterio = $"La suma de pesos de la categoría {categoria.Nombre} debe ser 100";
+                    errorGuardado = true;
                     return;
                 }
             }
+            foreach (var categoria in categoriasEvento)
+            {
+                bool existe = await contexto.CategoriaEvento
+                    .AnyAsync(c => c.Id == categoria.Id);
+                if (!existe)
+                {
+                    await contexto.CategoriaEvento.AddAsync(categoria);
+                }
+            }
 
+            await contexto.SaveChangesAsync();
             var dto = new CrearVotacionDTOs
             {
                 Id_evento = Id_evento,
@@ -615,7 +749,8 @@
 
             if (response.IsSuccessStatusCode)
             {
-                nav.NavigateTo("/GestionarVotaciones", forceLoad: true);
+                hayCambios = false;
+                await JS.InvokeVoidAsync("history.back");
             }
             else
             {
@@ -647,7 +782,8 @@
 
         if (response.IsSuccessStatusCode)
         {
-            nav.NavigateTo("/GestionarVotaciones");
+            hayCambios = false;
+            await JS.InvokeVoidAsync("history.back");
         }
         else
         {
@@ -697,10 +833,12 @@
         mensajeErrorCriterio = "";
         mensajeNoCriterio = "";
         pesoCriterio = 0;
+        hayCambios = true;
     }
     
     private void QuitarCriterio(Guid idCriterio)
     {
+        hayCambios = true;
         criterios.RemoveAll(c => c.Id == idCriterio);
     }
 
@@ -711,6 +849,7 @@
 
     private void AnadirJurado(Usuario usuario)
     {
+        hayCambios = true;
         if (!juradoSeleccionado.Any(u => u.Id == usuario.Id))
         {
             juradoSeleccionado.Add(usuario);
@@ -719,6 +858,7 @@
 
     private void QuitarJurado(Usuario usuario)
     {
+        hayCambios = true;
         juradoSeleccionado.RemoveAll(u => u.Id == usuario.Id);
     }
 }

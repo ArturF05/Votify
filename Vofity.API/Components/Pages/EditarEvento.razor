@@ -7,7 +7,7 @@
 @using Votify.Infrastructure.Data
 @using Votify.API.DTOs
 @using EventoEntidad = Votify.Core.Entities.Evento
-@inject NavigationManager nav
+@using Microsoft.AspNetCore.Components.Routing
 @inject AppDbContext contexto
 @inject IJSRuntime JS
 @inject HttpClient Http
@@ -29,12 +29,13 @@
 
         <div class="campo campo-columna">
             <label>Nombre*:</label>
-            <input type="text" maxlength="@MaxNombre"
-                   value="@nombre"
-                   @oninput="OnInputNombre"
-                   placeholder="Nombre del evento..." />
-            <span class="contador">@nombre.Length / @MaxNombre</span>
-
+            <div class="input-ancho">
+                <input type="text" maxlength="@MaxNombre"
+                       value="@nombre"
+                       @oninput="OnInputNombre"
+                       placeholder="Nombre del evento..." />
+                <span class="contador">@nombre.Length / @MaxNombre</span>
+            </div>
         </div>
 
         <div class="form-grid">
@@ -101,10 +102,12 @@
                 {
                     <div class="criterio-item">
                         <div class="criterio-texto">
+                            <div class="input-y-contador">
                             <input type="text" class="input-criterio" placeholder="Nombre de categoría" maxlength="@MaxNombreCategoriaEvento"
                            value="@categoria.Nombre"
                            @oninput="OnInputNombreCategoria" />
                             <span class="contador">@categoria.Nombre.Length / @MaxNombreCategoriaEvento</span>
+                            </div>
                             @if (categoria.TieneVotos)
                             {
                                 <span class="criterio-descripcion">Tiene votos asociados</span>
@@ -114,6 +117,7 @@
                             <button type="button"
                                     class="boton-secundario"
                                     disabled="@categoria.TieneVotos"
+                                    title="@(categoria.TieneVotos ? "No se puede quitar la categoría, ya que ya se han registrado votos en ella" : null)"
                                     @onclick="() => QuitarCategoriaEvento(categoria.Id)">
                                 Quitar
                             </button>
@@ -123,11 +127,13 @@
             </div>
 
             <div class="criterio-formulario">
+                <div class="input-y-contador">
                 <input type="text" placeholder="Nombre de categoría" maxlength="@MaxNombreCategoriaEvento" 
                        value="@nombreCategoriaEvento"
                        @oninput="OnInputNombreCategoria"
                        class="input-criterio" />
                 <span class="contador">@nombreCategoriaEvento.Length / @MaxNombreCategoriaEvento</span>
+                </div>
 
                 <button type="button" class="boton-principal" @onclick="AnadirCategoriaEvento">Añadir categoría</button>
             </div>
@@ -150,6 +156,8 @@
             </div>
         </div>
     </div>
+    <NavigationLock ConfirmExternalNavigation="true"
+                    OnBeforeInternalNavigation="ConfirmarSalida" />
 </div>
 
 @code {
@@ -177,6 +185,8 @@
     private string? imagenNueva;
     [Parameter]
     public Guid id { get; set; }
+    private bool hayCambios = false;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -214,7 +224,13 @@
             });
         }
     }
-
+    private async Task ConfirmarSalida(LocationChangingContext context)
+    {
+        if (!hayCambios) return;
+        var confirmado = await JS.InvokeAsync<bool>("confirm",
+            "Tienes cambios sin guardar. ¿Seguro que quieres salir?");
+        if (!confirmado) context.PreventNavigation();
+    }
     private async Task Cancelar()
     {
         bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Seguro que cancelar los cambios?");
@@ -226,16 +242,19 @@
     }
     private void OnInputNombre(ChangeEventArgs e)
     {
+        hayCambios = true;
         var val = e.Value?.ToString() ?? "";
         nombre = val.Length > MaxNombre ? val[..MaxNombre] : val;
     }
     private void OnInputDescripcion(ChangeEventArgs e)
     {
+        hayCambios = true;
         var val = e.Value?.ToString() ?? "";
         descripcion = val.Length > MaxDescripcion ? val[..MaxDescripcion] : val;
     }
     private void OnInputNombreCategoria(ChangeEventArgs e)
     {
+        hayCambios = true;
         var val = e.Value?.ToString() ?? "";
         nombreCategoriaEvento = val.Length > MaxNombreCategoriaEvento ? val[..MaxNombreCategoriaEvento] : val;
     }
@@ -263,6 +282,7 @@
 
         if (confirmado)
         {
+            hayCambios = false;
             await EliminarEvento();
         }
     }
@@ -379,6 +399,7 @@
 
             if (response.IsSuccessStatusCode)
             {
+                hayCambios = false;
                 await GuardarCategoriasEvento();
 
                 if (imagenBytes != null && !aux)
@@ -418,10 +439,12 @@
 
         nombreCategoriaEvento = "";
         mensaje = "";
+        hayCambios = true;
     }
 
     private void QuitarCategoriaEvento(Guid idCategoria)
     {
+        hayCambios = true;
         var categoria = categoriasEvento.FirstOrDefault(c => c.Id == idCategoria);
         if (categoria == null)
             return;
