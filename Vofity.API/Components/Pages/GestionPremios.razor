@@ -21,7 +21,12 @@
             <h2>Gestionar premios</h2>
             <p>Prepara los premios de una categoria y guarda todos los cambios al final.</p>
         </div>
-        <button type="button" class="boton-secundario" @onclick="VolverDashboard">Volver al dashboard</button>
+        <button type="button"
+                class="boton-secundario"
+                @onclick="VolverDashboard"
+                disabled="@guardando">
+            Volver al dashboard
+        </button>
     </div>
 
     @if (!cargado)
@@ -37,7 +42,9 @@
         <section class="selector-panel">
             <label>
                 Evento
-                <select value="@idEventoSeleccionado" @onchange="EventoSeleccionado">
+                <select value="@idEventoSeleccionado"
+                        @onchange="EventoSeleccionado"
+                        disabled="@guardando">
                     @foreach (var evento in eventos)
                     {
                         <option value="@evento.Id">@evento.Nombre</option>
@@ -47,7 +54,9 @@
 
             <label>
                 Categoria de votacion
-                <select value="@idCategoriaSeleccionada" @onchange="CategoriaSeleccionada" disabled="@(!categoriasEvento.Any())">
+                <select value="@idCategoriaSeleccionada"
+                        @onchange="CategoriaSeleccionada"
+                        disabled="@(guardando || !categoriasEvento.Any())">
                     @if (!categoriasEvento.Any())
                     {
                         <option value="@Guid.Empty">Sin categorias de votacion</option>
@@ -83,7 +92,12 @@
                     <strong>@NombreCategoriaSeleccionada</strong>
                     <span>@PremiosVisibles.Count premio(s) preparados · @votacionesCompatibles.Count votacion(es) compatibles</span>
                 </div>
-                <button type="button" class="boton-principal" @onclick="AnadirPremio">Anadir premio</button>
+                <button type="button"
+                        class="boton-principal"
+                        @onclick="AnadirPremio"
+                        disabled="@guardando">
+                    Anadir premio
+                </button>
             </section>
 
             @if (!PremiosVisibles.Any())
@@ -191,7 +205,12 @@
                                     }
                                 </div>
 
-                                <button type="button" class="boton-peligro" @onclick="() => QuitarPremio(premio.IdFormulario)">Quitar premio</button>
+                                <button type="button"
+                                        class="boton-peligro"
+                                        @onclick="() => QuitarPremio(premio.IdFormulario)"
+                                        disabled="@guardando">
+                                    Quitar premio
+                                </button>
                             </div>
                         </article>
                     }
@@ -203,8 +222,17 @@
                     <strong>@PremiosVisibles.Count premio(s) listos</strong>
                     <span>Los cambios se aplicaran juntos y despues volveras al dashboard.</span>
                 </div>
-                <button type="button" class="boton-principal boton-guardar" @onclick="GuardarPremios" disabled="@guardando">
-                    @(guardando ? "Guardando..." : "Guardar premios")
+                <button type="button"
+                        class="boton-principal boton-guardar boton-crear-evento"
+                        @onclick="GuardarPremios"
+                        disabled="@guardando">
+
+                    @if (guardando)
+                    {
+                        <span class="spinner"></span>
+                    }
+
+                    @(guardando ? "Guardando premios..." : "Guardar premios")
                 </button>
             </section>
         }
@@ -378,6 +406,9 @@
 
     private void AnadirPremio()
     {
+        if (guardando)
+            return;
+
         var siguienteOrden = PremiosVisibles.Count + 1;
 
         premiosFormulario.Add(new PremioForm
@@ -392,6 +423,9 @@
 
     private void QuitarPremio(Guid idFormulario)
     {
+        if (guardando)
+            return;
+
         var premio = premiosFormulario.FirstOrDefault(p => p.IdFormulario == idFormulario);
         if (premio == null)
             return;
@@ -406,6 +440,9 @@
 
     private void MoverPremio(Guid idFormulario, int direccion)
     {
+        if (guardando)
+            return;
+
         var visibles = PremiosVisibles;
         var indice = visibles.FindIndex(p => p.IdFormulario == idFormulario);
         var nuevoIndice = indice + direccion;
@@ -460,6 +497,9 @@
 
     private void QuitarImagenPremio(Guid idFormulario)
     {
+        if (guardando)
+            return;
+
         var premio = premiosFormulario.FirstOrDefault(p => p.IdFormulario == idFormulario);
         if (premio == null)
             return;

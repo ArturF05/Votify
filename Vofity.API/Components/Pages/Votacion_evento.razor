@@ -458,7 +458,9 @@
 
         <div class="estado-card">
             <label>Categoría de votación:</label>
-            <select value="@idCategoriaSeleccionada" @onchange="CategoriaSeleccionada">
+            <select value="@idCategoriaSeleccionada"
+                    disabled="@procesandoVoto"
+                    @onchange="CategoriaSeleccionada">
                 <option value="@Guid.Empty">Selecciona una categoría</option>
                 @foreach (var categoria in categoriasEvento)
                 {
@@ -511,7 +513,7 @@
             {
                 <div class="proyecto-card @(yaVoto ? "deshabilitado" : "")">
                     <div class="proyecto-top">
-                        <button class="boton-favorito" @onclick="() => Favorito(proyecto.Id)" disabled="@yaVoto">
+                        <button class="boton-favorito" @onclick="() => Favorito(proyecto.Id)" disabled="@(yaVoto || procesandoVoto)">
                             <img src="@(proyectosSeleccionados.Contains(proyecto.Id)
                                                                  ? "/EsFavorito.jpg"
                                                                  : "/Estrella.png")"
@@ -557,15 +559,17 @@
                                         @if (votacion != null && votacion.PermiteComentarios)
                                         {
                                             <textarea @bind="comentariosPorCriterio[proyecto.Id][criterio.Id]"
+                                                      disabled="@procesandoVoto"
                                                       placeholder="@(yaVoto ? "" : "Comentario sobre este criterio...")"
                                                       class="textarea-comentario">
-                                                                </textarea>
+                                            </textarea>
                                         }
                                     </div>
 
                                     <input type="number"
                                            min="0"
                                            max="10"
+                                           disabled="@procesandoVoto"
                                            class="input-puntuacion"
                                            value="@puntuacionesPorProyecto[proyecto.Id][criterio.Id]"
                                            @oninput="(e) => notaValida(e, proyecto.Id, criterio.Id)" />
@@ -580,7 +584,12 @@
 
     <div class="acciones">
         <div class="acciones-izquierda">
-            <button type="button" class="boton-secundario" @onclick='() => Volver()'>Volver</button>
+            <button type="button"
+                    class="boton-secundario"
+                    disabled="@procesandoVoto"
+                    @onclick='() => Volver()'>
+                Volver
+            </button>
         </div>
 
         <div class="acciones-derecha">
@@ -590,7 +599,18 @@
                     Ver Resultados
                 </button>
             }
-            <button type="button" class="boton-principal" disabled="@yaVoto" @onclick='() => EnviarVoto()'>Enviar Voto</button>
+            <button type="button"
+                    class="boton-principal boton-procesando"
+                    disabled="@(yaVoto || procesandoVoto)"
+                    @onclick='() => EnviarVoto()'>
+
+                @if (procesandoVoto)
+                {
+                    <span class="spinner"></span>
+                }
+
+                @textoProcesando
+            </button>
         </div>
     </div>
 
@@ -613,6 +633,9 @@
     private Dictionary<Guid, Dictionary<Guid, string>> comentariosPorCriterio = new();
     private Votify.Core.Entities.Usuario usuario;
     private bool yaVoto = false;
+    private bool procesandoVoto = false;
+    private string textoProcesando = "Enviar Voto";
+
     private List<DimensionesDeValor> criterios = new();
     private List<Premio> premiosCategoria = new();
     private List<CategoriaEvento> categoriasEvento = new();
@@ -821,114 +844,126 @@
 
     private async Task EnviarVoto()
     {
-        if (idVotante == Guid.Empty)
-        {
-            mensaje = "Error: No se detecta una sesión activa. Por favor, reingresa.";
+        if (procesandoVoto)
             return;
-        }
 
-        if (usuario == null)
-        {
-            mensaje = "No se ha encontrado el usuario autenticado.";
-            await Task.Delay(900);
-            nav.NavigateTo("/Login");
-            return;
-        }
-        if (evento == null)
-        {
-            mensaje = "No se ha podido cargar el evento.";
-            return;
-        }
+        procesandoVoto = true;
+        textoProcesando = "Procesando voto...";
+        mensaje = "";
 
-        if (idVotacion == Guid.Empty)
+        try
         {
-            mensaje = "No hay una votación activa para este evento, espera a que haya una para poder votar.";
-            return;
-        }
-        if (idCategoriaSeleccionada == Guid.Empty)
-        {
-            mensaje = "Selecciona una categoría antes de votar.";
-            return;
-        }
-        if (!criterios.Any())
-        {
-            mensaje = "La categoría seleccionada no tiene criterios.";
-            return;
-        }
-        if (proyectosSeleccionados.Count > NumProy)
-        {
-            mensaje = $"No puedes seleccionar más de {NumProy} proyectos para votar.";
-            return;
-        }
-
-        if (proyectosSeleccionados.Count < NumProy)
-        {
-            bool confirmar = await JS.InvokeAsync<bool>(
-                "confirm",
-                $"Vas a votar a menos proyectos de los permitidos ({proyectosSeleccionados.Count}/{NumProy}). ¿Deseas continuar igualmente?"
-            );
-
-            if (!confirmar)
+            if (idVotante == Guid.Empty)
             {
+                mensaje = "Error: No se detecta una sesión activa. Por favor, reingresa.";
                 return;
             }
-        }
 
-        foreach (var idProyecto in proyectosSeleccionados)
-        {
-            if (!puntuacionesPorProyecto.ContainsKey(idProyecto))
+            if (usuario == null)
             {
-                mensaje = "Faltan puntuaciones en uno de los proyectos seleccionados.";
+                mensaje = "No se ha encontrado el usuario autenticado.";
+                await Task.Delay(900);
+                nav.NavigateTo("/Login");
                 return;
             }
-            foreach (var criterio in criterios)
+
+            if (evento == null)
             {
-                if (!puntuacionesPorProyecto[idProyecto].ContainsKey(criterio.Id))
+                mensaje = "No se ha podido cargar el evento.";
+                return;
+            }
+
+            if (idVotacion == Guid.Empty)
+            {
+                mensaje = "No hay una votación activa para este evento, espera a que haya una para poder votar.";
+                return;
+            }
+
+            if (idCategoriaSeleccionada == Guid.Empty)
+            {
+                mensaje = "Selecciona una categoría antes de votar.";
+                return;
+            }
+
+            if (!criterios.Any())
+            {
+                mensaje = "La categoría seleccionada no tiene criterios.";
+                return;
+            }
+
+            if (proyectosSeleccionados.Count > NumProy)
+            {
+                mensaje = $"No puedes seleccionar más de {NumProy} proyectos para votar.";
+                return;
+            }
+
+            if (proyectosSeleccionados.Count < NumProy)
+            {
+                bool confirmar = await JS.InvokeAsync<bool>(
+                    "confirm",
+                    $"Vas a votar a menos proyectos de los permitidos ({proyectosSeleccionados.Count}/{NumProy}). ¿Deseas continuar igualmente?"
+                );
+
+                if (!confirmar)
+                    return;
+            }
+
+            foreach (var idProyecto in proyectosSeleccionados)
+            {
+                if (!puntuacionesPorProyecto.ContainsKey(idProyecto))
                 {
-                    mensaje = $"Falta la puntuación del criterio {criterio.Nombre} en uno de los proyectos.";
+                    mensaje = "Faltan puntuaciones en uno de los proyectos seleccionados.";
                     return;
                 }
-                if (puntuacionesPorProyecto[idProyecto][criterio.Id] > 10 || puntuacionesPorProyecto[idProyecto][criterio.Id] < 0)
+
+                foreach (var criterio in criterios)
                 {
-                    mensaje = $"La puntuación en los criterios debe estar entre 0 y 10, el criterio {criterio.Nombre} no lo cumple";
-                    return;
-                }
-                if (votacion.PermiteComentarios && votacion.ComentariosObligatorios)
-                {
-                    if (!comentariosPorCriterio[idProyecto].ContainsKey(criterio.Id) ||
-                        string.IsNullOrWhiteSpace(comentariosPorCriterio[idProyecto][criterio.Id]))
+                    if (!puntuacionesPorProyecto[idProyecto].ContainsKey(criterio.Id))
                     {
-                        mensaje = "En esta votación es obligatorio incluir un comentario por criterio en cada voto";
+                        mensaje = $"Falta la puntuación del criterio {criterio.Nombre} en uno de los proyectos.";
                         return;
+                    }
+
+                    if (puntuacionesPorProyecto[idProyecto][criterio.Id] > 10 ||
+                        puntuacionesPorProyecto[idProyecto][criterio.Id] < 0)
+                    {
+                        mensaje = $"La puntuación en los criterios debe estar entre 0 y 10, el criterio {criterio.Nombre} no lo cumple";
+                        return;
+                    }
+
+                    if (votacion != null && votacion.PermiteComentarios && votacion.ComentariosObligatorios)
+                    {
+                        if (!comentariosPorCriterio[idProyecto].ContainsKey(criterio.Id) ||
+                            string.IsNullOrWhiteSpace(comentariosPorCriterio[idProyecto][criterio.Id]))
+                        {
+                            mensaje = "En esta votación es obligatorio incluir un comentario por criterio en cada voto";
+                            return;
+                        }
                     }
                 }
             }
 
-
-
-
-        }
-
-        var votoDto = new EmitirVotoDTO
-        {
-            IdVotante = usuario.Id,
-            Votos = proyectosSeleccionados.Select(idProyecto => new VotoDetalleDTO
-            {
-                IdProyecto = idProyecto,
-                IdCategoriaEvento = idCategoriaSeleccionada,
-                Puntuaciones = criterios.Select(c => new PuntuacionCriterioDTO
+            var votoDto = new EmitirVotoDTO
                 {
-                    IdCriterio = c.Id,
-                    Nota = puntuacionesPorProyecto[idProyecto][c.Id],
-                    Comentario = votacion.PermiteComentarios ? comentariosPorCriterio[idProyecto][c.Id] : null
-                }).ToList()
-            }).ToList(),
-            IdEvento = evento.Id
-        };
+                    IdVotante = usuario.Id,
+                    Votos = proyectosSeleccionados.Select(idProyecto => new VotoDetalleDTO
+                    {
+                        IdProyecto = idProyecto,
+                        IdCategoriaEvento = idCategoriaSeleccionada,
+                        Puntuaciones = criterios.Select(c => new PuntuacionCriterioDTO
+                        {
+                            IdCriterio = c.Id,
+                            Nota = puntuacionesPorProyecto[idProyecto][c.Id],
+                            Comentario = votacion != null && votacion.PermiteComentarios
+                                ? comentariosPorCriterio[idProyecto][c.Id]
+                                : null
+                        }).ToList()
+                    }).ToList(),
+                    IdEvento = evento.Id
+                };
 
-        try
-        {
             await VotacionService.RegistrarVotoAsync(idVotacion, votoDto);
+
             mensaje = "Voto enviado correctamente.";
             yaVoto = true;
         }
@@ -937,6 +972,14 @@
             mensaje = ex.InnerException == null
                 ? ex.Message
                 : $"{ex.Message} Detalle: {ex.InnerException.Message}";
+        }
+        finally
+        {
+            if (!yaVoto)
+            {
+                procesandoVoto = false;
+                textoProcesando = "Enviar Voto";
+            }
         }
     }
 
