@@ -117,7 +117,11 @@
         <h3 class="titulo-criterios">Categorías del evento</h3>
 
         <div class="criterio-formulario">
-            <input type="text" placeholder="Nombre de categoría" @bind="nombreCategoriaEvento" class="input-criterio" />
+            <input type="text" placeholder="Nombre de categoría" maxlength="@MaxNombreCategoriaEvento"
+                   value="@nombreCategoriaEvento"
+                   @oninput="OnInputNombreCategoria"
+                   class="input-criterio" />
+            <span class="contador">@nombreCategoriaEvento.Length / @MaxNombreCategoriaEvento</span>
             <button type="button" class="boton-principal" @onclick="GuardarCategoriaEvento">Añadir categoría</button>
         </div>
 
@@ -133,8 +137,15 @@
             </div>
 
             <div class="criterio-formulario">
-                <input type="text" placeholder="Nombre criterio" @bind="nombreCriterio" class="input-criterio" />
-                <input type="text" placeholder="Descripción" @bind="descripcionCriterio" class="input-criterio" />
+                <input type="text" placeholder="Nombre criterio" class="input-criterio" maxlength="@MaxNombreCriterio"
+                               value="@nombreCriterio"
+                               @oninput="OnInputNombreCriterio"/>
+                <span class="contador">@nombreCriterio.Length / @MaxNombreCriterio</span>
+                <input type="text" placeholder="Descripción" maxlength="@MaxDescripcionCriterio"
+                       value="@descripcionCriterio"
+                       @oninput="OnInputDescripcionCriterio"
+                       class="input-criterio" />
+                <span class="contador">@descripcionCriterio.Length / @MaxDescripcionCriterio</span>
                 <button type="button" class="boton-principal" @onclick="() => GuardarCriterio(categoria.Id)">Añadir criterio</button>
             </div>
 
@@ -233,6 +244,9 @@
 </div>
 
 @code {
+    private const int MaxNombreCategoriaEvento = 50;
+    private const int MaxNombreCriterio = 50;
+    private const int MaxDescripcionCriterio = 100;
     private int permiteAutoVoto = 1;
     public int permiteComentarios = 1;
     public int comentariosObligatorios = 0;
@@ -352,7 +366,23 @@
             })
             .ToListAsync();
     }
+    private void OnInputNombreCategoria(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        nombreCategoriaEvento = val.Length > MaxNombreCategoriaEvento ? val[..MaxNombreCategoriaEvento] : val;
+    }
 
+    private void OnInputNombreCriterio(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        nombreCriterio = val.Length > MaxNombreCriterio ? val[..MaxNombreCriterio] : val;
+    }
+
+    private void OnInputDescripcionCriterio(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        descripcionCriterio = val.Length > MaxDescripcionCriterio ? val[..MaxDescripcionCriterio] : val;
+    }
     private async Task Cancelar() => await JS.InvokeVoidAsync("history.back");
 
     void SeleccionarTipo(TipoVotacion tipo)

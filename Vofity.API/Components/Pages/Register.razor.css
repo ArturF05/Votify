@@ -186,6 +186,13 @@
     animation: spin 0.6s linear infinite;
 }
 
+.contador {
+    color: #718096;
+    font-size: 0.78rem;
+    display: block;
+    margin-top: 3px;
+    text-align: right;
+}
 @keyframes spin {
     to {
         transform: rotate(360deg);

@@ -271,6 +271,13 @@ h3 {
         color: #8f8f95;
     }
 
+.contador {
+    color: #718096;
+    font-size: 0.78rem;
+    display: block;
+    margin-top: 3px;
+    text-align: right;
+}
 @media (max-width: 900px) {
     .crear-votacion-page {
         padding: 1.25rem;

@@ -23,6 +23,6 @@ namespace Votify.Core.Interfaces
         Task<Votacion?> ObtenerVotacionPorEventoAsync(Guid eventoId);
         Task AsignarOrganizadorAsync(Guid eventoId, Guid usuarioId);
         Task<List<Votify.Core.Entities.Evento>> ObtenerEventosOrganizadorAsync(Guid idUsuario);
-
+        Task<Evento?> ObtenerEventoDetalleAsync(Guid id);
     }
 }

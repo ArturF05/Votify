@@ -1,0 +1,578 @@
+﻿@page "/DashboardEvento/{id:guid}"
+@rendermode InteractiveServer
+
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components
+@using Votify.Core.DTOs
+
+@inject HttpClient Http
+@inject NavigationManager nav
+@inject IJSRuntime JS
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Microsoft.EntityFrameworkCore
+@using Votify.Core.Entities
+@using Votify.Infrastructure.Data
+@inject ProtectedSessionStorage sessionStorage
+@inject AppDbContext contexto
+
+@if (cargando)
+{
+    <div class="loading-container">
+        <p>Cargando evento...</p>
+    </div>
+}
+else if (error != null)
+{
+    <div class="loading-container">
+        <p class="error-text">@error</p>
+    </div>
+}
+else if (evento == null)
+{
+    <div class="loading-container">
+        <p class="error-text">Evento no encontrado.</p>
+    </div>
+}
+else
+{
+    <div class="evento-page">
+
+        <header class="evento-header">
+
+            <div>
+
+                <button class="boton-secundario" @onclick="Volver">
+                    ← Volver
+                </button>
+
+                <h1>@evento.Nombre</h1>
+
+                <div class="evento-meta">
+                    <span>
+                        📅
+                        @evento.FechaInicio.ToString("dd/MM/yyyy")
+                        -
+                        @evento.FechaFin.ToString("dd/MM/yyyy")
+                    </span>
+
+                    <span>•</span>
+
+                    <span>
+                        🏷️ @evento.TipoEvento
+                    </span>
+                </div>
+
+            </div>
+
+        </header>
+
+        <section class="descripcion-card">
+            @if(string.IsNullOrEmpty(evento.Descripcion))
+            {
+                <label>Este evento no tiene descripción</label>
+            }
+            else
+            {
+                @evento.Descripcion
+            }
+        </section>
+
+        <section class="categorias-filtros-card">
+
+            <h2>Categorías</h2>
+
+            <div class="categorias-chips">
+
+                <button class="categoria-chip @(categoriaSeleccionadaId == null ? "activa" : "")"
+                        @onclick="() => SeleccionarCategoria(null)">
+                    ✓ Todas
+                </button>
+
+                @foreach (var categoria in evento.Categorias)
+                {
+                    <button class="categoria-chip @(categoriaSeleccionadaId == categoria.Id ? "activa" : "")"
+                            @onclick="() => SeleccionarCategoria(categoria.Id)">
+                        @categoria.Nombre
+                    </button>
+                }
+
+            </div>
+
+        </section>
+
+        <section class="grid-principal dashboard-grid">
+
+            <article class="card info-card">
+
+                <h2>Información del evento</h2>
+
+                <img class="evento-img"
+                     src="@(string.IsNullOrWhiteSpace(evento.ImagenUrl)
+                        ? "img/evento-default.jpg"
+                        : evento.ImagenUrl)"
+                     alt=""
+                     onerror="this.style.display='none'" />
+
+                <div class="info-row">
+                    <span class="icono">📅</span>
+
+                    <strong>Fecha</strong>
+
+                    <p>
+                        @evento.FechaInicio.ToString("dd/MM/yyyy")
+                        -
+                        @evento.FechaFin.ToString("dd/MM/yyyy")
+                    </p>
+                </div>
+
+                <div class="info-row">
+                    <span class="icono">🏷️</span>
+
+                    <strong>Tipo</strong>
+
+                    <p>@evento.TipoEvento</p>
+                </div>
+
+                <div class="info-row">
+                    <span class="icono">👤</span>
+
+                    <strong>Organizador</strong>
+
+                    <p>@evento.Organizador</p>
+                </div>
+                @if (esOrganizador)
+                {
+                    <button class="btn-primary btn-editar-evento"
+                            @onclick='() => nav.NavigateTo($"/EditarEvento/{evento.Id}")'>
+                        Editar evento
+                    </button>
+                }
+
+            </article>
+
+            <article class="card lista-card">
+
+                <h2>Proyectos</h2>
+
+                <div class="lista">
+                    @if (!ProyectosMostrados.Any())
+                    {
+                        <div class="proyectos-vacio">
+                            <div class="proyectos-vacio-icono">📁</div>
+
+                            <h3>No hay proyectos</h3>
+
+                            <p>
+                                Todavía no se han subido proyectos para esta categoría.
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var proyecto in ProyectosMostrados)
+                        {
+                            <div class="proyecto-desplegable">
+
+                                <div class="lista-item @(esOrganizador ? "proyecto-clickable" : "")" @onclick="() => { if (esOrganizador) ToggleProyecto(proyecto.ProyectoId); }">
+
+                                    @proyecto.TituloProyecto
+                                    @if (esOrganizador)
+                                    {
+                                        <span class="flecha-proyecto @(proyectoDesplegadoId == proyecto.ProyectoId ? "abierta" : "")">
+                                            ›
+                                        </span>
+                                    }
+                                </div>
+
+                                @if (proyectoDesplegadoId == proyecto.ProyectoId)
+                                {
+                                    <div class="proyecto-detalle">
+
+                                        <div class="proyecto-creador">
+                                            <span class="detalle-label">Creado por</span>
+                                            <strong>@proyecto.CreadorNombre</strong>
+                                        </div>
+
+                                        @if (proyecto.Materiales?.Any() == true)
+                                        {
+                                            <div class="materiales-proyecto">
+                                                @foreach (var material in proyecto.Materiales)
+                                                {
+                                                    var materialUrl = GetMaterialUrl(material);
+
+                                                    if (!string.IsNullOrWhiteSpace(materialUrl))
+                                                    {
+                                                        <a class="material-link @GetMaterialClass(material.Tipo)"
+                                                        href="@materialUrl"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        title="@material.Nombre">
+                                                            <span class="material-texto">@GetMaterialLabel(material)</span>
+                                                        </a>
+                                                    }
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="sin-material">Sin material disponible</span>
+                                        }
+
+                                    </div>
+                                }
+
+                            </div>
+                        }
+                    }
+
+                </div>
+
+            </article>
+
+            <article class="card votaciones-card">
+
+                <h2>Votaciones</h2>
+                @if (!VotacionesMostradas.Any())
+                {
+                    <div class="votaciones-vacio">
+                        <div class="votaciones-vacio-icono">🗳️</div>
+
+                        <h3>No hay votaciones</h3>
+
+                        <p>
+                            Todavía no se han creado votaciones para esta categoría.
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var votacion in VotacionesMostradas)
+                    {
+                        <div class="votacion-box">
+
+                            <span class="estado @(votacion.Estado == "En curso"
+                                ? "estado-verde"
+                                : votacion.Estado == "Finalizada"
+                                    ? "estado-gris"
+                                    : "estado-morado")">
+
+                                ● @votacion.Estado
+                            </span>
+
+                            <h3>@votacion.Nombre</h3>
+
+                            <p>
+                                📅
+                                @votacion.FechaInicio.ToString("dd/MM/yyyy HH:mm")
+                                -
+                                @votacion.FechaFin.ToString("dd/MM/yyyy HH:mm")
+                            </p>
+
+                            @if (votacion.Estado == "En curso" && !esOrganizador)
+                            {
+                                <button class="btn-primary"
+                                disabled="@(votacionDeshabilitada.GetValueOrDefault(votacion.Id))"
+                                title="@(votacionDeshabilitada.GetValueOrDefault(votacion.Id)
+                                                 ? mensajeVotacion.GetValueOrDefault(votacion.Id): null)"
+                                @onclick="() => irAEvento(evento.Id)">
+                                    Ir a votar
+                                </button>
+                            }
+                            else if (votacion.Estado == "Finalizada")
+                            {
+                                <button class="btn-secondary"
+                                @onclick='() => VerDashboard(evento.Id)'>
+                                    Ver resultados
+                                </button>
+                            }
+
+                        </div>
+                    }
+                }
+
+            </article>
+
+            <article class="card premiados-card-dashboard">
+
+                <h2>🏆 Premiados</h2>
+
+                @if (!PremiosMostrados.Any())
+                {
+                    <div class="premiados-dashboard-content">
+                        <div class="trofeo-dashboard">🏆</div>
+
+                        <h3>Aún no hay premios</h3>
+
+                        <p>
+                            Los premios de esta categoría se publicarán cuando el organizador los registre.
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <div class="premios-lista">
+
+                        @foreach (var premio in PremiosMostrados)
+                        {
+                            <div class="premio-item @(premio.TieneGanador ? "premio-con-ganador" : premio.VotacionFinalizada ? "premio-finalizado-sin-ganador" : "premio-pendiente")">
+
+                                <img class="premio-img"
+                                     src="@(string.IsNullOrWhiteSpace(premio.ImagenUrl)
+                            ? "img/premio-default.jpg"
+                            : premio.ImagenUrl)"
+                                     alt=""
+                                     onerror="this.style.display='none'" />
+
+                                <div class="premio-info">
+
+                                    <div class="premio-badges">
+                                        <span class="premio-puesto">@premio.Puesto Puesto</span>
+
+                                        @if (premio.TieneGanador)
+                                        {
+                                            <span class="premio-ganador-badge">GANADOR</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="premio-pendiente-badge">PENDIENTE</span>
+                                        }
+                                    </div>
+
+                                    <h3>
+                                        @(premio.TieneGanador
+                                            ? premio.NombreProyectoGanador
+                                            : premio.Nombre)
+                                    </h3>
+
+                                    <p>@premio.Descripcion</p>
+
+                                    <span class="premio-votacion">
+                                        📅 @premio.NombreVotacion
+                                    </span>
+
+                                    @if (PremiosMostrados == null || !PremiosMostrados.Any())
+                                    {
+                                        <span class="premio-puntuacion">
+                                            ⭐ @premio.PuntuacionGanador puntos
+                                        </span>
+                                    }
+
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+                }
+
+            </article>
+        </section>
+
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid id { get; set; }
+    private string rolEnEvento = "";
+    private bool esOrganizador = false;
+    private bool esJurado = false;
+    private bool esPublico = false;
+    private Dictionary<Guid, bool> votacionDeshabilitada = new();
+    private Dictionary<Guid, string> mensajeVotacion = new();
+    private EventoDetalleDTO? evento;
+    private bool cargando = true;
+    private string? error;
+    private Guid? categoriaSeleccionadaId = null;
+    private Guid? proyectoDesplegadoId = null;
+
+    private IEnumerable<ProyectoDashboardDTO> ProyectosMostrados =>
+    evento == null
+        ? Enumerable.Empty<ProyectoDashboardDTO>()
+        : categoriaSeleccionadaId == null
+            ? evento.Proyectos
+            : evento.Proyectos.Where(p => p.IdCategoriaEvento == categoriaSeleccionadaId);
+
+    private IEnumerable<VotacionDetalleDTO> VotacionesMostradas =>
+    evento == null
+        ? Enumerable.Empty<VotacionDetalleDTO>()
+        : categoriaSeleccionadaId == null
+            ? evento.Votaciones
+            : evento.Votaciones.Where(v =>
+                v.IdCategoriaEvento == categoriaSeleccionadaId
+                || v.IdCategoriaEvento == null
+                || v.IdCategoriaEvento == Guid.Empty);
+
+    private IEnumerable<PremioDetalleDTO> PremiosMostrados =>
+    evento == null
+        ? Enumerable.Empty<PremioDetalleDTO>()
+        : categoriaSeleccionadaId == null
+            ? evento.Premios
+            : evento.Premios.Where(p => p.IdCategoriaEvento == categoriaSeleccionadaId);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            evento = await Http.GetFromJsonAsync<EventoDetalleDTO>(
+                $"api/Eventos/{id}/detalle"
+            );
+            try
+            {
+                var resultado = await sessionStorage.GetAsync<Guid>("IdUsuario");
+                if (resultado.Success && resultado.Value != Guid.Empty)
+                {
+                    var eur = await contexto.EventoUsuarioRol
+                        .Include(eur => eur.Rol)
+                        .FirstOrDefaultAsync(eur =>
+                            eur.EventoId == id &&
+                            eur.UsuarioId == resultado.Value);
+
+                    rolEnEvento = eur?.Rol.Nombre ?? "";
+                    esOrganizador = rolEnEvento == "Organizador";
+                    esPublico = rolEnEvento == "Publico";
+                    esJurado = rolEnEvento == "Jurado";
+                    await CalcularPermisosVotaciones(resultado.Value);
+                }
+            }
+            catch
+            {
+                nav.NavigateTo("/Login");
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task Volver()
+    {
+        await JS.InvokeVoidAsync("history.back");
+    }
+    private async Task CalcularPermisosVotaciones(Guid usuarioId)
+    {
+        if (evento == null)
+            return;
+
+        foreach (var votacionDto in evento.Votaciones)
+        {
+            bool deshabilitado = false;
+            string mensaje = "";
+
+            var votacion = await contexto.Votacion
+                .FirstOrDefaultAsync(v => v.Id == votacionDto.Id);
+
+            if (votacion == null)
+            {
+                votacionDeshabilitada[votacionDto.Id] = true;
+                mensajeVotacion[votacionDto.Id] = "Votación no encontrada";
+                continue;
+            }
+
+            bool esJuradoAsignado = await contexto.EventoUsuarioRol
+                .AnyAsync(eur =>
+                    eur.EventoId == id &&
+                    eur.UsuarioId == usuarioId &&
+                    eur.Rol.Nombre == "Jurado");
+
+            bool esPublicoEvento = await contexto.EventoUsuarioRol
+                .AnyAsync(eur =>
+                    eur.EventoId == id &&
+                    eur.UsuarioId == usuarioId &&
+                    (eur.Rol.Nombre == "Publico" ||
+                     eur.Rol.Nombre == "Participante"));
+
+            if (votacion is VotacionPublico)
+            {
+                if (!esPublicoEvento)
+                {
+                    deshabilitado = true;
+                    mensaje = "Solo usuarios públicos pueden votar";
+                }
+            }
+            else if (votacion is VotacionJurado)
+            {
+                if (!esJuradoAsignado)
+                {
+                    deshabilitado = true;
+                    mensaje = "Solo el jurado asignado puede votar";
+                }
+            }
+            else if (votacion is VotacionMixta)
+            {
+                if (!esPublicoEvento && !esJuradoAsignado)
+                {
+                    deshabilitado = true;
+                    mensaje = "Solo público o jurado pueden votar";
+                }
+            }
+
+            votacionDeshabilitada[votacionDto.Id] = deshabilitado;
+            mensajeVotacion[votacionDto.Id] = mensaje;
+        }
+    }
+    private void irAEvento(Guid eventoId)
+    {
+        nav.NavigateTo($"/Votacion_evento/{eventoId}");
+    }
+
+    private void VerDashboard(Guid eventoId)
+    {
+        nav.NavigateTo($"/Dashboard/{eventoId}");
+    }
+
+    private void SeleccionarCategoria(Guid? idCategoria)
+    {
+        categoriaSeleccionadaId = idCategoria;
+    }
+
+    private void ToggleProyecto(Guid idProyecto)
+    {
+        proyectoDesplegadoId = proyectoDesplegadoId == idProyecto
+            ? null
+            : idProyecto;
+    }
+
+    private string GetProxyUrl(string url) =>
+        $"/api/miniaturas/from-url?url={Uri.EscapeDataString(url)}";
+
+    private string GetMaterialUrl(MaterialDto material)
+    {
+        if (string.IsNullOrWhiteSpace(material.Url))
+            return string.Empty;
+
+        return material.Tipo == "Imagen"
+            ? GetProxyUrl(material.Url)
+            : material.Url;
+    }
+
+    private static string GetMaterialLabel(MaterialDto material)
+    {
+        var prefijo = material.Tipo switch
+        {
+            "Imagen" => "Imagen",
+            "Video" => "Video",
+            "Enlace" => "Enlace",
+            "Archivo" => "Archivo",
+            _ => "Material"
+        };
+
+        return string.IsNullOrWhiteSpace(material.Nombre)
+            ? prefijo
+            : $"{prefijo}: {material.Nombre}";
+    }
+
+    private static string GetMaterialClass(string tipo) => tipo switch
+    {
+        "Imagen" => "material-imagen",
+        "Video" => "material-video",
+        "Enlace" => "material-enlace",
+        _ => "material-archivo"
+    };
+}

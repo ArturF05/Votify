@@ -131,22 +131,14 @@
                                 </div>
                             </div>
 
-                            <div class="premio-content">
-                                <div class="premio-topline">
-                                    <span class="orden-chip">Orden @(index + 1)</span>
-                                    @if (PremiosVisibles.Count > 1)
-                                    {
-                                        <div class="orden-actions">
-                                            <button type="button" title="Subir premio" @onclick="() => MoverPremio(premio.IdFormulario, -1)" disabled="@(index == 0)">Subir</button>
-                                            <button type="button" title="Bajar premio" @onclick="() => MoverPremio(premio.IdFormulario, 1)" disabled="@(index == PremiosVisibles.Count - 1)">Bajar</button>
-                                        </div>
-                                    }
-                                </div>
-
                                 <div class="form-grid">
                                     <label>
                                         Nombre del premio
-                                        <input @bind="premio.Nombre" maxlength="120" placeholder="Ej. Mejor diseno" />
+                                        <input value="@premio.Nombre"
+                                               maxlength="20"
+                                               @oninput='e => premio.Nombre = e.Value?.ToString()?.Length > 20 ? e.Value.ToString()[..20] : e.Value?.ToString() ?? ""'
+                                               placeholder="Ej. Mejor diseno" />
+                                        <span class="contador">@(premio.Nombre?.Length ?? 0) / 20</span>
                                     </label>
 
                                     <label>
@@ -161,7 +153,10 @@
 
                                     <label class="campo-descripcion">
                                         Descripcion
-                                        <textarea @bind="premio.Descripcion" rows="3" placeholder="Que reconoce este premio"></textarea>
+                                        <textarea rows="3" placeholder="Que reconoce este premio" maxlength="100"
+                                        value="@premio.Descripcion"
+                                        @oninput='e => premio.Descripcion = e.Value?.ToString()?.Length > 100 ? e.Value.ToString()[..100] : e.Value?.ToString() ?? "" '></textarea>
+                                    <span class="contador">@(premio.Descripcion?.Length ?? 0) / 100</span>
                                     </label>
                                 </div>
 
@@ -192,7 +187,6 @@
                                 </div>
 
                                 <button type="button" class="boton-peligro" @onclick="() => QuitarPremio(premio.IdFormulario)">Quitar premio</button>
-                            </div>
                         </article>
                     }
                 </section>
@@ -401,31 +395,9 @@
         else
             premiosFormulario.Remove(premio);
 
-        RecalcularOrdenes(PremiosVisibles);
     }
 
-    private void MoverPremio(Guid idFormulario, int direccion)
-    {
-        var visibles = PremiosVisibles;
-        var indice = visibles.FindIndex(p => p.IdFormulario == idFormulario);
-        var nuevoIndice = indice + direccion;
 
-        if (indice < 0 || nuevoIndice < 0 || nuevoIndice >= visibles.Count)
-            return;
-
-        var premio = visibles[indice];
-        visibles.RemoveAt(indice);
-        visibles.Insert(nuevoIndice, premio);
-        RecalcularOrdenes(visibles);
-    }
-
-    private static void RecalcularOrdenes(List<PremioForm> premios)
-    {
-        for (var i = 0; i < premios.Count; i++)
-        {
-            premios[i].Orden = i + 1;
-        }
-    }
 
     private async Task OnImagenPremioSeleccionada(Guid idFormulario, InputFileChangeEventArgs e)
     {

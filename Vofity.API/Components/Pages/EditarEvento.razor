@@ -29,7 +29,12 @@
 
         <div class="campo campo-columna">
             <label>Nombre*:</label>
-            <input type="text" @bind="nombre" placeholder="Nombre del evento..." />
+            <input type="text" maxlength="@MaxNombre"
+                   value="@nombre"
+                   @oninput="OnInputNombre"
+                   placeholder="Nombre del evento..." />
+            <span class="contador">@nombre.Length / @MaxNombre</span>
+
         </div>
 
         <div class="form-grid">
@@ -49,7 +54,11 @@
 
             <div class="campo campo-columna campo-descripcion">
                 <label>Descripción:</label>
-                <textarea @bind="descripcion" placeholder="Descripción..."></textarea>
+                <textarea maxlength="@MaxDescripcion"
+                          value="@descripcion"
+                          @oninput="OnInputDescripcion"
+                          placeholder="Descripción..."></textarea>
+                <span class="contador">@descripcion.Length / @MaxDescripcion</span>
             </div>
 
             <div class="campo campo-columna">
@@ -92,7 +101,10 @@
                 {
                     <div class="criterio-item">
                         <div class="criterio-texto">
-                            <input type="text" class="input-criterio" @bind="categoria.Nombre" />
+                            <input type="text" class="input-criterio" placeholder="Nombre de categoría" maxlength="@MaxNombreCategoriaEvento"
+                           value="@categoria.Nombre"
+                           @oninput="OnInputNombreCategoria" />
+                            <span class="contador">@categoria.Nombre.Length / @MaxNombreCategoriaEvento</span>
                             @if (categoria.TieneVotos)
                             {
                                 <span class="criterio-descripcion">Tiene votos asociados</span>
@@ -111,7 +123,12 @@
             </div>
 
             <div class="criterio-formulario">
-                <input type="text" placeholder="Nombre de categoría" @bind="nombreCategoriaEvento" class="input-criterio" />
+                <input type="text" placeholder="Nombre de categoría" maxlength="@MaxNombreCategoriaEvento" 
+                       value="@nombreCategoriaEvento"
+                       @oninput="OnInputNombreCategoria"
+                       class="input-criterio" />
+                <span class="contador">@nombreCategoriaEvento.Length / @MaxNombreCategoriaEvento</span>
+
                 <button type="button" class="boton-principal" @onclick="AnadirCategoriaEvento">Añadir categoría</button>
             </div>
         </section>
@@ -136,6 +153,10 @@
 </div>
 
 @code {
+    private const int MaxNombre = 50;
+    private const int MaxDescripcion = 500;
+    private const int MaxNombreCategoriaEvento = 50;
+
     DateTime inicio = DateTime.Today;
     DateTime fin = DateTime.Today.AddDays(1);
 
@@ -194,11 +215,30 @@
         }
     }
 
-    void Cancelar()
+    private async Task Cancelar()
     {
-        nav.NavigateTo("/Evento");
-    }
+        bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Seguro que cancelar los cambios?");
 
+        if (confirmado)
+        {
+            await JS.InvokeVoidAsync("history.back");
+        }
+    }
+    private void OnInputNombre(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        nombre = val.Length > MaxNombre ? val[..MaxNombre] : val;
+    }
+    private void OnInputDescripcion(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        descripcion = val.Length > MaxDescripcion ? val[..MaxDescripcion] : val;
+    }
+    private void OnInputNombreCategoria(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        nombreCategoriaEvento = val.Length > MaxNombreCategoriaEvento ? val[..MaxNombreCategoriaEvento] : val;
+    }
     async Task ArchivarEvento()
     {
         if (evento == null)
@@ -208,7 +248,7 @@
 
         if (response.IsSuccessStatusCode)
         {
-            nav.NavigateTo("/Evento");
+            await JS.InvokeVoidAsync("history.back");
         }
         else
         {
@@ -237,7 +277,7 @@
         if (response.IsSuccessStatusCode)
         {
             await azureStorageService.EliminarArchivoAsync(evento.ImagenUrl);
-            nav.NavigateTo("/Evento");
+            await JS.InvokeVoidAsync("history.back");
         }
         else
         {
@@ -345,7 +385,7 @@
                 {
                     await azureStorageService.EliminarArchivoAsync(aux2);
                 }
-                nav.NavigateTo("/Evento");
+                await JS.InvokeVoidAsync("history.back");
             }
             else
             {

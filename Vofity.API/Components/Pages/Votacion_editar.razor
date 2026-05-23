@@ -154,8 +154,14 @@
             {
                 <div class="criterio-item">
                     <div class="criterio-texto">
-                        <input type="text" class="input-criterio" @bind="c.Nombre" placeholder="Nombre" />
-                        <input type="text" class="input-criterio" @bind="c.Descripcion" placeholder="Descripción" />
+                        <input type="text" class="input-criterio" placeholder="Nombre" maxlength="@MaxNombreCriterio"
+                            value="@c.Nombre"
+                            @oninput="OnInputNombreCriterio"  />
+                            <span class="contador">@c.Nombre.Length / @MaxNombreCriterio</span>
+                        <input type="text" class="input-criterio"placeholder="Descripción" maxlength="@MaxDescripcionCriterio"
+                            value="@c.Descripcion"
+                            @oninput="OnInputDescripcionCriterio"/>
+                            <span class="contador">@c.Descripcion.Length / @MaxNombreCriterio</span>
                     </div>
 
                     <div class="criterio-acciones">
@@ -178,8 +184,16 @@
                     <option value="@categoria.Id">@categoria.Nombre</option>
                 }
             </select>
-            <input type="text" placeholder="Nombre" @bind="nombreCriterio" class="input-criterio" />
-            <input type="text" placeholder="Descripción" @bind="descripcionCriterio" class="input-criterio" />
+            <input type="text" placeholder="Nombre criterio" class="input-criterio" maxlength="@MaxNombreCriterio"
+                   value="@nombreCriterio"
+                   @oninput="OnInputNombreCriterio" />
+            <span class="contador">@nombreCriterio.Length / @MaxNombreCriterio</span>
+            <input type="text" placeholder="Descripción" maxlength="@MaxDescripcionCriterio"
+                   value="@descripcionCriterio"
+                   @oninput="OnInputDescripcionCriterio"
+                   class="input-criterio" />
+            <span class="contador">@descripcionCriterio.Length / @MaxDescripcionCriterio</span>
+
             <button type="button" class="boton-principal" @onclick="GuardarCriterio" >Añadir</button>
         </div>
 
@@ -267,6 +281,9 @@
 </div>
 
 @code {
+    private const int MaxNombreCategoriaEvento = 50;
+    private const int MaxNombreCriterio = 50;
+    private const int MaxDescripcionCriterio = 100;
     [Parameter]
     public Guid id { get; set; }
     private string debugInfo = "";
@@ -371,37 +388,6 @@
             .OrderBy(u => u.Nombre)
             .ToListAsync();
     }
-    private async Task ActualizarEstadosVotaciones()
-    {
-        var ahora = DateTime.UtcNow;
-
-        var votaciones = await contexto.Votacion.ToListAsync();
-
-        foreach (var votacion in votaciones)
-        {
-            debugInfo = $"FechaFin: {votacion.FechaFin} | " +
-            $"Kind: {votacion.FechaFin.Kind} | " +
-            $"Ahora UTC: {DateTime.UtcNow} | " +
-            $"Ahora Local: {DateTime.Now}";
-
-            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
-                 votacion.EstadoVotacion == EstadoVotacion.Pausada ||
-                 votacion.EstadoVotacion == EstadoVotacion.Cerrada) &&
-                votacion.FechaFin <= ahora)
-            {
-                votacion.EstadoVotacion = EstadoVotacion.Finalizada;
-            }
-            else if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
-                     votacion.FechaInicio <= ahora)
-            {
-                votacion.EstadoVotacion = EstadoVotacion.Abierta;
-            }
-
-            Console.WriteLine($"Estado después: {votacion.EstadoVotacion}");
-        }
-
-        await contexto.SaveChangesAsync();
-    }
     public async Task SetVotacion(Votify.Core.Entities.Votacion votacion)
     {
         Id_evento = votacion.Id_evento;
@@ -434,81 +420,103 @@
         inicioEvento = evento.FechaInicio;
         finEvento = evento.FechaFin;
     }
+    /* private void OnInputNombreCategoria(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+    nombreCategoriaEvento = val.Length > MaxNombreCategoriaEvento ? val[..MaxNombreCategoriaEvento] : val;
+    }*/
+
+    private void OnInputNombreCriterio(ChangeEventArgs e)
+    {
+    var val = e.Value?.ToString() ?? "";
+    nombreCriterio = val.Length > MaxNombreCriterio ? val[..MaxNombreCriterio] : val;
+    }
+
+    private void OnInputDescripcionCriterio(ChangeEventArgs e)
+    {
+    var val = e.Value?.ToString() ?? "";
+    descripcionCriterio = val.Length > MaxDescripcionCriterio ? val[..MaxDescripcionCriterio] : val;
+    }
     private void cambioNumProy(ChangeEventArgs e)
     {
-        int nuevoValor = int.Parse(e.Value.ToString());
-        if ((numProyAUX != nuevoValor)) mensaje6 = "Atención, el cambio en el número de proyectos votables no es retroactivo";
-        else mensaje6 = "";
-        NumProy = nuevoValor;
+    int nuevoValor = int.Parse(e.Value.ToString());
+    if ((numProyAUX != nuevoValor)) mensaje6 = "Atención, el cambio en el número de proyectos votables no es retroactivo";
+    else mensaje6 = "";
+    NumProy = nuevoValor;
     }
     private void cambioPermiteAutoVoto(ChangeEventArgs e)
     {
-        int nuevoValor = int.Parse(e.Value.ToString());
-        if ((permiteAutoVotoAUX != nuevoValor)) mensaje5 = "Atención, el cambio en permitir autovoto no es retroactivo";
-        else mensaje5 = "";
-        permiteAutoVoto = nuevoValor;
+    int nuevoValor = int.Parse(e.Value.ToString());
+    if ((permiteAutoVotoAUX != nuevoValor)) mensaje5 = "Atención, el cambio en permitir autovoto no es retroactivo";
+    else mensaje5 = "";
+    permiteAutoVoto = nuevoValor;
     }
     private static TimeZoneInfo ZonaEspaña()
     {
-        try
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById("Europe/Madrid");
-        }
-        catch
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time");
-        }
+    try
+    {
+        return TimeZoneInfo.FindSystemTimeZoneById("Europe/Madrid");
+    }
+    catch
+    {
+        return TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time");
+    }
     }
 
     private static DateTime UtcFromDbToLocal(DateTime utc)
     {
-        var zona = ZonaEspaña();
+    var zona = ZonaEspaña();
 
-        return TimeZoneInfo.ConvertTimeFromUtc(
-            DateTime.SpecifyKind(utc, DateTimeKind.Utc),
-            zona
-        );
+    return TimeZoneInfo.ConvertTimeFromUtc(
+        DateTime.SpecifyKind(utc, DateTimeKind.Utc),
+        zona
+    );
     }
 
     private static DateTime LocalInputToUtc(DateTime local)
     {
-        var zona = ZonaEspaña();
+    var zona = ZonaEspaña();
 
-        return TimeZoneInfo.ConvertTimeToUtc(
-            DateTime.SpecifyKind(local, DateTimeKind.Unspecified),
-            zona
-        );
+    return TimeZoneInfo.ConvertTimeToUtc(
+        DateTime.SpecifyKind(local, DateTimeKind.Unspecified),
+        zona
+    );
     }
     private void cambioPermiteComentarios(ChangeEventArgs e)
     {
-        int nuevoValor = int.Parse(e.Value.ToString());
-        if ((permiteComentariosAUX != nuevoValor)) mensaje3 = "Atención, el cambio en permitir comentarios no es retroactivo";
-        else mensaje3 = "";
-        permiteComentarios = nuevoValor;
-        if (permiteComentarios == 0 && comentariosObligatorios == 1) cambioComentariosObligatorios(new ChangeEventArgs { Value = 0 });
+    int nuevoValor = int.Parse(e.Value.ToString());
+    if ((permiteComentariosAUX != nuevoValor)) mensaje3 = "Atención, el cambio en permitir comentarios no es retroactivo";
+    else mensaje3 = "";
+    permiteComentarios = nuevoValor;
+    if (permiteComentarios == 0 && comentariosObligatorios == 1) cambioComentariosObligatorios(new ChangeEventArgs { Value = 0 });
     }
     private void cambioComentariosObligatorios(ChangeEventArgs e)
     {
-        int nuevoValor = int.Parse(e.Value.ToString());
-        if (comentariosObligatoriosAUX != nuevoValor) mensaje4 = "Atención, el cambio en la obligación o no a introducir comentarios no es retroactivo";
-        else mensaje4 = "";
-        comentariosObligatorios = nuevoValor;
+    int nuevoValor = int.Parse(e.Value.ToString());
+    if (comentariosObligatoriosAUX != nuevoValor) mensaje4 = "Atención, el cambio en la obligación o no a introducir comentarios no es retroactivo";
+    else mensaje4 = "";
+    comentariosObligatorios = nuevoValor;
     }
     void SeleccionarTipo(TipoVotacion tipo)
     {
-        tipoVotacion = tipo;
+    tipoVotacion = tipo;
     }
     void SeleccionarEstado(EstadoVotacion estado)
     {
-        estadoVotacion = estado;
+    estadoVotacion = estado;
     }
     void VerResultados(int verRes)
     {
-        this.verRes = verRes;
+    this.verRes = verRes;
     }
-    void Cancelar()
+    private async Task Cancelar()
     {
-        nav.NavigateTo("/GestionarVotaciones");
+    bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Seguro que quieres cancelar los cambios?");
+
+        if (confirmado)
+        {
+            nav.NavigateTo("/GestionarVotaciones");
+        }
     }
 
     private async Task GuardarVotacion()

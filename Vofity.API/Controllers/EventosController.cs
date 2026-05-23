@@ -276,5 +276,16 @@ namespace Votify.API.Controllers
         {
             return await context.Proyecto.CountAsync(p => p.Id_evento == idEvento);
         }
+
+        [HttpGet("{id}/detalle")]
+        public async Task<IActionResult> ObtenerDetalleEvento(Guid id)
+        {
+            var evento = await eventoService.ObtenerEventoDetalleAsync(id);
+
+            if (evento == null)
+                return NotFound(new { mensaje = "Evento no encontrado" });
+
+            return Ok(evento);
+        }
     }
 }

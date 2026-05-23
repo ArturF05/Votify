@@ -64,8 +64,12 @@
                         <div class="form-row">
                             <div class="form-campo">
                                 <label class="form-label">Nombre del material</label>
-                                <input type="text" class="form-input" @bind="nuevoNombre"
-                                       placeholder="Ej: Logo principal" />
+                                <input type="text" class="form-input" maxlength="@MaxNombre"
+                                       value="@nuevoNombre"
+                                       @oninput="OnInputNombre"
+                                       placeholder="Ej: Logo principal"  />
+                                <span class="contador">@nuevoNombre.Length / @MaxNombre</span>
+
                             </div>
                             <div class="form-campo">
                                 <label class="form-label">Tipo</label>
@@ -97,7 +101,12 @@
                         {
                             <div class="form-campo">
                                 <label class="form-label">URL</label>
-                                <input type="text" class="form-input" @bind="nuevoValor" placeholder="https://" />
+                                <input type="text" class="form-input"
+                                       maxlength="2048"
+                                       value="@nuevoValor"
+                                       @oninput='e => nuevoValor = e.Value?.ToString()?.Length > 2048 ? e.Value.ToString()[..2048] : e.Value?.ToString() ?? ""'
+                                       placeholder="https://" />
+                                <span class="contador">@nuevoValor.Length / 2048</span>
                             </div>
                         }
 
@@ -194,6 +203,7 @@
     private bool guardando = false;
     private bool mostrarFormulario = false;
     private bool hayCambios = false;
+    private const int MaxNombre = 20;
 
     private string mensajeError = "";
     private string mensajeExito = "";
@@ -252,6 +262,11 @@
     {
         mensajeError = "";
         mostrarFormulario = true;
+    }
+    private void OnInputNombre(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        nuevoNombre = val.Length > MaxNombre ? val[..MaxNombre] : val;
     }
     private void OnTipoCambiado(ChangeEventArgs e)
     {

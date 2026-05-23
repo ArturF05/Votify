@@ -8,16 +8,16 @@
 @inject HttpClient Http
 @inject ProtectedSessionStorage sessionStorage
 @inject NavigationManager nav
-<PageTitle>Home - Votify </PageTitle>
+<PageTitle>Inicio - Votify </PageTitle>
 <div class="page">
 
     <div class="header">
         @if (usuarioActual == null)
         {
-            <h1>Home</h1>
+            <h1>Inicio</h1>
         }
         else{
-            <h1>Hola @usuarioActual.Nombre</h1>
+            <h1>Hola <span>@usuarioActual.Nombre</span> 👋</h1>
         }
         <p>Consulta los eventos en los que participas y apúntate a nuevos</p>
     </div>
@@ -29,15 +29,30 @@
             {
                 <div class="item">
                     <div class="item-left">
-                    @if (!string.IsNullOrEmpty(evento.ImagenUrl))
-                    {
-                        <img src="@GetProxyUrl(evento.ImagenUrl)" class="item-img" />
-                    }
-                    <div class="item-info">
-                        <span class="item-title">@evento.Nombre</span>
+                        @if (!string.IsNullOrEmpty(evento.ImagenUrl))
+                        {
+                            <img src="@GetProxyUrl(evento.ImagenUrl)" class="item-img" />
+                        }
+
+                        <div class="item-info">
+                            <span class="item-title">@evento.Nombre</span>
+
+                            <span class="item-date">
+                                📅 @evento.FechaInicio.ToString("dd/MM/yyyy") - @evento.FechaFin.ToString("dd/MM/yyyy")
+                            </span>
+                        </div>
                     </div>
+
+                    <span class="estado-evento @GetEstadoClase(evento)">
+                        @GetEstadoTexto(evento)
+                    </span>
+
+                    <div class="item-actions">
+                        <div class="card-actions">
+                            <button class="boton-secundario" @onclick='() => VerInfo(evento.Id)'>Ver Información</button>
+                            <button class="btn" @onclick='() => Desapuntarse(evento.Id)'>Desapuntarme</button>
+                        </div>
                     </div>
-                    <button class="btn" @onclick='() => Desapuntarse(evento.Id)'>Desapuntarme</button>
                 </div>
             }
         </div>
@@ -50,17 +65,37 @@
             @foreach (var evento in eventosDisponibles)
             {
                 <div class="card">
+
                     @if (!string.IsNullOrEmpty(evento.ImagenUrl))
                     {
                         <img src="@GetProxyUrl(evento.ImagenUrl)" class="card-img" />
                     }
-                    <div class="card-title">@evento.Nombre</div>
-                    <div class="card-desc">@evento.Descripcion</div>
-                    <div class="card-dates">
-                        <div>Inicio: @evento.FechaInicio</div>
-                        <div>Fin: @evento.FechaFin</div>
+
+                    <div class="card-content">
+
+                        <div class="card-title">
+                            @evento.Nombre
+                        </div>
+
+                        <div class="card-dates">
+                            <div>Inicio: @evento.FechaInicio</div>
+                            <div>Fin: @evento.FechaFin</div>
+                        </div>
+
+                        <div class="card-actions">
+                            <button class="boton-secundario"
+                                    @onclick='() => VerInfo(evento.Id)'>
+                                Ver Información
+                            </button>
+
+                            <button class="btn"
+                                    @onclick='() => Apuntarse(evento.Id)'>
+                                Apuntarme
+                            </button>
+                        </div>
+
                     </div>
-                    <button class="btn" @onclick='() => Apuntarse(evento.Id)'>Apuntarme</button>
+
                 </div>
             }
         </div>
@@ -127,7 +162,7 @@
                     .Include(eur => eur.Rol)
                     .Any(eur => eur.EventoId == e.Id
                         && eur.UsuarioId == idUsuario
-                        && eur.Rol.Nombre != "Organizador"))
+                        && eur.Rol.Nombre != "Organizador") && e.FechaFin > DateTime.UtcNow)
                 .ToList();
 
             eventosDisponibles = eventos
@@ -259,5 +294,36 @@
         {
             mensaje = $"Error al desapuntarse: {ex.Message}";
         }
+    }
+
+    private void VerInfo(Guid eventoId)
+    {
+        nav.NavigateTo($"/DashboardEvento/{eventoId}");
+    }
+
+    private string GetEstadoTexto(Votify.Core.Entities.Evento evento)
+    {
+        var ahora = DateTime.Now;
+
+        if (ahora < evento.FechaInicio)
+            return "Próximo";
+
+        if (ahora > evento.FechaFin)
+            return "Finalizado";
+
+        return "En curso";
+    }
+
+    private string GetEstadoClase(Votify.Core.Entities.Evento evento)
+    {
+        var ahora = DateTime.Now;
+
+        if (ahora < evento.FechaInicio)
+            return "estado-proximo";
+
+        if (ahora > evento.FechaFin)
+            return "estado-finalizado";
+
+        return "estado-curso";
     }
 }

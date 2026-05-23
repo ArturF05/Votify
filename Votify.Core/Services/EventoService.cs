@@ -204,5 +204,215 @@ namespace Votify.Core.Services
                 Proyectos = proyectosDashboard
             };
         }
+        public async Task<EventoDetalleDTO?> ObtenerEventoDetalleAsync(Guid id)
+        {
+            var evento = await eventoRepository.ObtenerEventoDetalleAsync(id);
+
+            if (evento == null) 
+                return null;
+
+            var hoy = DateTime.Now;
+
+            return new EventoDetalleDTO
+            {
+                Id = evento.Id,
+
+                Nombre = evento.Nombre,
+
+                Descripcion = evento.Descripcion,
+
+                FechaInicio = evento.FechaInicio,
+
+                FechaFin = evento.FechaFin,
+
+                ImagenUrl = evento.ImagenUrl,
+
+                TipoEvento = evento.Categoria?.Nombre ?? "Sin categoría",
+
+                Organizador = evento.EventoUsuarioRoles?
+                    .FirstOrDefault(eur => eur.Rol.Nombre == "Organizador")
+                    ?.Usuario.Nombre ?? "Desconocido",
+
+                Proyectos = evento.Proyectos
+                    .Select(p => new ProyectoDashboardDTO
+                    {
+                        ProyectoId = p.Id,
+
+                        TituloProyecto = p.Titulo,
+
+                        PuntuacionTotal = 0,
+
+                        IdCategoriaEvento = p.Id_categoria_evento,
+
+                        NombreCategoriaEvento = p.CategoriaEvento?.Nombre ?? string.Empty,
+
+                        CreadorNombre = p.ProyectoParticipantes?
+                            .FirstOrDefault(pp => pp.Id_usuario == p.Id_creador)?
+                            .Usuario.Nombre ?? "Creador desconocido",
+
+                        Materiales = p.Materiales?
+                            .Select(m => new MaterialDto
+                            {
+                                Id = m.Id,
+                                Nombre = m.Nombre,
+                                Tipo = m.Tipo,
+                                Url = m.Url,
+                                FechaSubida = m.FechaSubida
+                            })
+                            .ToList() ?? new List<MaterialDto>(),
+
+                        Comentarios = new List<string>(),
+
+                        Criterios = new List<CriterioDashboardDTO>()
+                        })
+                        .ToList(),
+
+                Categorias = evento.CategoriasEvento
+                    .Select(c => new CategoriaEventoResumenDTO
+                    {
+                        Id = c.Id,
+                        Nombre = c.Nombre
+                    })
+                    .ToList(),
+
+                Votaciones = evento.Votaciones
+                    .Select(v => new VotacionDetalleDTO
+                    {
+                        Id = v.Id,
+
+                        Nombre = $"Votación {v.Tipo}",
+        
+                        FechaInicio = v.FechaInicio,
+
+                        FechaFin = v.FechaFin,
+
+                        Tipo = v.Tipo.ToString(),
+
+                        IdCategoriaEvento = v.Id_categoria_evento,
+
+                        NombreCategoriaEvento = v.CategoriaEvento?.Nombre ?? string.Empty,
+
+                        Estado =
+                            hoy < v.FechaInicio ? "Próxima" :
+                            hoy > v.FechaFin ? "Finalizada" :
+                            "En curso"
+                    })
+                    .ToList(),
+
+                Premios = evento.CategoriasEvento
+                    .SelectMany(c => c.Premios)
+                    .OrderBy(p => p.Orden)
+                    .ThenBy(p => p.Puesto)
+                    .Select(p => CrearPremioDetalleDTO(p, evento.Proyectos))
+                    .ToList()
+            };
+        }
+
+        private PremioDetalleDTO CrearPremioDetalleDTO(Premio premio, IEnumerable<Proyecto> proyectos)
+        {
+            var votacion = premio.PremioVotaciones
+                .Select(pv => pv.Votacion)
+                .OrderByDescending(v => v.FechaFin)
+                .FirstOrDefault();
+
+            bool votacionFinalizada = votacion != null && DateTime.Now >= votacion.FechaFin;
+
+            var ganador = votacionFinalizada
+                ? ObtenerProyectoGanadorPorPuesto(votacion!, proyectos, premio.Puesto, premio.Id_categoria_evento)
+                : null;
+
+            return new PremioDetalleDTO
+            {
+                Id = premio.Id,
+                Nombre = premio.Nombre,
+                Descripcion = premio.Descripcion,
+                ImagenUrl = premio.ImagenUrl,
+                Puesto = premio.Puesto,
+
+                IdVotacion = votacion?.Id,
+                NombreVotacion = votacion == null
+                    ? "Sin votación"
+                    : $"Votación {votacion.Tipo}",
+
+                VotacionFinalizada = votacionFinalizada,
+
+                TieneGanador = ganador != null,
+                IdProyectoGanador = ganador?.Id,
+                NombreProyectoGanador = ganador?.Titulo,
+                PuntuacionGanador = ganador?.Puntuacion,
+
+                EstadoPremio = votacion == null
+                    ? "Sin votación"
+                    : !votacionFinalizada
+                        ? "Pendiente"
+                        : ganador != null
+                            ? "Ganador publicado"
+                            : "Sin ganador",
+
+                IdCategoriaEvento = premio.Id_categoria_evento,
+                NombreCategoriaEvento = premio.CategoriaEvento?.Nombre ?? string.Empty,
+            };
+        }
+
+        private ProyectoPremiadoDTO? ObtenerProyectoGanadorPorPuesto(
+            Votacion votacion,
+            IEnumerable<Proyecto> proyectos,
+            int puesto,
+            Guid idCategoriaEvento)
+        {
+            if (DateTime.Now < votacion.FechaFin)
+                return null;
+
+            var proyectosCategoria = proyectos
+                .Where(p => p.Id_categoria_evento == idCategoriaEvento)
+                .ToList();
+
+            var ranking = proyectosCategoria
+                .Select(p => new ProyectoPremiadoDTO
+                {
+                    Id = p.Id,
+                    Titulo = p.Titulo,
+                    Puntuacion = CalcularPuntuacionProyecto(votacion, p.Id)
+                })
+                .OrderByDescending(p => p.Puntuacion)
+                .ToList();
+
+            return ranking.Skip(puesto - 1).FirstOrDefault();
+        }
+
+        private decimal CalcularPuntuacionProyecto(Votacion votacion, Guid idProyecto)
+        {
+            var criterios = votacion.DimensionesDeValores;
+
+            if (criterios == null || !criterios.Any())
+                return 0;
+
+            decimal total = 0;
+
+            foreach (var criterio in criterios)
+            {
+                var notas = criterio.VotosCriterio?
+                    .Where(vc => vc.Voto.Id_proyecto == idProyecto)
+                    .Select(vc => vc.Nota)
+                    .ToList();
+
+                if (notas != null && notas.Any())
+                {
+                    var media = notas.Average();
+                    total += (decimal)media * (criterio.Peso / 100m);
+                }
+            }
+
+            return Math.Round(total, 2);
+        }
+
+        private class ProyectoPremiadoDTO
+        {
+            public Guid Id { get; set; }
+
+            public string Titulo { get; set; } = string.Empty;
+
+            public decimal Puntuacion { get; set; }
+        }
     }
 }
