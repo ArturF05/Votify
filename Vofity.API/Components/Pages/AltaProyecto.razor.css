@@ -62,7 +62,13 @@
     text-align: center;
     margin-bottom: 2.5rem;
 }
-
+.contador {
+    color: #718096;
+    font-size: 0.78rem;
+    display: block;
+    margin-top: 3px;
+    text-align: right;
+}
 /* ========================================
    CAMPOS DE ENTRADA CON ANIMACIONES
    ======================================== */

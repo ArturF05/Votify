@@ -438,7 +438,13 @@
     border: 1px solid #fed7aa;
     border-radius: 8px;
 }
-
+.contador {
+    color: #718096;
+    font-size: 0.78rem;
+    display: block;
+    margin-top: 3px;
+    text-align: right;
+}
 @media (max-width: 900px) {
     .premios-header,
     .estado-panel--accion,
