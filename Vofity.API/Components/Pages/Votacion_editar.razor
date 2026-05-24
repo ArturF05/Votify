@@ -133,6 +133,14 @@
             <option value="1">Sí</option>
         </select>
     </div>
+    <div class="campo campo-columna">
+        <label>Comentarios anónimos*:</label>
+        <select value="@comentariosAnonimos" @onchange="cambioComentariosAnonimos" disabled="@(permiteComentarios == 0)"
+                title="@(permiteComentarios == 0 ? "No se puede modificar porque no se permiten comentarios" : null)">
+            <option value="0">No</option>
+            <option value="1">Sí</option>
+        </select>
+    </div>
     <div class="errores">
         <div><label style="color:red">@mensaje5</label></div>
         <div><label style="color:red">@mensaje3</label></div>
@@ -280,6 +288,7 @@
     private int permiteAutoVotoAUX = 1;
     private int permiteComentariosAUX = 1;
     private int comentariosObligatoriosAUX = 0;
+    private int comentariosAnonimosAUX = 0;
     private DateTime inicioVotacion = DateTime.Now;
     private DateTime finVotacion = DateTime.Now.AddHours(1);
     private DateTime inicioEvento = DateTime.Now;
@@ -417,6 +426,7 @@
         permiteAutoVotoAUX = permiteAutoVoto;
         permiteComentariosAUX = permiteComentarios;
         comentariosObligatoriosAUX = comentariosObligatorios;
+        comentariosAnonimosAUX = comentariosAnonimos;
         estadoVotacion = votacion.EstadoVotacion;
         verRes = votacion.VerRes ? 1 : 0;
 
@@ -499,6 +509,13 @@
         if (comentariosObligatoriosAUX != nuevoValor) mensaje4 = "Atención, el cambio en la obligación o no a introducir comentarios no es retroactivo";
         else mensaje4 = "";
         comentariosObligatorios = nuevoValor;
+    }
+    private void cambioComentariosAnonimos(ChangeEventArgs e)
+    {
+        int nuevoValor = int.Parse(e.Value.ToString());
+        if (comentariosAnonimosAUX != nuevoValor) mensaje4 = "Atención, el cambio de anonimato de comentarios no es retroactivo para comentarios ya emitidos";
+        else mensaje4 = "";
+        comentariosAnonimos = nuevoValor;
     }
     void SeleccionarTipo(TipoVotacion tipo)
     {
