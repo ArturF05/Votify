@@ -407,6 +407,7 @@
     private string mensaje6 = "";
     private string mensajeErrorCriterio = "";
     private string mensajeNoCriterio = "";
+    private string debugInfo = "";
     private string nombreCriterio = "";
     private string descripcionCriterio = "";
     private string nombreNuevaCategoria = "";
@@ -719,6 +720,7 @@
             votaciones = await contexto.Votacion.ToListAsync();
 
             bool franjaUsada = false;
+            bool tipoUsado = false;
 
             foreach (var vot in votaciones.Where(v => v.Id != votacion.Id && v.Id_evento == Id_evento))
             {

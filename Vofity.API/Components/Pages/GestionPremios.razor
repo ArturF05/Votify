@@ -449,6 +449,12 @@
         RecalcularOrdenes(visibles);
     }
 
+    private static void RecalcularOrdenes(List<PremioForm> premios)
+    {
+        for (var i = 0; i < premios.Count; i++)
+            premios[i].Orden = i + 1;
+    }
+
 
     private async Task OnImagenPremioSeleccionada(Guid idFormulario, InputFileChangeEventArgs e)
     {

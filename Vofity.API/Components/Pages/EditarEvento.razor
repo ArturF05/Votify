@@ -321,15 +321,25 @@
 
             var response = await Http.DeleteAsync($"api/eventos/{evento.Id}");
 
-        if (response.IsSuccessStatusCode)
-        {
-            await azureStorageService.EliminarArchivoAsync(evento.ImagenUrl);
-            await JS.InvokeVoidAsync("history.back");
+            if (response.IsSuccessStatusCode)
+            {
+                await azureStorageService.EliminarArchivoAsync(evento.ImagenUrl);
+                await JS.InvokeVoidAsync("history.back");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensaje = $"No se pudo eliminar el evento: {error}";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var error = await response.Content.ReadAsStringAsync();
-            mensaje = $"No se pudo eliminar el evento: {error}";
+            mensaje = $"Error al eliminar el evento: {ex.Message}";
+        }
+        finally
+        {
+            eliminandoEvento = false;
+            textoEliminando = "Eliminar evento";
         }
     }
 
