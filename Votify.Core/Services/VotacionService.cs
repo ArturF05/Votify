@@ -185,7 +185,7 @@ namespace Votify.Core.Services
             return await votacionRepository.BuscarPorNombreAsync(Id_evento, tipoVotacion, permiteAutoVoto, verFinalizadas);
         }
 
-        public async Task CrearVotacion(Guid Id_evento, Guid? idCategoriaEvento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool verRes,List<Guid> Jurados, EstadoVotacion estadoVotacion, List<CrearCriterioDTO> criterios)
+        public async Task CrearVotacion(Guid Id_evento, Guid? idCategoriaEvento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion,int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool comentariosAnonimos, bool verRes,List<Guid> Jurados, EstadoVotacion estadoVotacion, List<CrearCriterioDTO> criterios)
         {
             if (Id_evento == Guid.Empty)
                 throw new Exception("El evento es obligatorio");
@@ -197,8 +197,12 @@ namespace Votify.Core.Services
             if (idCategoriaEvento.HasValue && idCategoriaEvento.Value != Guid.Empty &&
                 !await dimensionRepository.CategoriaEventoPerteneceAlEventoAsync(idCategoriaEvento.Value, Id_evento))
                 throw new Exception("La categoría de la votación no pertenece al evento");
-            if (permiteComentarios == false) comentariosObligatorios = false;
-            var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion,NumProy, permiteComentarios, comentariosObligatorios, verRes,estadoVotacion);
+            if (permiteComentarios == false)
+            {
+                comentariosObligatorios = false;
+                comentariosAnonimos = false;
+            }
+            var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion,NumProy, permiteComentarios, comentariosObligatorios, comentariosAnonimos, verRes,estadoVotacion);
             nuevaVotacion.Id_categoria_evento = idCategoriaEvento == Guid.Empty ? null : idCategoriaEvento;
 
             await votacionRepository.CrearVotacionAsync(nuevaVotacion);
@@ -241,7 +245,7 @@ namespace Votify.Core.Services
                 await eventoUsuarioRolRepository.CrearAsync(nuevoJurado);
             }
         }
-        public async Task EditarVotacion(Guid Id, Guid Id_evento, Guid? idCategoriaEvento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios, int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool verRes,List<Guid> Jurados, EstadoVotacion estadoVotacion)
+        public async Task EditarVotacion(Guid Id, Guid Id_evento, Guid? idCategoriaEvento, DateTime inicioVotacion, DateTime finVotacion, bool permiteAutoVoto, TipoVotacion tipoVotacion, List<CrearCriterioDTO> criterios, int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool comentariosAnonimos, bool verRes,List<Guid> Jurados, EstadoVotacion estadoVotacion)
         {
             var votacionActual = await votacionRepository.ObtenerPorIdAsync(Id);
 
@@ -259,7 +263,11 @@ namespace Votify.Core.Services
 
             if (finVotacion < inicioVotacion)
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
-            if (!permiteComentarios && comentariosObligatorios) comentariosObligatorios = false;
+            if (!permiteComentarios)
+            {
+                comentariosObligatorios = false;
+                comentariosAnonimos = false;
+            }
             if (votacionActual.Tipo == tipoVotacion)
             {
                 votacionActual.Id_evento = Id_evento;
@@ -270,6 +278,7 @@ namespace Votify.Core.Services
                 votacionActual.NumProy = NumProy;
                 votacionActual.PermiteComentarios = permiteComentarios;
                 votacionActual.ComentariosObligatorios = comentariosObligatorios;
+                votacionActual.ComentariosAnonimos = comentariosAnonimos;
                 votacionActual.EstadoVotacion = estadoVotacion;
                 votacionActual.VerRes = verRes;
 
@@ -286,6 +295,7 @@ namespace Votify.Core.Services
                     NumProy,
                     permiteComentarios,
                     comentariosObligatorios,
+                    comentariosAnonimos,
                     verRes,
                     estadoVotacion
                 );

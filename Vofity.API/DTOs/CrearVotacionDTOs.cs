@@ -18,5 +18,6 @@ namespace Votify.API.DTOs
         public EstadoVotacion EstadoVotacion { get; set; }
         public bool PermiteComentarios { get; set; }
         public bool ComentariosObligatorios { get; set; }
+        public bool ComentariosAnonimos { get; set; }
     }
 }

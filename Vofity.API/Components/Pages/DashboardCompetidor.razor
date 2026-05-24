@@ -441,6 +441,7 @@
         var votos = await contexto.Voto
             .AsNoTracking()
             .Include(v => v.Usuario)
+            .Include(v => v.Votacion)
             .Include(v => v.VotosCriterio)
                 .ThenInclude(vc => vc.Criterio)
             .Where(v => v.Id_proyecto == proyectoId)
@@ -450,14 +451,24 @@
         var comentarios = votos
             .SelectMany(v => v.VotosCriterio
                 .Where(vc => !string.IsNullOrWhiteSpace(vc.Comentario))
-                .Select(vc => CrearComentario(v.Usuario?.Nombre, vc.Criterio?.Nombre, vc.Comentario!)))
+                .Select(vc => CrearComentario(ObtenerAutorComentario(v), vc.Criterio?.Nombre, vc.Comentario!)))
             .ToList();
 
         comentarios.AddRange(votos
             .Where(v => !string.IsNullOrWhiteSpace(v.Comentario))
-            .Select(v => CrearComentario(v.Usuario?.Nombre, "General", v.Comentario!)));
+            .Select(v => CrearComentario(ObtenerAutorComentario(v), "General", v.Comentario!)));
 
         return comentarios;
+    }
+
+    private static string ObtenerAutorComentario(Voto voto)
+    {
+        if (voto.Votacion?.ComentariosAnonimos == true)
+            return "Anónimo";
+
+        return string.IsNullOrWhiteSpace(voto.Usuario?.Nombre)
+            ? "Juez"
+            : voto.Usuario.Nombre;
     }
 
     private static ComentarioCompetidorVm CrearComentario(string? juez, string? criterio, string texto)

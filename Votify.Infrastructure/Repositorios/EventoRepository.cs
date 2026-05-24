@@ -116,6 +116,8 @@ namespace Votify.Infrastructure.Repositorios
                 .ToListAsync();
 
             return await contexto.Voto
+                .Include(v => v.Usuario)
+                .Include(v => v.Votacion)
                 .Include(v => v.VotosCriterio)
                     .ThenInclude(vc => vc.Criterio)
                 .Where(v => idsProyectos.Contains(v.Id_proyecto))

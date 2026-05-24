@@ -275,6 +275,7 @@
     private int permiteAutoVoto = 1;
     private int permiteComentarios = 1;
     private int comentariosObligatorios = 0;
+    private int comentariosAnonimos = 0;
     private int numProyAUX = 1;
     private int permiteAutoVotoAUX = 1;
     private int permiteComentariosAUX = 1;
@@ -411,6 +412,7 @@
         permiteAutoVoto = votacion.PermiteAutoVoto ? 1 : 0;
         permiteComentarios = votacion.PermiteComentarios ? 1 : 0;
         comentariosObligatorios = votacion.ComentariosObligatorios ? 1 : 0;
+        comentariosAnonimos = votacion.ComentariosAnonimos ? 1 : 0;
         numProyAUX = NumProy;
         permiteAutoVotoAUX = permiteAutoVoto;
         permiteComentariosAUX = permiteComentarios;
@@ -485,7 +487,11 @@
         if ((permiteComentariosAUX != nuevoValor)) mensaje3 = "Atención, el cambio en permitir comentarios no es retroactivo";
         else mensaje3 = "";
         permiteComentarios = nuevoValor;
-        if (permiteComentarios == 0 && comentariosObligatorios == 1) cambioComentariosObligatorios(new ChangeEventArgs { Value = 0 });
+        if (permiteComentarios == 0)
+        {
+            if (comentariosObligatorios == 1) cambioComentariosObligatorios(new ChangeEventArgs { Value = 0 });
+            comentariosAnonimos = 0;
+        }
     }
     private void cambioComentariosObligatorios(ChangeEventArgs e)
     {
@@ -601,7 +607,8 @@
                     Peso = c.Peso
                 }).ToList(),
                 PermiteComentarios = permiteComentarios == 1,
-                ComentariosObligatorios = comentariosObligatorios == 1
+                ComentariosObligatorios = comentariosObligatorios == 1,
+                ComentariosAnonimos = comentariosAnonimos == 1
             };
             var response = await Http.PutAsJsonAsync($"api/v1/votaciones/{id}", dto);
 
