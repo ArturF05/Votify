@@ -245,10 +245,13 @@ namespace Votify.Core.Services
             }
 
             if (estadoVotacion == EstadoVotacion.Abierta)
-                await NotificarAperturaVotacionAsync(Id_evento);
+            {
+                try { await NotificarAperturaVotacionAsync(Id_evento); }
+                catch { /* notificación no crítica */ }
+            }
         }
 
-        private async Task NotificarAperturaVotacionAsync(Guid idEvento)
+        public async Task NotificarAperturaVotacionAsync(Guid idEvento)
         {
             var usuarios = await usuarioRepository.ObtenerConEmailPorEventoAsync(idEvento);
             if (!usuarios.Any()) return;
@@ -257,7 +260,7 @@ namespace Votify.Core.Services
             foreach (var usuario in usuarios)
                 notificador.suscribir(new EmailObserver(usuario.Email!, emailSender));
 
-            notificador.notificar(
+            await notificador.notificarAsync(
                 "¡Nueva votación abierta!",
                 "Se ha abierto una nueva votación en un evento en el que participas. Entra en Votify para votar.");
         }
@@ -397,6 +400,12 @@ namespace Votify.Core.Services
             {
                 await eventoUsuarioRolRepository.EliminarAsync(jurado);
             }
+
+            if (estadoVotacion == EstadoVotacion.Abierta)
+            {
+                try { await NotificarAperturaVotacionAsync(Id_evento); }
+                catch { /* notificación no crítica */ }
+            }
         }
 
         public async Task EliminarVotacion(Guid Id)
@@ -426,9 +435,29 @@ namespace Votify.Core.Services
         {
             return await votacionRepository.ObtenerVotacionesEventos(idsEventos);
         }
+
         public async Task<List<Voto>> ObtenerVotosVotacion(Guid idVotacion)
         {
             return await votacionRepository.ObtenerVotosVotacion(idVotacion);
+        }
+
+        public async Task AbrirVotacionesProgramadasAsync()
+        {
+            var vencidas = await votacionRepository.ObtenerCerradasVencidasAsync();
+            if (!vencidas.Any()) return;
+
+            var eventosANotificar = new List<Guid>();
+            foreach (var votacion in vencidas)
+            {
+                await votacionRepository.AbrirVotacionAsync(votacion.Id);
+                eventosANotificar.Add(votacion.Id_evento);
+            }
+
+            foreach (var idEvento in eventosANotificar.Distinct())
+            {
+                try { await NotificarAperturaVotacionAsync(idEvento); }
+                catch { /* notificación no crítica */ }
+            }
         }
     }
 }

@@ -114,6 +114,21 @@ namespace Votify.Infrastructure.Repositorios
                 .Where(v => idsEventos.Contains(v.Id_evento))
                 .ToListAsync();
         }
+        public async Task<List<Votacion>> ObtenerCerradasVencidasAsync()
+        {
+            var ahora = DateTime.UtcNow;
+            return await contexto.Votacion
+                .Where(v => v.EstadoVotacion == EstadoVotacion.Cerrada && v.FechaInicio <= ahora)
+                .ToListAsync();
+        }
+
+        public async Task AbrirVotacionAsync(Guid id)
+        {
+            await contexto.Votacion
+                .Where(v => v.Id == id)
+                .ExecuteUpdateAsync(s => s.SetProperty(v => v.EstadoVotacion, EstadoVotacion.Abierta));
+        }
+
         public async Task<List<Voto>> ObtenerVotosVotacion(Guid idVotacion)
         {
             return await contexto.Voto.Where(v => v.Id_votacion == idVotacion).ToListAsync();

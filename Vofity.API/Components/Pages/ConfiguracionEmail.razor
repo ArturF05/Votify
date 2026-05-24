@@ -1,0 +1,173 @@
+@page "/ConfiguracionEmail"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Votify.Core.Entities
+@using Votify.Core.Interfaces
+@using Votify.Core.Observer
+@inject IConfiguracionSmtpRepository ConfigRepo
+@inject IEmailSender EmailSender
+@inject ProtectedSessionStorage SessionStorage
+@inject NavigationManager Nav
+<PageTitle>Configuración de Email - Votify</PageTitle>
+
+<div class="page">
+    <div class="header">
+        <h1>Configuración de <span>Email</span></h1>
+        <p>Credenciales del servidor de correo para enviar notificaciones a los usuarios.</p>
+    </div>
+
+    @if (cargando)
+    {
+        <div class="section">
+            <p class="cargando">Cargando...</p>
+        </div>
+    }
+    else
+    {
+        <div class="section">
+            <h2>Servidor SMTP</h2>
+
+            @if (!string.IsNullOrEmpty(mensaje))
+            {
+                <div class="alert @(exito ? "alert-success" : "alert-error")">
+                    <span>@mensaje</span>
+                </div>
+            }
+
+            <div class="form-row">
+                <div class="form-group grow">
+                    <label class="field-label">Host</label>
+                    <input @bind="host" class="form-input" placeholder="smtp.gmail.com" />
+                </div>
+                <div class="form-group fixed">
+                    <label class="field-label">Puerto</label>
+                    <input type="number" @bind="port" class="form-input" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="field-label">Correo electrónico (remitente)</label>
+                <input type="email" @bind="userName" class="form-input" placeholder="tu-correo@gmail.com" />
+            </div>
+
+            <div class="form-group">
+                <label class="field-label">Contraseña de aplicación</label>
+                <input type="password" @bind="password" class="form-input" placeholder="xxxx xxxx xxxx xxxx" />
+                <span class="field-hint">Genera una contraseña de aplicación en tu cuenta de Google (Seguridad → Contraseñas de aplicaciones).</span>
+            </div>
+
+            <div class="form-group">
+                <label class="field-label">Nombre del remitente</label>
+                <input @bind="fromName" class="form-input" placeholder="Votify" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(mensajePrueba))
+            {
+                <div class="alert @(exitoPrueba ? "alert-success" : "alert-error")">
+                    <strong>Test:</strong> @mensajePrueba
+                </div>
+            }
+
+            <div class="acciones">
+                <button class="btn-guardar" @onclick="Guardar" disabled="@guardando">
+                    @(guardando ? "Guardando..." : "Guardar configuración")
+                </button>
+                <button class="btn-test" @onclick="EnviarPrueba" disabled="@enviandoPrueba">
+                    @(enviandoPrueba ? "Enviando..." : "Enviar email de prueba")
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string host = "smtp.gmail.com";
+    private int port = 587;
+    private string userName = "";
+    private string password = "";
+    private string fromName = "Votify";
+    private string mensaje = "";
+    private bool exito = false;
+    private bool cargando = true;
+    private bool guardando = false;
+    private string mensajePrueba = "";
+    private bool exitoPrueba = false;
+    private bool enviandoPrueba = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            var resultado = await SessionStorage.GetAsync<Guid>("IdUsuario");
+            if (!resultado.Success || resultado.Value == Guid.Empty)
+            {
+                Nav.NavigateTo("/Login");
+                return;
+            }
+
+            var config = await ConfigRepo.ObtenerAsync();
+            if (config != null)
+            {
+                host = config.Host;
+                port = config.Port;
+                userName = config.UserName;
+                password = config.Password;
+                fromName = config.FromName;
+            }
+        }
+        finally
+        {
+            cargando = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Guardar()
+    {
+        guardando = true;
+        mensaje = "";
+
+        await ConfigRepo.GuardarAsync(new ConfiguracionSmtp
+        {
+            Host = host,
+            Port = port,
+            UserName = userName,
+            Password = password,
+            FromName = fromName
+        });
+
+        mensaje = "Configuración guardada correctamente";
+        exito = true;
+        guardando = false;
+    }
+
+    private async Task EnviarPrueba()
+    {
+        enviandoPrueba = true;
+        mensajePrueba = "";
+
+        await Guardar();
+
+        try
+        {
+            await EmailSender.SendAsync(new Votify.Core.Observer.NotificationEvent(
+                userName,
+                "Prueba de configuración - Votify",
+                "Si recibes este correo, la configuración SMTP de Votify funciona correctamente."));
+
+            mensajePrueba = $"Email de prueba enviado a {userName}. Revisa tu bandeja de entrada (y spam).";
+            exitoPrueba = true;
+        }
+        catch (Exception ex)
+        {
+            mensajePrueba = $"Error al enviar: {ex.Message}";
+            exitoPrueba = false;
+        }
+        finally
+        {
+            enviandoPrueba = false;
+        }
+    }
+}

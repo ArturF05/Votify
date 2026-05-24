@@ -7,10 +7,12 @@
 @using Votify.Core.Services
 @using Votify.Infrastructure.Data
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@implements IDisposable
 @inject NavigationManager nav
 @inject AppDbContext contexto
 @inject HttpClient Http
 @inject IEvento eventoService
+@inject IVotacion votacionService
 @inject ProtectedSessionStorage sessionStorage
 @rendermode InteractiveServer
 <PageTitle>Gestionar votaciones - Votify </PageTitle>
@@ -145,6 +147,8 @@
     private string noHayResultados = "";
     private Guid idUsuario;
     private bool cargado = false;
+    private bool _actualizando = false;
+    private System.Threading.Timer? _timer;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -177,24 +181,35 @@
 
         cargado = true;
         StateHasChanged();
+
+        _timer = new System.Threading.Timer(async _ =>
+        {
+            await InvokeAsync(async () =>
+            {
+                if (_actualizando || idUsuario == Guid.Empty) return;
+                _actualizando = true;
+                try
+                {
+                    await ActualizarEstadosVotaciones();
+                    await BuscarVotaciones();
+                    StateHasChanged();
+                }
+                finally
+                {
+                    _actualizando = false;
+                }
+            });
+        }, null, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(60));
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
     }
 
     private async Task ActualizarEstadosVotaciones()
     {
-        var ahora = DateTime.UtcNow;
-
-        var listaVotaciones = await contexto.Votacion.ToListAsync();
-
-        foreach (var votacion in listaVotaciones)
-        {
-            if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
-                votacion.FechaInicio <= ahora)
-            {
-                votacion.EstadoVotacion = EstadoVotacion.Abierta;
-            }
-        }
-
-        await contexto.SaveChangesAsync();
+        await votacionService.AbrirVotacionesProgramadasAsync();
     }
 
     private async Task BuscarVotaciones()

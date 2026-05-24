@@ -31,6 +31,14 @@
             @if (menuAbierto)
             {
                 <div class="user-dropdown">
+                    <button class="user-dropdown-item"
+                            @onclick='() => nav.NavigateTo("/Perfil")'>
+                        Mi Perfil
+                    </button>
+                    <button class="user-dropdown-item"
+                            @onclick='() => nav.NavigateTo("/ConfiguracionEmail")'>
+                        Configuración Email
+                    </button>
                     <button class="user-dropdown-item user-dropdown-logout"
                             @onclick="ConfirmarLogout">
                         <!-- Icono de salida -->

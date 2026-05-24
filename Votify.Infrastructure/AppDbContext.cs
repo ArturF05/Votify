@@ -30,6 +30,7 @@ public class AppDbContext : DbContext
     public DbSet<ProyectoParticipantes> ProyectoParticipantes { get; set; }
     public DbSet<Premio> Premio { get; set; }
     public DbSet<PremioVotacion> PremioVotacion { get; set; }
+    public DbSet<ConfiguracionSmtp> ConfiguracionSmtp { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
