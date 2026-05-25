@@ -30,7 +30,14 @@
             @if (!string.IsNullOrEmpty(mensaje))
             {
                 <div class="alert @(loginExitoso ? "alert-success" : "alert-error")">
-                    <img src="/Images/Alerta-Icono.png" alt="Alerta" class="Alerta-img" />
+                    @if (loginExitoso)
+                    {
+                        <span class="alert-success-icon" aria-hidden="true">✓</span>
+                    }
+                    else
+                    {
+                        <img src="/Images/Alerta-Icono.png" alt="Alerta" class="Alerta-img" />
+                    }
                     <span>@mensaje</span>
                 </div>
             }
