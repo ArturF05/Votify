@@ -115,16 +115,10 @@
 
          
             if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
-                             votacion.EstadoVotacion == EstadoVotacion.Pausada ||
-                             votacion.EstadoVotacion == EstadoVotacion.Cerrada) &&
-                            votacion.FechaFin <= ahora)
+                 votacion.EstadoVotacion == EstadoVotacion.Pausada) &&
+                votacion.FechaFin <= ahora)
             {
                 votacion.EstadoVotacion = EstadoVotacion.Finalizada;
-            }
-            else if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
-                     votacion.FechaInicio <= ahora)
-            {
-                votacion.EstadoVotacion = EstadoVotacion.Abierta;
             }
 
         

@@ -231,18 +231,11 @@
             Console.WriteLine($"Fin: {votacion.FechaFin}");
             Console.WriteLine($"Ahora: {ahora}");
 
-            bool votacionIsAbierta = votacion.EstadoVotacion == EstadoVotacion.Abierta;
-            bool votacionIsPausada = votacion.EstadoVotacion == EstadoVotacion.Pausada;
-            bool votacionIsCerrada = votacion.EstadoVotacion == EstadoVotacion.Cerrada;
-            bool isEndDateAfterNow = votacion.FechaFin <= ahora;
-            bool isIniDateBeforeNow = votacion.FechaInicio <= ahora;
-            if ((votacionIsAbierta || votacionIsPausada || votacionIsCerrada) && isEndDateAfterNow)
+            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
+                 votacion.EstadoVotacion == EstadoVotacion.Pausada) &&
+                votacion.FechaFin <= ahora)
             {
                 votacion.EstadoVotacion = EstadoVotacion.Finalizada;
-            }
-            else if (votacionIsCerrada && isIniDateBeforeNow)
-            {
-                votacion.EstadoVotacion = EstadoVotacion.Abierta;
             }
 
             Console.WriteLine($"Estado después: {votacion.EstadoVotacion}");
