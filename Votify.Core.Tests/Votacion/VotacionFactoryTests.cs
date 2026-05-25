@@ -3,6 +3,7 @@ using Votify.Core.DTOs;
 using Votify.Core.Entities;
 using Votify.Core.Factories;
 using Votify.Core.Interfaces;
+using Votify.Core.Observer;
 using Votify.Core.Services;
 
 namespace Votify.Core.Tests.VotacionTests
@@ -125,7 +126,8 @@ namespace Votify.Core.Tests.VotacionTests
             _eurRepo = new Mock<IEventoUsuarioRolRepository>();
             _service = new VotacionService(
                 _votacionRepo.Object, _votoRepo.Object, _proyectoRepo.Object,
-                _dimensionRepo.Object, _usuarioRepo.Object, _eurRepo.Object);
+                _dimensionRepo.Object, _usuarioRepo.Object, _eurRepo.Object,
+                new Mock<IEmailSender>().Object);
         }
 
         [TestMethod]

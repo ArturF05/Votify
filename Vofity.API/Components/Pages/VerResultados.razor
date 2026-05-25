@@ -160,10 +160,11 @@
 
         foreach (var votacion in listaVotaciones)
         {
-            if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
-                votacion.FechaInicio <= ahora)
+            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
+                 votacion.EstadoVotacion == EstadoVotacion.Pausada) &&
+                votacion.FechaFin <= ahora)
             {
-                votacion.EstadoVotacion = EstadoVotacion.Abierta;
+                votacion.EstadoVotacion = EstadoVotacion.Finalizada;
             }
         }
 

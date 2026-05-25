@@ -678,6 +678,35 @@ namespace Votify.Core.Tests.Votacion
         }
 
         [TestMethod]
+        public async Task EditarVotacion_CambiaEstadoVotacion_ActualizaCorrectamente()
+        {
+            var inicioVotacion = DateTime.Now.AddDays(1);
+            var finVotacion = DateTime.Now.AddDays(10);
+
+            await votacionService.EditarVotacion(
+                idVotacion,
+                idEvento,
+                null,
+                inicioVotacion,
+                finVotacion,
+                true,
+                TipoVotacion.Publico,
+                CriteriosVacios,
+                3,
+                true,
+                true,
+                true,
+                false,
+                JuradosVacios,
+                EstadoVotacion.Cerrada);
+
+            var votacionActualizada = await context.Votacion.FindAsync(idVotacion);
+
+            Assert.IsNotNull(votacionActualizada);
+            Assert.AreEqual(EstadoVotacion.Cerrada, votacionActualizada.EstadoVotacion);
+        }
+
+        [TestMethod]
         public async Task EditarVotacion_FechasIguales_NoLanzaExcepcion()
         {
             var fecha = new DateTime(

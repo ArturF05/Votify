@@ -417,7 +417,6 @@
     private string mensaje6 = "";
     private string mensajeErrorCriterio = "";
     private string mensajeNoCriterio = "";
-    private string debugInfo = "";
     private string nombreCriterio = "";
     private string descripcionCriterio = "";
     private string nombreNuevaCategoria = "";
@@ -449,6 +448,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        contexto.ChangeTracker.Clear();
+
         eventos = await contexto.Evento.Include(e => e.Categoria).ToListAsync();
 
         votacion = await contexto.Votacion.FirstOrDefaultAsync(e => e.Id == id);
@@ -497,37 +498,6 @@
             .Where(u => idsJurado.Contains(u.Id))
             .OrderBy(u => u.Nombre)
             .ToListAsync();
-    }
-    private async Task ActualizarEstadosVotaciones()
-    {
-        var ahora = DateTime.UtcNow;
-
-        var votaciones = await contexto.Votacion.ToListAsync();
-
-        foreach (var votacion in votaciones)
-        {
-            debugInfo = $"FechaFin: {votacion.FechaFin} | " +
-            $"Kind: {votacion.FechaFin.Kind} | " +
-            $"Ahora UTC: {DateTime.UtcNow} | " +
-            $"Ahora Local: {DateTime.Now}";
-
-            if ((votacion.EstadoVotacion == EstadoVotacion.Abierta ||
-                 votacion.EstadoVotacion == EstadoVotacion.Pausada ||
-                 votacion.EstadoVotacion == EstadoVotacion.Cerrada) &&
-                votacion.FechaFin <= ahora)
-            {
-                votacion.EstadoVotacion = EstadoVotacion.Finalizada;
-            }
-            else if (votacion.EstadoVotacion == EstadoVotacion.Cerrada &&
-                     votacion.FechaInicio <= ahora)
-            {
-                votacion.EstadoVotacion = EstadoVotacion.Abierta;
-            }
-
-            Console.WriteLine($"Estado después: {votacion.EstadoVotacion}");
-        }
-
-        await contexto.SaveChangesAsync();
     }
     public async Task SetVotacion(Votify.Core.Entities.Votacion votacion)
     {
@@ -858,6 +828,7 @@
             if (response.IsSuccessStatusCode)
             {
                 hayCambios = false;
+                contexto.ChangeTracker.Clear();
                 await JS.InvokeVoidAsync("history.back");
             }
             else
