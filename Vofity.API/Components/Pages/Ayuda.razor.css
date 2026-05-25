@@ -52,6 +52,7 @@
 
 .card h3,
 .pasos h2,
+.gmail-config h2,
 .faq h2,
 .nota h2,
 .contacto h2 {
@@ -64,6 +65,7 @@
 }
 
 .card p,
+.gmail-config p,
 .nota p,
 .contacto p {
     margin: 0 0 0.65rem;
@@ -77,6 +79,7 @@
 }
 
 .pasos,
+.gmail-config,
 .faq,
 .nota,
 .contacto {
@@ -92,6 +95,49 @@
     padding-left: 1.25rem;
     color: #4b5563;
     line-height: 1.7;
+}
+
+.gmail-pasos {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+    margin-top: 1.15rem;
+}
+
+.gmail-paso {
+    background: #ffffff;
+    border: 1px solid #f3dfc1;
+    border-radius: 8px;
+    padding: 1.15rem;
+}
+
+.gmail-paso h3 {
+    margin: 0 0 0.65rem;
+    color: #111827;
+    font-size: 1.05rem;
+}
+
+.gmail-paso ol,
+.gmail-paso ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: #4b5563;
+    line-height: 1.7;
+}
+
+.gmail-paso a {
+    color: #d97706;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.gmail-alerta {
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid #f1c27d;
+    border-radius: 8px;
+    background: #fff7ed;
+    font-weight: 700;
 }
 
 .faq-lista {
