@@ -28,7 +28,7 @@
 <div class="busqueda-card">
     <div class="barra-busqueda">
     <input @bind="busqueda" @bind:event="oninput" type="text" placeholder="Buscar eventos..." @onkeypress="EsEnter" />
-    <label class="categoria-label">Categoria: </label>
+    <label class="categoria-label">Tipo: </label>
         <select @bind="Id_Categoria" @bind:event="oninput" @onchange="BuscarEventos">
             <option value="@Guid.Empty">Todas</option>
             @foreach (var cat in categorias)
@@ -46,7 +46,7 @@
         <thead>
             <tr>
                 <th>Evento</th>
-                <th>Categoría</th>
+                <th>Tipo</th>
                 <th>Fecha Inicio</th>
                 <th>Fecha Fin</th>
                 <th>Editar</th>
@@ -54,16 +54,30 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var evento in eventos.Where(e => e.Archivado == false))
+            @if (cargando)
             {
                 <tr>
-                    <td>@evento.Nombre</td>
-                    <td>@evento.Categoria.Nombre</td>
-                    <td>@evento.FechaInicio</td>
-                    <td>@evento.FechaFin</td>
-                    <td><button class="boton-secundario" @onclick='() => EditarEvento(evento)'>Editar</button></td>
-                    <td><button class="boton-secundario" @onclick='() => Archivar(evento.Id)'>Archivar</button></td>
+                    <td colspan="6">
+                        <div class="loading-box">
+                            <div class="spinner"></div>
+                            <p>Cargando eventos...</p>
+                        </div>
+                    </td>
                 </tr>
+            }
+            else
+            {
+                @foreach (var evento in eventos.Where(e => e.Archivado == false))
+                {
+                    <tr>
+                        <td>@evento.Nombre</td>
+                        <td>@evento.Categoria.Nombre</td>
+                        <td>@evento.FechaInicio</td>
+                        <td>@evento.FechaFin</td>
+                        <td><button class="boton-secundario" @onclick='() => EditarEvento(evento)'>Editar</button></td>
+                        <td><button class="boton-secundario" @onclick='() => Archivar(evento.Id)'>Archivar</button></td>
+                   </tr>
+                }
             }
         </tbody>
     </table>
@@ -72,7 +86,7 @@
 </div>
 
 <div class="acciones-inferiores">
-    <a href="/CrearEvento" class="boton-principal">Crear Evento</a>
+    <a href="/CrearEvento" class="boton-principal">Crear Evento nuevo</a>
 </div>
 
 </div>
@@ -84,9 +98,11 @@
     private Guid Id_Categoria = Guid.Empty;
     private string noHayResultados = "";
     private Guid idUsuario;
+    private bool cargando = true;
 
     protected override async Task OnInitializedAsync()
     {
+        cargando = true;
         ProtectedBrowserStorageResult<Guid> resultado;
         try
         {
@@ -118,6 +134,7 @@
             .ToListAsync();
         categorias = await contexto.Categoria.ToListAsync();
         HayEventos();
+        cargando = false;
     }
 
     private async Task EsEnter(KeyboardEventArgs e)

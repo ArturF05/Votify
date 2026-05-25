@@ -64,25 +64,30 @@
             <div class="campo-grupo">
                 <label for="titulo" class="campo-label">Título del Proyecto</label>
                 <div class="campo-wrapper">
-                    <InputText id="titulo"
-                               @bind-Value="modelo.Titulo"
-                               class="campo-input"
-                               placeholder="Ej: Mi nuevo proyecto" />
+                    <input id="titulo"
+                           maxlength="50"
+                           value="@modelo.Titulo"
+                           @oninput='e => modelo.Titulo = e.Value?.ToString()?.Length > 50 ? e.Value.ToString()[..50] : e.Value?.ToString() ?? ""'
+                           class="campo-input"
+                           placeholder="Ej: Mi nuevo proyecto" />
                     <span class="campo-linea"></span>
                 </div>
+                <span class="contador">@(modelo.Titulo?.Length ?? 0) / 50</span>
                 <ValidationMessage For="@(() => modelo.Titulo)" />
             </div>
 
             <div class="campo-grupo">
                 <label for="descripcion" class="campo-label">Descripción</label>
                 <div class="campo-wrapper">
-                    <InputTextArea id="descripcion"
-                                   @bind-Value="modelo.Descripcion"
-                                   rows="4"
-                                   class="campo-textarea"
-                                   placeholder="Describe brevemente tu proyecto..." />
+                    <textarea id="descripcion"
+                              maxlength="500"
+                              rows="4"
+                              class="campo-textarea"
+                              placeholder="Describe brevemente tu proyecto..."
+                              @oninput='e => modelo.Descripcion = e.Value?.ToString()?.Length > 500 ? e.Value.ToString()[..500] : e.Value?.ToString() ?? ""'>@modelo.Descripcion</textarea>
                     <span class="campo-linea"></span>
                 </div>
+                <span class="contador">@(modelo.Descripcion?.Length ?? 0) / 500</span>
                 <ValidationMessage For="@(() => modelo.Descripcion)" />
             </div>
 

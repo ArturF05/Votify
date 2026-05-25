@@ -21,12 +21,22 @@
             <h2>Gestionar premios</h2>
             <p>Prepara los premios de una categoria y guarda todos los cambios al final.</p>
         </div>
-        <button type="button" class="boton-secundario" @onclick="VolverDashboard">Volver al dashboard</button>
+        <button type="button"
+                class="boton-secundario"
+                @onclick="VolverDashboard"
+                disabled="@guardando">
+            Volver al dashboard
+        </button>
     </div>
 
     @if (!cargado)
     {
-        <div class="estado-panel">Cargando premios...</div>
+        <div class="estado-panel">
+            <div class="loading-box">
+                <div class="spinner-carga"></div>
+                <p>Cargando premios...</p>
+            </div>
+        </div>
     }
     else if (!eventos.Any())
     {
@@ -37,7 +47,9 @@
         <section class="selector-panel">
             <label>
                 Evento
-                <select value="@idEventoSeleccionado" @onchange="EventoSeleccionado">
+                <select value="@idEventoSeleccionado"
+                        @onchange="EventoSeleccionado"
+                        disabled="@guardando">
                     @foreach (var evento in eventos)
                     {
                         <option value="@evento.Id">@evento.Nombre</option>
@@ -47,7 +59,9 @@
 
             <label>
                 Categoria de votacion
-                <select value="@idCategoriaSeleccionada" @onchange="CategoriaSeleccionada" disabled="@(!categoriasEvento.Any())">
+                <select value="@idCategoriaSeleccionada"
+                        @onchange="CategoriaSeleccionada"
+                        disabled="@(guardando || !categoriasEvento.Any())">
                     @if (!categoriasEvento.Any())
                     {
                         <option value="@Guid.Empty">Sin categorias de votacion</option>
@@ -83,7 +97,12 @@
                     <strong>@NombreCategoriaSeleccionada</strong>
                     <span>@PremiosVisibles.Count premio(s) preparados · @votacionesCompatibles.Count votacion(es) compatibles</span>
                 </div>
-                <button type="button" class="boton-principal" @onclick="AnadirPremio">Anadir premio</button>
+                <button type="button"
+                        class="boton-principal"
+                        @onclick="AnadirPremio"
+                        disabled="@guardando">
+                    Anadir premio
+                </button>
             </section>
 
             @if (!PremiosVisibles.Any())
@@ -131,22 +150,14 @@
                                 </div>
                             </div>
 
-                            <div class="premio-content">
-                                <div class="premio-topline">
-                                    <span class="orden-chip">Orden @(index + 1)</span>
-                                    @if (PremiosVisibles.Count > 1)
-                                    {
-                                        <div class="orden-actions">
-                                            <button type="button" title="Subir premio" @onclick="() => MoverPremio(premio.IdFormulario, -1)" disabled="@(index == 0)">Subir</button>
-                                            <button type="button" title="Bajar premio" @onclick="() => MoverPremio(premio.IdFormulario, 1)" disabled="@(index == PremiosVisibles.Count - 1)">Bajar</button>
-                                        </div>
-                                    }
-                                </div>
-
                                 <div class="form-grid">
                                     <label>
                                         Nombre del premio
-                                        <input @bind="premio.Nombre" maxlength="120" placeholder="Ej. Mejor diseno" />
+                                        <input value="@premio.Nombre"
+                                               maxlength="20"
+                                               @oninput='e => premio.Nombre = e.Value?.ToString()?.Length > 20 ? e.Value.ToString()[..20] : e.Value?.ToString() ?? ""'
+                                               placeholder="Ej. Mejor diseno" />
+                                        <span class="contador">@(premio.Nombre?.Length ?? 0) / 20</span>
                                     </label>
 
                                     <label>
@@ -161,7 +172,10 @@
 
                                     <label class="campo-descripcion">
                                         Descripcion
-                                        <textarea @bind="premio.Descripcion" rows="3" placeholder="Que reconoce este premio"></textarea>
+                                        <textarea rows="3" placeholder="Que reconoce este premio" maxlength="100"
+                                        value="@premio.Descripcion"
+                                        @oninput='e => premio.Descripcion = e.Value?.ToString()?.Length > 100 ? e.Value.ToString()[..100] : e.Value?.ToString() ?? "" '></textarea>
+                                    <span class="contador">@(premio.Descripcion?.Length ?? 0) / 100</span>
                                     </label>
                                 </div>
 
@@ -192,7 +206,6 @@
                                 </div>
 
                                 <button type="button" class="boton-peligro" @onclick="() => QuitarPremio(premio.IdFormulario)">Quitar premio</button>
-                            </div>
                         </article>
                     }
                 </section>
@@ -203,8 +216,17 @@
                     <strong>@PremiosVisibles.Count premio(s) listos</strong>
                     <span>Los cambios se aplicaran juntos y despues volveras al dashboard.</span>
                 </div>
-                <button type="button" class="boton-principal boton-guardar" @onclick="GuardarPremios" disabled="@guardando">
-                    @(guardando ? "Guardando..." : "Guardar premios")
+                <button type="button"
+                        class="boton-principal boton-guardar boton-crear-evento"
+                        @onclick="GuardarPremios"
+                        disabled="@guardando">
+
+                    @if (guardando)
+                    {
+                        <span class="spinner"></span>
+                    }
+
+                    @(guardando ? "Guardando premios..." : "Guardar premios")
                 </button>
             </section>
         }
@@ -378,6 +400,9 @@
 
     private void AnadirPremio()
     {
+        if (guardando)
+            return;
+
         var siguienteOrden = PremiosVisibles.Count + 1;
 
         premiosFormulario.Add(new PremioForm
@@ -392,6 +417,9 @@
 
     private void QuitarPremio(Guid idFormulario)
     {
+        if (guardando)
+            return;
+
         var premio = premiosFormulario.FirstOrDefault(p => p.IdFormulario == idFormulario);
         if (premio == null)
             return;
@@ -401,11 +429,13 @@
         else
             premiosFormulario.Remove(premio);
 
-        RecalcularOrdenes(PremiosVisibles);
     }
 
     private void MoverPremio(Guid idFormulario, int direccion)
     {
+        if (guardando)
+            return;
+
         var visibles = PremiosVisibles;
         var indice = visibles.FindIndex(p => p.IdFormulario == idFormulario);
         var nuevoIndice = indice + direccion;
@@ -422,10 +452,9 @@
     private static void RecalcularOrdenes(List<PremioForm> premios)
     {
         for (var i = 0; i < premios.Count; i++)
-        {
             premios[i].Orden = i + 1;
-        }
     }
+
 
     private async Task OnImagenPremioSeleccionada(Guid idFormulario, InputFileChangeEventArgs e)
     {
@@ -460,6 +489,9 @@
 
     private void QuitarImagenPremio(Guid idFormulario)
     {
+        if (guardando)
+            return;
+
         var premio = premiosFormulario.FirstOrDefault(p => p.IdFormulario == idFormulario);
         if (premio == null)
             return;

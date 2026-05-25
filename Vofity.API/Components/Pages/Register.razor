@@ -31,12 +31,23 @@
 
             <div class="form-group">
                 <label for="usuario" class="usu-contra-titulo">Nombre de Usuario</label>
-                <input id="usuario" @bind="modelo.Usuario" placeholder="Elige un nombre de usuario" class="form-input" />
+                <input id="usuario" maxlength="50"
+                       value="@modelo.Usuario"
+                       @oninput='e => modelo.Usuario = e.Value?.ToString()?.Length > 50 ? e.Value.ToString()[..50] : e.Value?.ToString() ?? ""'
+                       placeholder="Elige un nombre de usuario"
+                       class="form-input" />
+                <span class="contador">@(modelo.Usuario?.Length ?? 0) / 50</span>
             </div>
 
             <div class="form-group">
                 <label for="password" class="usu-contra-titulo">Contraseña</label>
-                <input id="password" type="password" @bind="modelo.Password" placeholder="Crea una contraseña" class="form-input" />
+                <input id="password" type="password"
+                       maxlength="50"
+                       value="@modelo.Password"
+                       @oninput='e => modelo.Password = e.Value?.ToString()?.Length > 50 ? e.Value.ToString()[..50] : e.Value?.ToString() ?? ""'
+                       placeholder="Crea una contraseña"
+                       class="form-input" />
+                <span class="contador">@(modelo.Password?.Length ?? 0) / 50</span>
             </div>
 
             <div class="form-group">
@@ -46,7 +57,10 @@
 
             <div class="form-group">
                 <label for="confirmPassword" class="usu-contra-titulo">Confirmar Contraseña</label>
-                <input id="confirmPassword" type="password" @bind="modelo.ConfirmPassword" placeholder="Repite tu contraseña" class="form-input" />
+                <input id="confirmPassword" type="password" placeholder="Repite tu contraseña" class="form-input" maxlength="50" 
+                        value="@modelo.ConfirmPassword"
+                       @oninput='e => modelo.ConfirmPassword = e.Value?.ToString()?.Length > 50 ? e.Value.ToString()[..50] : e.Value?.ToString() ?? ""' />
+                <span class="contador">@(modelo.ConfirmPassword?.Length ?? 0) / 50</span>
             </div>
 
             <button type="submit" class="btn-primary" disabled="@isLoading">
