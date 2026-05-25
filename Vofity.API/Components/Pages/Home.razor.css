@@ -320,3 +320,36 @@ label {
             width: 100%;
         }
 }
+
+.loading-box {
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.8rem;
+    color: #5f6b7a;
+    font-weight: 600;
+    grid-column: 1 / -1;
+}
+
+.spinner {
+    width: 42px;
+    height: 42px;
+    border: 5px solid #e5e7eb;
+    border-top: 5px solid #f28c28;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.empty-text {
+    color: #6b7280;
+    font-weight: 500;
+    padding: 1rem 0;
+}

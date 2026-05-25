@@ -8,13 +8,13 @@
 @inject HttpClient Http
 @inject ProtectedSessionStorage sessionStorage
 @inject NavigationManager nav
-<PageTitle>Home - Votify </PageTitle>
+<PageTitle>Inicio - Votify </PageTitle>
 <div class="page">
 
     <div class="header">
         @if (usuarioActual == null)
         {
-            <h1>Home</h1>
+            <h1>Inicio</h1>
         }
         else{
             <h1>Hola <span>@usuarioActual.Nombre</span> 👋</h1>
@@ -25,35 +25,49 @@
     <div class="section">
         <h2>Eventos en los que participas</h2>
         <div class="participando-list">
-            @foreach (var evento in eventosParticipando)
+            @if (cargandoEventos)
             {
-                <div class="item">
-                    <div class="item-left">
-                        @if (!string.IsNullOrEmpty(evento.ImagenUrl))
-                        {
-                            <img src="@GetProxyUrl(evento.ImagenUrl)" class="item-img" />
-                        }
-
-                        <div class="item-info">
-                            <span class="item-title">@evento.Nombre</span>
-
-                            <span class="item-date">
-                                📅 @evento.FechaInicio.ToString("dd/MM/yyyy") - @evento.FechaFin.ToString("dd/MM/yyyy")
-                            </span>
-                        </div>
-                    </div>
-
-                    <span class="estado-evento @GetEstadoClase(evento)">
-                        @GetEstadoTexto(evento)
-                    </span>
-
-                    <div class="item-actions">
-                        <div class="card-actions">
-                            <button class="boton-secundario" @onclick='() => VerInfo(evento.Id)'>Ver Información</button>
-                            <button class="btn" @onclick='() => Desapuntarse(evento.Id)'>Desapuntarme</button>
-                        </div>
-                    </div>
+                <div class="loading-box">
+                    <div class="spinner"></div>
+                    <p>Cargando eventos...</p>
                 </div>
+            }
+            else if (!eventosParticipando.Any())
+            {
+                <p class="empty-text">No participas en ningún evento todavía.</p>
+            }
+            else
+            {
+                @foreach (var evento in eventosParticipando)
+                {
+                    <div class="item">
+                        <div class="item-left">
+                            @if (!string.IsNullOrEmpty(evento.ImagenUrl))
+                            {
+                                <img src="@GetProxyUrl(evento.ImagenUrl)" class="item-img" />
+                            }
+
+                            <div class="item-info">
+                                <span class="item-title">@evento.Nombre</span>
+
+                                <span class="item-date">
+                                    📅 @evento.FechaInicio.ToString("dd/MM/yyyy") - @evento.FechaFin.ToString("dd/MM/yyyy")
+                                </span>
+                            </div>
+                        </div>
+
+                        <span class="estado-evento @GetEstadoClase(evento)">
+                            @GetEstadoTexto(evento)
+                        </span>
+
+                        <div class="item-actions">
+                            <div class="card-actions">
+                                <button class="boton-secundario" @onclick='() => VerInfo(evento.Id)'>Ver Información</button>
+                                <button class="btn" @onclick='() => Desapuntarse(evento.Id)'>Desapuntarme</button>
+                            </div>
+                        </div>
+                    </div>
+                }
             }
         </div>
     </div>
@@ -62,41 +76,55 @@
         <h2>Eventos a los que puedes unirte</h2>
 
         <div class="grid">
-            @foreach (var evento in eventosDisponibles)
+            @if (cargandoEventos)
             {
-                <div class="card">
+                <div class="loading-box">
+                    <div class="spinner"></div>
+                    <p>Cargando eventos...</p>
+                </div>
+            }
+            else if (!eventosDisponibles.Any())
+            {
+                <p class="empty-text">No hay eventos disponibles para unirte.</p>
+            }
+            else
+            {
+                @foreach (var evento in eventosDisponibles)
+                {
+                    <div class="card">
 
-                    @if (!string.IsNullOrEmpty(evento.ImagenUrl))
-                    {
-                        <img src="@GetProxyUrl(evento.ImagenUrl)" class="card-img" />
-                    }
+                        @if (!string.IsNullOrEmpty(evento.ImagenUrl))
+                        {
+                            <img src="@GetProxyUrl(evento.ImagenUrl)" class="card-img" />
+                        }
 
-                    <div class="card-content">
+                        <div class="card-content">
 
-                        <div class="card-title">
-                            @evento.Nombre
-                        </div>
+                            <div class="card-title">
+                                @evento.Nombre
+                            </div>
 
-                        <div class="card-dates">
-                            <div>Inicio: @evento.FechaInicio</div>
-                            <div>Fin: @evento.FechaFin</div>
-                        </div>
+                            <div class="card-dates">
+                                <div>Inicio: @evento.FechaInicio</div>
+                                <div>Fin: @evento.FechaFin</div>
+                            </div>
 
-                        <div class="card-actions">
-                            <button class="boton-secundario"
-                                    @onclick='() => VerInfo(evento.Id)'>
-                                Ver Información
-                            </button>
+                            <div class="card-actions">
+                                <button class="boton-secundario"
+                                        @onclick='() => VerInfo(evento.Id)'>
+                                    Ver Información
+                                </button>
 
-                            <button class="btn"
-                                    @onclick='() => Apuntarse(evento.Id)'>
-                                Apuntarme
-                            </button>
+                                <button class="btn"
+                                        @onclick='() => Apuntarse(evento.Id)'>
+                                    Apuntarme
+                                </button>
+                            </div>
+
                         </div>
 
                     </div>
-
-                </div>
+                }
             }
         </div>
     </div>
@@ -110,6 +138,7 @@
     List<Votify.Core.Entities.Evento> eventosParticipando = new();
     List<Votify.Core.Entities.Evento> eventosDisponibles = new();
 
+    private bool cargandoEventos = true;
     private string debugInfo = "";
     private string mensaje = "";
     private Guid idUsuario;
@@ -162,7 +191,7 @@
                     .Include(eur => eur.Rol)
                     .Any(eur => eur.EventoId == e.Id
                         && eur.UsuarioId == idUsuario
-                        && eur.Rol.Nombre != "Organizador"))
+                        && eur.Rol.Nombre != "Organizador") && e.FechaFin > DateTime.UtcNow)
                 .ToList();
 
             eventosDisponibles = eventos
@@ -177,13 +206,15 @@
                      && eur.UsuarioId == idUsuario)
     )
     .ToList();
-
+            cargandoEventos = false;
             StateHasChanged();
         }
         catch (Exception ex)
         {
+            cargandoEventos = false;
             mensaje = $"Error cargando Home: {ex.Message}";
             Console.WriteLine($"[HOME ERROR] {ex}");
+            StateHasChanged();
         }
     }
     private async Task ActualizarEstadosVotaciones()

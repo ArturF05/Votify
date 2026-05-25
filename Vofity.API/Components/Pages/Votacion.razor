@@ -16,13 +16,18 @@
         <h2 class="titulo">Elija un evento sobre el que votar</h2>
     </div>
     <div class="evento-container">
-        @if (eventos.Count == 0)
+        @if (cargando)
         {
-            <div>No estás participando en ningún evento</div>
+            <div class="loading-box">
+                <div class="spinner"></div>
+                <p>Cargando votaciones...</p>
+            </div>
         }
-        else if(puedeVotar.Count<eventos.Count || deshabilitar.Count < eventos.Count)
+        else if (eventos.Count == 0)
         {
-            <div>Cargando...</div>
+            <div class="loading-box">
+                <p>No estás participando en ningún evento</p>
+            </div>
         }
         else
         {
@@ -34,12 +39,13 @@
                     {
                         <img src="@GetProxyUrl(evento.ImagenUrl)" class="evento-img" />
                     }
+
                     <div class="evento-body">
                         <div class="evento-nombre">@evento.Nombre</div>
                         <div>@puedeVotar[indice]</div>
                     </div>
-
                 </button>
+
                 indice++;
             }
         }
@@ -55,13 +61,11 @@
     private List<string> puedeVotar = new();
     private List<bool> deshabilitar = new();
     private string GetProxyUrl(string url) => $"/api/miniaturas/from-url?url={Uri.EscapeDataString(url)}";
+    private bool cargando = true;
+
     protected override async Task OnInitializedAsync()
     {
-       
-
         await ActualizarEstadosVotaciones();
-
-
         ProtectedBrowserStorageResult<Guid> resultado;
         try
         {
@@ -95,6 +99,7 @@
             await ponerParametros(evento, j);
             j++;
         }
+        cargando = false;
         StateHasChanged();
     }
     private async Task ActualizarEstadosVotaciones()
