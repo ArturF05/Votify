@@ -40,10 +40,17 @@ builder.Services.AddScoped<IAzureStorage>(sp =>
     var real = sp.GetRequiredService<AzureStorageService>();
     return new AzureStorageProxy(real);
 });
+var appBaseUrl = (builder.Configuration["AppBaseUrl"] ?? "https://localhost:7053").Trim().Trim('"');
+if (!Uri.TryCreate(appBaseUrl, UriKind.Absolute, out var appBaseUri) ||
+    (appBaseUri.Scheme != Uri.UriSchemeHttp && appBaseUri.Scheme != Uri.UriSchemeHttps))
+{
+    throw new InvalidOperationException("AppBaseUrl debe ser una URL absoluta que empiece por http:// o https://.");
+}
+
 // Login
 builder.Services.AddHttpClient<ILogin, LoginService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7053");
+    client.BaseAddress = appBaseUri;
 });
 
 builder.Services.AddHttpClient<GeminiIAService>();
@@ -51,7 +58,7 @@ builder.Services.AddHttpClient<GeminiIAService>();
 // HttpClient
 builder.Services.AddScoped(sp =>
 {
-    return new HttpClient { BaseAddress = new Uri("https://localhost:7053") }; // El puerto del servidor que se usa
+    return new HttpClient { BaseAddress = appBaseUri };
 });
 
 // AppDbContext

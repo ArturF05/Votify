@@ -11,6 +11,7 @@
 @inject NavigationManager nav
 @inject HttpClient Http
 @inject AppDbContext contexto
+
 <PageTitle>Dashboard Organizador - Votify </PageTitle>
   <div class="layout">
       <header class="main-header">
@@ -396,63 +397,6 @@
         </div>
 
     </div>
-    <section class="card premios-dashboard-card">
-        <div class="card-header premios-dashboard-header">
-            <h2 class="card-title">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 003-3v-3.75a3 3 0 00-3-3h-9a3 3 0 00-3 3v3.75a3 3 0 003 3m9 0v1.5A2.25 2.25 0 0114.25 22.5h-4.5A2.25 2.25 0 017.5 20.25v-1.5m9-9V6.75A3.75 3.75 0 0012.75 3h-1.5A3.75 3.75 0 007.5 6.75V9" />
-                </svg>
-                Premios configurados
-            </h2>
-            <button class="btn-create" @onclick='() => nav.NavigateTo("GestionPremios")'>
-                Gestionar premios
-            </button>
-        </div>
-
-        <div class="card-content premios-dashboard-content">
-            @if (!string.IsNullOrWhiteSpace(mensajePremiosDashboard))
-            {
-                <p class="voting-empty">@mensajePremiosDashboard</p>
-            }
-            else if (!premiosDashboard.Any())
-            {
-                <p class="voting-empty">Todavia no hay premios definidos para tus eventos.</p>
-            }
-            else
-            {
-                <div class="premios-dashboard-list">
-                    @foreach (var premio in premiosDashboard.Take(8))
-                    {
-                        var imagen = string.IsNullOrWhiteSpace(premio.ImagenUrl)
-                            ? null
-                            : GetProxyUrl(premio.ImagenUrl);
-
-                        <article class="premio-dashboard-item">
-                            @if (string.IsNullOrWhiteSpace(imagen))
-                            {
-                                <div class="premio-dashboard-placeholder">@premio.Orden</div>
-                            }
-                            else
-                            {
-                                <img src="@imagen" alt="Imagen de @premio.Nombre" />
-                            }
-
-                            <div class="premio-dashboard-info">
-                                <strong>@premio.Nombre</strong>
-                                <span>@premio.EventoNombre · @premio.CategoriaNombre · Puesto @premio.Puesto</span>
-                                @if (!string.IsNullOrWhiteSpace(premio.Descripcion))
-                                {
-                                    <p>@premio.Descripcion</p>
-                                }
-                            </div>
-
-                            <span class="premio-dashboard-meta">@premio.NumVotaciones vot.</span>
-                        </article>
-                    }
-                </div>
-            }
-        </div>
-    </section>
 </div>
 
 @code {
