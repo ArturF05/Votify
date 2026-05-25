@@ -105,8 +105,8 @@
                             </div>
 
                             <div class="card-dates">
-                                <div>Inicio: @evento.FechaInicio</div>
-                                <div>Fin: @evento.FechaFin</div>
+                                <div>Inicio: @FormatearFechaMadrid(evento.FechaInicio)</div>
+                                <div>Fin: @FormatearFechaMadrid(evento.FechaFin)</div>
                             </div>
 
                             <div class="card-actions">
@@ -349,5 +349,27 @@
             return "estado-finalizado";
 
         return "estado-curso";
+    }
+
+    private static string FormatearFechaMadrid(DateTime fecha)
+    {
+        var fechaUtc = fecha.Kind == DateTimeKind.Utc
+            ? fecha
+            : DateTime.SpecifyKind(fecha, DateTimeKind.Utc);
+
+        var zonaMadrid = ObtenerZonaMadrid();
+        return TimeZoneInfo.ConvertTimeFromUtc(fechaUtc, zonaMadrid).ToString("dd/MM/yyyy HH:mm");
+    }
+
+    private static TimeZoneInfo ObtenerZonaMadrid()
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time");
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("Europe/Madrid");
+        }
     }
 }
