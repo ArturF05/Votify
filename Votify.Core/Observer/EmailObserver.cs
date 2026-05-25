@@ -16,5 +16,11 @@ namespace Votify.Core.Observer
             var evt = new NotificationEvent(_recipientEmail, notificationEvent.Subject, notificationEvent.Message);
             _emailSender.Send(evt);
         }
+
+        public async Task UpdateAsync(NotificationEvent notificationEvent)
+        {
+            var evt = new NotificationEvent(_recipientEmail, notificationEvent.Subject, notificationEvent.Message);
+            await _emailSender.SendAsync(evt);
+        }
     }
 }

@@ -20,6 +20,8 @@ namespace Votify.Core.Interfaces
         Task<Votacion?> ObtenerPorIdAsync(Guid id);
         Task<List<Votacion>> ObtenerVotacionesEventos(List<Guid> idsEventos);
         Task<List<Voto>> ObtenerVotosVotacion(Guid idVotacion);
+        Task NotificarAperturaVotacionAsync(Guid idEvento);
+        Task AbrirVotacionesProgramadasAsync();
 
     }
 }

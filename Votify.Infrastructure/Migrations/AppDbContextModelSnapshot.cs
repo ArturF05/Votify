@@ -60,6 +60,36 @@ namespace Votify.Infrastructure.Migrations
                     b.ToTable("CategoriaEvento", (string)null);
                 });
 
+            modelBuilder.Entity("Votify.Core.Entities.ConfiguracionSmtp", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("FromName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Host")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Port")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ConfiguracionSmtp");
+                });
+
             modelBuilder.Entity("Votify.Core.Entities.DimensionesDeValor", b =>
                 {
                     b.Property<Guid>("Id")

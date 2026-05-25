@@ -9,5 +9,6 @@ namespace Votify.Core.Observer
     public interface Observer
     {
         void Update(NotificationEvent notificationEvent);
+        Task UpdateAsync(NotificationEvent notificationEvent);
     }
 }

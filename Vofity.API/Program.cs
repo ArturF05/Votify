@@ -6,6 +6,8 @@ using Votify.Core.Observer;
 using Votify.Core.Services;
 using Votify.Infrastructure.Data;
 using Votify.Infrastructure.Repositorios;
+using Votify.Infrastructure.Services;
+using Votify.Infrastructure.Repositorios;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,7 +35,8 @@ builder.Services.AddScoped<IMaterialService, MaterialService>();
 builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<AzureStorageService>();
-builder.Services.AddScoped<IEmailSender, LogEmailSender>();
+builder.Services.AddScoped<IConfiguracionSmtpRepository, ConfiguracionSmtpRepository>();
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
 builder.Services.AddScoped<IAzureStorage>(sp =>
 {

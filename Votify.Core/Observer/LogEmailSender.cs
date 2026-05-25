@@ -19,5 +19,11 @@ namespace Votify.Core.Observer
                 notificationEvent.Subject,
                 notificationEvent.Message);
         }
+
+        public Task SendAsync(NotificationEvent notificationEvent)
+        {
+            Send(notificationEvent);
+            return Task.CompletedTask;
+        }
     }
 }

@@ -143,6 +143,7 @@ namespace Votify.Core.Tests.Votacion
                 )
             );
 
+
             Assert.AreEqual("Se tiene que poder votar mínimo 1 proyecto", exception.Message);
         }
 

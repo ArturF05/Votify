@@ -59,5 +59,13 @@ namespace Votify.Infrastructure.Repositorios
                 .Distinct()
                 .ToListAsync()!;
         }
+
+        public async Task ActualizarEmailAsync(Guid id, string? email)
+        {
+            var usuario = await _context.Usuario.FindAsync(id);
+            if (usuario == null) return;
+            usuario.Email = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
+            await _context.SaveChangesAsync();
+        }
     }
 }
