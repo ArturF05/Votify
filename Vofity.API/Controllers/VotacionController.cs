@@ -73,6 +73,7 @@ namespace Votify.API.Controllers
                     dto.Num_Proy,
                     dto.PermiteComentarios,
                     dto.ComentariosObligatorios,
+                    dto.ComentariosAnonimos,
                     dto.VerRes,
                     dto.Jurados,
                     dto.EstadoVotacion,
@@ -111,6 +112,7 @@ namespace Votify.API.Controllers
                     dto.Num_Proy,
                     dto.PermiteComentarios,
                     dto.ComentariosObligatorios,
+                    dto.ComentariosAnonimos,
                     dto.VerRes,
                     dto.Jurados,
                     dto.EstadoVotacion

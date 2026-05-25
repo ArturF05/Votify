@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Votify.Core.DTOs;
+using Votify.Core.Entities;
 using Votify.Core.Interfaces;
 
 namespace Votify.Core.Services
@@ -138,7 +139,7 @@ namespace Votify.Core.Services
                             : 0m,
                         Comentarios = votosCriterio
                             .Where(vc => !string.IsNullOrWhiteSpace(vc.Comentario))
-                            .Select(vc => vc.Comentario!)
+                            .Select(vc => $"{ObtenerAutorComentario(vc.Voto)}: {vc.Comentario!}")
                             .ToList()
                     };
                 }).ToList();
@@ -150,7 +151,7 @@ namespace Votify.Core.Services
                     PuntuacionTotal = Math.Round(total, 2),
                     Comentarios = votos
                         .Where(v => v.Id_proyecto == proyecto.Id && !string.IsNullOrEmpty(v.Comentario))
-                        .Select(v => v.Comentario!)
+                        .Select(v => $"{ObtenerAutorComentario(v)}: {v.Comentario!}")
                         .ToList(),
                     Criterios = criteriosProyecto
                 });
@@ -160,6 +161,16 @@ namespace Votify.Core.Services
             return result
                 .OrderByDescending(p => p.PuntuacionTotal)
                 .ToList();
+        }
+
+        private static string ObtenerAutorComentario(Voto voto)
+        {
+            if (voto.Votacion?.ComentariosAnonimos == true)
+                return "Anónimo";
+
+            return string.IsNullOrWhiteSpace(voto.Usuario?.Nombre)
+                ? "Juez"
+                : voto.Usuario.Nombre;
         }
 
         public async Task<ProyectoDashboardDTO?> ObtenerProyectoGanador(Guid eventoId)

@@ -9,8 +9,8 @@ namespace Votify.Core.Factories
 {
     internal abstract class VotacionFactory
     {
-        public abstract Votacion CrearVotacion(DateTime fechaInicio,DateTime fechaFin,bool permiteAutoVoto,Guid Id_evento,TipoVotacion tipoVotacion,int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool verRes,EstadoVotacion estadoVotacion);
-        public virtual Votacion RecrearVotacion(Guid id,DateTime fechaInicio,DateTime fechaFin,bool permiteAutoVoto,Guid Id_evento,TipoVotacion tipoVotacion,int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool verRes, EstadoVotacion estadoVotacion)
+        public abstract Votacion CrearVotacion(DateTime fechaInicio,DateTime fechaFin,bool permiteAutoVoto,Guid Id_evento,TipoVotacion tipoVotacion,int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool comentariosAnonimos, bool verRes,EstadoVotacion estadoVotacion);
+        public virtual Votacion RecrearVotacion(Guid id,DateTime fechaInicio,DateTime fechaFin,bool permiteAutoVoto,Guid Id_evento,TipoVotacion tipoVotacion,int NumProy, bool permiteComentarios, bool comentariosObligatorios, bool comentariosAnonimos, bool verRes, EstadoVotacion estadoVotacion)
         {
             var votacion = CrearVotacion(
                 fechaInicio,
@@ -21,6 +21,7 @@ namespace Votify.Core.Factories
                 NumProy,
                 permiteComentarios,
                 comentariosObligatorios,
+                comentariosAnonimos,
                 verRes,
                 estadoVotacion
             );

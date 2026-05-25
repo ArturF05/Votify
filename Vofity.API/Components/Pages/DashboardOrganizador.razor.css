@@ -28,6 +28,13 @@ body {
     gap: 24px;
 }
 
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
 .main-header h1 {
     font-size: 30px;
     font-weight: 700;
@@ -38,6 +45,42 @@ body {
     color: var(--muted-foreground);
     margin-top: 4px;
     font-size: 14px;
+}
+
+.dashboard-switcher {
+    display: inline-flex;
+    padding: 4px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+
+.dashboard-switcher button {
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 14px;
+    background: transparent;
+    color: #4b5563;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.dashboard-switcher button.active {
+    background: #ffffff;
+    color: #111827;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+
+@media (max-width: 640px) {
+    .main-header {
+        flex-direction: column;
+    }
+
+    .dashboard-switcher,
+    .dashboard-switcher button {
+        width: 100%;
+    }
 }
 
 .card {

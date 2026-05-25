@@ -134,7 +134,14 @@
                 <option value="1">Sí</option>
             </select>
         </div>
-    </div>
+        <div class="campo campo-columna">
+            <label>Comentarios anónimos*:</label>
+            <select @bind="comentariosAnonimos" disabled="@(permiteComentarios == 0)"
+                    title="@(permiteComentarios == 0 ? "No se puede modificar porque no se permiten comentarios" : null)">
+                <option value="0">No</option>
+                <option value="1">Sí</option>
+            </select>
+        </div>
     @{
         var mensajesActivos = new[] { mensaje, mensaje2 }
             .Where(m => !string.IsNullOrEmpty(m))
@@ -368,6 +375,7 @@
     private int permiteAutoVoto = 1;
     public int permiteComentarios = 1;
     public int comentariosObligatorios = 0;
+    public int comentariosAnonimos = 0;
     private DateTime inicioVotacion = DateTime.Now;
     private DateTime finVotacion = DateTime.Now.AddHours(1);
     private DateTime inicioEvento = DateTime.Now;
@@ -549,7 +557,11 @@
         hayCambios = true;
         int nuevoValor = int.Parse(e.Value.ToString());
         permiteComentarios = nuevoValor;
-        if (nuevoValor == 0) comentariosObligatorios = 0;
+        if (nuevoValor == 0)
+        {
+            comentariosObligatorios = 0;
+            comentariosAnonimos = 0;
+        }
     }
     private async Task GuardarVotacion()
     {
@@ -657,7 +669,10 @@
             }
 
             if (permiteComentarios == 0)
+            {
                 comentariosObligatorios = 0;
+                comentariosAnonimos = 0;
+            }
 
             evento = await contexto.Evento
                 .AsNoTracking()
@@ -690,7 +705,8 @@
                     }))
                     .ToList(),
                 PermiteComentarios = permiteComentarios == 1,
-                ComentariosObligatorios = comentariosObligatorios == 1
+                ComentariosObligatorios = comentariosObligatorios == 1,
+                ComentariosAnonimos = comentariosAnonimos == 1
             };
 
             var response = await Http.PostAsJsonAsync("api/v1/votaciones", dto);

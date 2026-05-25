@@ -280,6 +280,7 @@ namespace Votify.Core.Tests.Votacion
                 true,
                 false,
                 true,
+                false,
                 new List<Guid>(),
                 EstadoVotacion.Abierta,
                 criterios
@@ -312,6 +313,7 @@ namespace Votify.Core.Tests.Votacion
                     true,
                     false,
                     true,
+                    false,
                     new List<Guid>(),
                     EstadoVotacion.Abierta,
                     new List<CrearCriterioDTO>()
@@ -347,6 +349,7 @@ namespace Votify.Core.Tests.Votacion
                     true,
                     false,
                     true,
+                    false,
                     new List<Guid>(),
                     EstadoVotacion.Abierta,
                     criterios
@@ -384,6 +387,7 @@ namespace Votify.Core.Tests.Votacion
                 true,
                 false,
                 true,
+                false,
                 new List<Guid>(),
                 EstadoVotacion.Abierta
             );

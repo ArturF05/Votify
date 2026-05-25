@@ -71,7 +71,7 @@ namespace Votify.API.Controllers
                 var jurados = new List<Guid>();
                 for (int i = 0; i < dto.dTOsVotacion.Count; i++)
                 {
-                        await votacionService.CrearVotacion(evento.Id, dto.dTOsVotacion[i].Id_categoria_evento, dto.dTOsVotacion[i].FechaInicio, dto.dTOsVotacion[i].FechaFin, dto.dTOsVotacion[i].PermiteAutoVoto, dto.dTOsVotacion[i].TipoVotacion, dto.dTOsVotacion[i].Num_Proy, dto.dTOsVotacion[i].PermiteComentarios, dto.dTOsVotacion[i].ComentariosObligatorios, dto.dTOsVotacion[i].VerRes, jurados, dto.dTOsVotacion[i].EstadoVotacion, dto.dTOsVotacion[i].Criterios);
+                        await votacionService.CrearVotacion(evento.Id, dto.dTOsVotacion[i].Id_categoria_evento, dto.dTOsVotacion[i].FechaInicio, dto.dTOsVotacion[i].FechaFin, dto.dTOsVotacion[i].PermiteAutoVoto, dto.dTOsVotacion[i].TipoVotacion, dto.dTOsVotacion[i].Num_Proy, dto.dTOsVotacion[i].PermiteComentarios, dto.dTOsVotacion[i].ComentariosObligatorios, dto.dTOsVotacion[i].ComentariosAnonimos, dto.dTOsVotacion[i].VerRes, jurados, dto.dTOsVotacion[i].EstadoVotacion, dto.dTOsVotacion[i].Criterios);
                         await context.SaveChangesAsync();
                 }
                 await context.SaveChangesAsync();

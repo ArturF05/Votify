@@ -14,7 +14,14 @@
 <PageTitle>Dashboard Organizador - Votify </PageTitle>
   <div class="layout">
       <header class="main-header">
-        <h1>Dashboard Organizador</h1>
+        <div>
+            <h1>Dashboard Organizador</h1>
+            <p>Control de eventos, votaciones y resultados.</p>
+        </div>
+        <div class="dashboard-switcher" aria-label="Cambiar tipo de dashboard">
+            <button type="button" class="active">Organizador</button>
+            <button type="button" @onclick='() => nav.NavigateTo("/DashboardCompetidor")'>Competidor</button>
+        </div>
       </header>
       <div class="estadisticas-grid">
           <!--Eventos activos-->

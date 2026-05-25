@@ -78,6 +78,7 @@ public class AppDbContext : DbContext
             entity.Property(v => v.NumProy)
                 .HasColumnName("NumProy");
             entity.Property(v => v.EstadoVotacion).HasColumnName("EstadoVotacion");
+            entity.Property(v => v.ComentariosAnonimos).HasColumnName("ComentariosAnonimos");
             entity.Property(v=> v.VerRes).HasColumnName("VerRes");
         });
 

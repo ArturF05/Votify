@@ -349,6 +349,14 @@
                         <option value="1">Sí</option>
                     </select>
                 </div>
+                <div class="campo campo-columna">
+                    <label>Comentarios anónimos*</label>
+                    <select @bind="votaciones[i].ComentariosAnonimos" disabled="@(votaciones[i].PermiteComentarios ==0)"
+                        title="@(votaciones[i].PermiteComentarios == 0 ? "No se puede modificar porque no se permiten comentarios": null)">
+                        <option value="0">No</option>
+                        <option value="1">Sí</option>
+                    </select>
+                </div>
                 <div class="grupo-botones-votacion">
                     <button type="button" class="boton-duplicar-votacion"
                             @onclick="() => DuplicarVotacion(i)"
@@ -602,6 +610,7 @@
             NumProy = 1,
             PermiteComentarios = 1,
             ComentariosObligatorios = 0,
+            ComentariosAnonimos = 0,
             VerRes=1,
         });
     }
@@ -720,7 +729,11 @@
         hayCambios = true;
         int nuevoValor = int.Parse(e.Value.ToString());
         votaciones[i].PermiteComentarios = nuevoValor;
-        if (nuevoValor == 0) votaciones[i].ComentariosObligatorios = 0;
+        if (nuevoValor == 0)
+        {
+            votaciones[i].ComentariosObligatorios = 0;
+            votaciones[i].ComentariosAnonimos = 0;
+        }
     }
     private async Task OnImagenSeleccionada(InputFileChangeEventArgs e)
     {
@@ -835,7 +848,11 @@
                     errorGuardado = true;
                     return;
                 }
-                if (votaciones[i].PermiteComentarios == 0) votaciones[i].ComentariosObligatorios = 0;
+                if (votaciones[i].PermiteComentarios == 0)
+                {
+                    votaciones[i].ComentariosObligatorios = 0;
+                    votaciones[i].ComentariosAnonimos = 0;
+                }
             }
 
             if (!categoriasEvento.Any())
@@ -882,10 +899,11 @@
                     EstadoVotacion = EstadoVotacion.Cerrada,
                     PermiteComentarios = votaciones[i].PermiteComentarios == 1,
                     ComentariosObligatorios = votaciones[i].ComentariosObligatorios == 1,
+                    ComentariosAnonimos = votaciones[i].ComentariosAnonimos == 1,
                     Id_categoria_evento = votaciones[i].IdCategoriaVotacion == Guid.Empty
                         ? null
                         : votaciones[i].IdCategoriaVotacion,
-                    Criterios = categoriasEvento.Where(categoria =>     
+                    Criterios = categoriasEvento.Where(categoria =>
                         votaciones[i].IdCategoriaVotacion == Guid.Empty ||
                         categoria.Id == votaciones[i].IdCategoriaVotacion)
                         .SelectMany(categoria => categoria.Criterios.Select(c => new Votify.Core.DTOs.CrearCriterioDTO
@@ -1408,6 +1426,7 @@
         public int VerRes { get; set; } = 1;
         public int PermiteComentarios { get; set; }
         public int ComentariosObligatorios { get; set; }
+        public int ComentariosAnonimos { get; set; }
         public int NumProy { get; set; } = 1;
         public Guid IdCategoriaVotacion { get; set; } = Guid.Empty;
     }

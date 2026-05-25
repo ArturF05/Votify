@@ -148,6 +148,14 @@
             </select>
         </div>
     </div>
+    <div class="campo campo-columna">
+        <label>Comentarios anónimos*:</label>
+        <select value="@comentariosAnonimos" @onchange="cambioComentariosAnonimos" disabled="@(permiteComentarios == 0)"
+                title="@(permiteComentarios == 0 ? "No se puede modificar porque no se permiten comentarios" : null)">
+            <option value="0">No</option>
+            <option value="1">Sí</option>
+        </select>
+    </div>
     <div class="errores">
         @{
             var mensajesActivos = new[] { mensaje5, mensaje3, mensaje4, mensaje, mensaje2, mensaje6 }
@@ -388,10 +396,12 @@
     private int permiteAutoVoto = 1;
     private int permiteComentarios = 1;
     private int comentariosObligatorios = 0;
+    private int comentariosAnonimos = 0;
     private int numProyAUX = 1;
     private int permiteAutoVotoAUX = 1;
     private int permiteComentariosAUX = 1;
     private int comentariosObligatoriosAUX = 0;
+    private int comentariosAnonimosAUX = 0;
     private DateTime inicioVotacion = DateTime.Now;
     private DateTime finVotacion = DateTime.Now.AddHours(1);
     private DateTime inicioEvento = DateTime.Now;
@@ -528,10 +538,12 @@
         permiteAutoVoto = votacion.PermiteAutoVoto ? 1 : 0;
         permiteComentarios = votacion.PermiteComentarios ? 1 : 0;
         comentariosObligatorios = votacion.ComentariosObligatorios ? 1 : 0;
+        comentariosAnonimos = votacion.ComentariosAnonimos ? 1 : 0;
         numProyAUX = NumProy;
         permiteAutoVotoAUX = permiteAutoVoto;
         permiteComentariosAUX = permiteComentarios;
         comentariosObligatoriosAUX = comentariosObligatorios;
+        comentariosAnonimosAUX = comentariosAnonimos;
         estadoVotacion = votacion.EstadoVotacion;
         verRes = votacion.VerRes ? 1 : 0;
 
@@ -646,7 +658,11 @@
         if ((permiteComentariosAUX != nuevoValor)) mensaje3 = "Atención, el cambio en permitir comentarios no es retroactivo";
         else mensaje3 = "";
         permiteComentarios = nuevoValor;
-        if (permiteComentarios == 0 && comentariosObligatorios == 1) cambioComentariosObligatorios(new ChangeEventArgs { Value = 0 });
+        if (permiteComentarios == 0)
+        {
+            if (comentariosObligatorios == 1) cambioComentariosObligatorios(new ChangeEventArgs { Value = 0 });
+            comentariosAnonimos = 0;
+        }
     }
     private void cambioComentariosObligatorios(ChangeEventArgs e)
     {
@@ -655,6 +671,13 @@
         if (comentariosObligatoriosAUX != nuevoValor) mensaje4 = "Atención, el cambio en la obligación o no a introducir comentarios no es retroactivo";
         else mensaje4 = "";
         comentariosObligatorios = nuevoValor;
+    }
+    private void cambioComentariosAnonimos(ChangeEventArgs e)
+    {
+        int nuevoValor = int.Parse(e.Value.ToString());
+        if (comentariosAnonimosAUX != nuevoValor) mensaje4 = "Atención, el cambio de anonimato de comentarios no es retroactivo para comentarios ya emitidos";
+        else mensaje4 = "";
+        comentariosAnonimos = nuevoValor;
     }
     void SeleccionarTipo(TipoVotacion tipo)
     {
@@ -826,7 +849,8 @@
                         Peso = c.Peso
                     }).ToList(),
                 PermiteComentarios = permiteComentarios == 1,
-                ComentariosObligatorios = comentariosObligatorios == 1
+                ComentariosObligatorios = comentariosObligatorios == 1,
+                ComentariosAnonimos = comentariosAnonimos == 1
             };
 
             var response = await Http.PutAsJsonAsync($"api/v1/votaciones/{id}", dto);

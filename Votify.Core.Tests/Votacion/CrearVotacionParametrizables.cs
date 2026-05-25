@@ -136,6 +136,7 @@ namespace Votify.Core.Tests.Votacion
                     true,
                     true,
                     true,
+                    false,
                     jurados,
                     EstadoVotacion.Abierta,
                     dtos
