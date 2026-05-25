@@ -819,9 +819,9 @@
             {
                 for (int j = 0; j<votaciones.Count; j++)
                 {
-                    if (j != i)
+                    if (j != i && VotacionesCompartenCategoria(votaciones[i].IdCategoriaVotacion, votaciones[j].IdCategoriaVotacion))
                     {
-                        franjaUsada = (votaciones[i].Inicio < votaciones[j].Fin && votaciones[i].Fin > votaciones[j].Inicio) || franjaUsada;
+                        franjaUsada = FechasSolapadas(votaciones[i].Inicio, votaciones[i].Fin, votaciones[j].Inicio, votaciones[j].Fin) || franjaUsada;
                     }
                 }
                 if (votaciones[i].Inicio.CompareTo(inicio) < 0 || votaciones[i].Fin.CompareTo(fin) > 0)
@@ -838,7 +838,7 @@
                 }
                 if (franjaUsada)
                 {
-                    mensaje = "No se permiten votaciones concurrentes en un mismo evento";
+                    mensaje = "No se permiten votaciones concurrentes para la misma categoría";
                     errorGuardado = true;
                     return;
                 }
@@ -1430,6 +1430,16 @@
         public int NumProy { get; set; } = 1;
         public Guid IdCategoriaVotacion { get; set; } = Guid.Empty;
     }
+    private static bool FechasSolapadas(DateTime inicioA, DateTime finA, DateTime inicioB, DateTime finB)
+    {
+        return inicioA < finB && finA > inicioB;
+    }
+
+    private static bool VotacionesCompartenCategoria(Guid categoriaA, Guid categoriaB)
+    {
+        return categoriaA == Guid.Empty || categoriaB == Guid.Empty || categoriaA == categoriaB;
+    }
+
     class CriterioCopiado
     {
         public string Nombre { get; set; } = "";

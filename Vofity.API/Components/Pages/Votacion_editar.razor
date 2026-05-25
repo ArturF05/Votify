@@ -717,17 +717,19 @@
 
             foreach (var vot in votaciones.Where(v => v.Id != votacion.Id && v.Id_evento == Id_evento))
             {
-                if (inicioVotacion.CompareTo(vot.FechaInicio) >= 0 && inicioVotacion.CompareTo(vot.FechaFin) <= 0)
+                if (VotacionesCompartenCategoria(idCategoriaVotacion, vot.Id_categoria_evento) &&
+                    FechasSolapadas(inicioVotacion, finVotacion, vot.FechaInicio.ToLocalTime(), vot.FechaFin.ToLocalTime()))
                 {
                     franjaUsada = true;
                     break;
                 }
 
-                if (
+                if (VotacionesCompartenCategoria(idCategoriaVotacion, vot.Id_categoria_evento) &&
+                    (
                     (tipoVotacion == TipoVotacion.Publico && vot is VotacionPublico) ||
                     (tipoVotacion == TipoVotacion.Jurado && vot is VotacionJurado) ||
                     (tipoVotacion == TipoVotacion.Mixto && vot is VotacionMixta)
-                )
+                    ))
                 {
                     tipoUsado = true;
                     break;
@@ -743,13 +745,13 @@
 
             if (franjaUsada)
             {
-                mensaje = "Hay una votación en esta franja de tiempo, no se permiten votaciones concurrentes";
+                mensaje = "Hay una votación en esta franja de tiempo para la misma categoría";
                 return;
             }
 
             if (tipoUsado)
             {
-                mensaje = "Ya hay una votación de este tipo registrada para este evento";
+                mensaje = "Ya hay una votación de este tipo registrada para esta categoría";
                 errorGuardado = true;
                 return;
             }
@@ -928,6 +930,19 @@
     private string NombreCategoria(Guid idCategoria)
     {
         return categoriasEvento.FirstOrDefault(c => c.Id == idCategoria)?.Nombre ?? "Sin categoría";
+    }
+
+    private static bool FechasSolapadas(DateTime inicioA, DateTime finA, DateTime inicioB, DateTime finB)
+    {
+        return inicioA < finB && finA > inicioB;
+    }
+
+    private static bool VotacionesCompartenCategoria(Guid categoriaNueva, Guid? categoriaExistente)
+    {
+        return categoriaNueva == Guid.Empty ||
+               !categoriaExistente.HasValue ||
+               categoriaExistente.Value == Guid.Empty ||
+               categoriaNueva == categoriaExistente.Value;
     }
 
     private void AnadirJurado(Usuario usuario)
