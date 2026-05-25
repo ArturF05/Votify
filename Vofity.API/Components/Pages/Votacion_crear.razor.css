@@ -421,7 +421,7 @@ h3 {
     cursor: not-allowed;
     pointer-events: none;
 }
-
+ 
 .boton-crear-evento {
     min-width: 190px;
     display: flex;
