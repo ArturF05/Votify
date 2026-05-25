@@ -56,8 +56,75 @@ namespace Votify.Infrastructure.Repositorios
         }
         public async Task EliminarEventoAsync(Evento evento)
         {
-            contexto.Remove(evento);
-            await contexto.SaveChangesAsync();
+            await using var transaction = await contexto.Database.BeginTransactionAsync();
+
+            var eventoId = evento.Id;
+            var idsCategorias = await contexto.CategoriaEvento
+                .Where(c => c.Id_evento == eventoId)
+                .Select(c => c.Id)
+                .ToListAsync();
+            var idsVotaciones = await contexto.Votacion
+                .Where(v => v.Id_evento == eventoId)
+                .Select(v => v.Id)
+                .ToListAsync();
+            var idsProyectos = await contexto.Proyecto
+                .Where(p => p.Id_evento == eventoId)
+                .Select(p => p.Id)
+                .ToListAsync();
+            var idsPremios = await contexto.Premio
+                .Where(p => idsCategorias.Contains(p.Id_categoria_evento))
+                .Select(p => p.Id)
+                .ToListAsync();
+            var idsCriterios = await contexto.DimensionesDeValor
+                .Where(d => idsVotaciones.Contains(d.Id_votacion) || idsCategorias.Contains(d.Id_categoria_evento))
+                .Select(d => d.Id)
+                .ToListAsync();
+            var idsVotos = await contexto.Voto
+                .Where(v =>
+                    idsVotaciones.Contains(v.Id_votacion) ||
+                    idsProyectos.Contains(v.Id_proyecto) ||
+                    (v.Id_categoria.HasValue && idsCategorias.Contains(v.Id_categoria.Value)))
+                .Select(v => v.Id)
+                .ToListAsync();
+
+            await contexto.VotoCriterio
+                .Where(vc => idsVotos.Contains(vc.Id_voto) || idsCriterios.Contains(vc.Id_criterio))
+                .ExecuteDeleteAsync();
+            await contexto.Voto
+                .Where(v => idsVotos.Contains(v.Id))
+                .ExecuteDeleteAsync();
+            await contexto.PremioVotacion
+                .Where(pv => idsPremios.Contains(pv.Id_premio) || idsVotaciones.Contains(pv.Id_votacion))
+                .ExecuteDeleteAsync();
+            await contexto.Premio
+                .Where(p => idsPremios.Contains(p.Id))
+                .ExecuteDeleteAsync();
+            await contexto.Material
+                .Where(m => idsProyectos.Contains(m.ProyectoId))
+                .ExecuteDeleteAsync();
+            await contexto.ProyectoParticipantes
+                .Where(pp => idsProyectos.Contains(pp.Id_proyecto))
+                .ExecuteDeleteAsync();
+            await contexto.Proyecto
+                .Where(p => idsProyectos.Contains(p.Id))
+                .ExecuteDeleteAsync();
+            await contexto.DimensionesDeValor
+                .Where(d => idsCriterios.Contains(d.Id))
+                .ExecuteDeleteAsync();
+            await contexto.Votacion
+                .Where(v => idsVotaciones.Contains(v.Id))
+                .ExecuteDeleteAsync();
+            await contexto.EventoUsuarioRol
+                .Where(eur => eur.EventoId == eventoId)
+                .ExecuteDeleteAsync();
+            await contexto.CategoriaEvento
+                .Where(c => idsCategorias.Contains(c.Id))
+                .ExecuteDeleteAsync();
+            await contexto.Evento
+                .Where(e => e.Id == eventoId)
+                .ExecuteDeleteAsync();
+
+            await transaction.CommitAsync();
         }
         public async Task ArchivoEventoAsync(Evento evento, bool archivar)
         {
