@@ -118,8 +118,8 @@ namespace Votify.Core.Tests.Votacion
                 }
             };
 
-            await votacionService.EditarVotacion(idVotacion, idEvento, null, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3, true, true, true, jurados, EstadoVotacion.Abierta);
-            await votacionService.EditarVotacion(idVotacion, idEvento, null, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3, true, true, true, jurados, EstadoVotacion.Abierta);
+            await votacionService.EditarVotacion(idVotacion, idEvento, null, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3, true, true, true, false, jurados, EstadoVotacion.Abierta);
+            await votacionService.EditarVotacion(idVotacion, idEvento, null, DateTime.Now, DateTime.Now.AddDays(1), true, TipoVotacion.Publico, dtos, 3, true, true, true, false, jurados, EstadoVotacion.Abierta);
 
             var resultados = await context.DimensionesDeValor.Where(d => d.Id_votacion == idVotacion).ToListAsync();
             Assert.AreEqual(2, resultados.Count);
