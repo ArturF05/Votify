@@ -165,7 +165,7 @@
         eventos = await contexto.Evento
             .AsNoTracking()
             .Include(e => e.Categoria)
-            .Where(e => contexto.EventoUsuarioRol
+            .Where(e => e.FechaInicio<=DateTime.UtcNow && e.FechaFin> DateTime.UtcNow && contexto.EventoUsuarioRol
                 .Include(eur => eur.Rol)
                 .Any(eur => eur.EventoId == e.Id
                          && eur.UsuarioId == idUsuario
