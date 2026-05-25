@@ -420,7 +420,7 @@ h3 {
     opacity: 0.7;
     cursor: not-allowed;
     pointer-events: none;
-}
+} 
  
 .boton-crear-evento {
     min-width: 190px;
