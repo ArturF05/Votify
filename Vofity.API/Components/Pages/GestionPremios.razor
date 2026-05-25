@@ -150,62 +150,68 @@
                                 </div>
                             </div>
 
-                                <div class="form-grid">
-                                    <label>
-                                        Nombre del premio
-                                        <input value="@premio.Nombre"
-                                               maxlength="20"
-                                               @oninput='e => premio.Nombre = e.Value?.ToString()?.Length > 20 ? e.Value.ToString()[..20] : e.Value?.ToString() ?? ""'
-                                               placeholder="Ej. Mejor diseno" />
-                                        <span class="contador">@(premio.Nombre?.Length ?? 0) / 20</span>
-                                    </label>
+                            <div class="premio-content">
+                                <div class="premio-main">
+                                    <div class="form-grid">
+                                        <label>
+                                            Nombre del premio
+                                            <input value="@premio.Nombre"
+                                                   maxlength="20"
+                                                   @oninput='e => premio.Nombre = e.Value?.ToString()?.Length > 20 ? e.Value.ToString()[..20] : e.Value?.ToString() ?? ""'
+                                                   placeholder="Ej. Mejor diseno" />
+                                            <span class="contador">@(premio.Nombre?.Length ?? 0) / 20</span>
+                                        </label>
 
-                                    <label>
-                                        Puesto premiado
-                                        <select @bind="premio.Puesto">
-                                            @foreach (var puesto in ObtenerPuestosDisponibles(premio))
-                                            {
-                                                <option value="@puesto">@FormatearPuesto(puesto)</option>
-                                            }
-                                        </select>
-                                    </label>
+                                        <label>
+                                            Puesto premiado
+                                            <select @bind="premio.Puesto">
+                                                @foreach (var puesto in ObtenerPuestosDisponibles(premio))
+                                                {
+                                                    <option value="@puesto">@FormatearPuesto(puesto)</option>
+                                                }
+                                            </select>
+                                        </label>
 
-                                    <label class="campo-descripcion">
-                                        Descripcion
-                                        <textarea rows="3" placeholder="Que reconoce este premio" maxlength="100"
-                                        value="@premio.Descripcion"
-                                        @oninput='e => premio.Descripcion = e.Value?.ToString()?.Length > 100 ? e.Value.ToString()[..100] : e.Value?.ToString() ?? "" '></textarea>
-                                    <span class="contador">@(premio.Descripcion?.Length ?? 0) / 100</span>
-                                    </label>
-                                </div>
-
-                                <div class="votaciones-panel">
-                                    <div class="votaciones-header">
-                                        <strong>Votaciones vinculadas</strong>
-                                        <span>@premio.IdsVotaciones.Count seleccionada(s)</span>
+                                        <label class="campo-descripcion">
+                                            Descripcion
+                                            <textarea rows="3" placeholder="Que reconoce este premio" maxlength="100"
+                                            value="@premio.Descripcion"
+                                            @oninput='e => premio.Descripcion = e.Value?.ToString()?.Length > 100 ? e.Value.ToString()[..100] : e.Value?.ToString() ?? "" '></textarea>
+                                        <span class="contador">@(premio.Descripcion?.Length ?? 0) / 100</span>
+                                        </label>
                                     </div>
 
-                                    @if (!votacionesCompatibles.Any())
-                                    {
-                                        <p class="texto-muted">No hay votaciones compatibles para esta categoria.</p>
-                                    }
-                                    else
-                                    {
-                                        <div class="votaciones-lista">
-                                            @foreach (var votacion in votacionesCompatibles)
-                                            {
-                                                <label class="votacion-check">
-                                                    <input type="checkbox"
-                                                   checked="@premio.IdsVotaciones.Contains(votacion.Id)"
-                                                   @onchange="(e) => CambiarVinculoPremio(premio.IdFormulario, votacion.Id, e)" />
-                                                    <span>@ObtenerEtiquetaVotacion(votacion)</span>
-                                                </label>
-                                            }
+                                    <div class="votaciones-panel">
+                                        <div class="votaciones-header">
+                                            <strong>Votaciones vinculadas</strong>
+                                            <span>@premio.IdsVotaciones.Count seleccionada(s)</span>
                                         </div>
-                                    }
+
+                                        @if (!votacionesCompatibles.Any())
+                                        {
+                                            <p class="texto-muted">No hay votaciones compatibles para esta categoria.</p>
+                                        }
+                                        else
+                                        {
+                                            <div class="votaciones-lista">
+                                                @foreach (var votacion in votacionesCompatibles)
+                                                {
+                                                    <label class="votacion-check">
+                                                        <input type="checkbox"
+                                                       checked="@premio.IdsVotaciones.Contains(votacion.Id)"
+                                                       @onchange="(e) => CambiarVinculoPremio(premio.IdFormulario, votacion.Id, e)" />
+                                                        <span>@ObtenerEtiquetaVotacion(votacion)</span>
+                                                    </label>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
 
-                                <button type="button" class="boton-peligro" @onclick="() => QuitarPremio(premio.IdFormulario)">Quitar premio</button>
+                                <div class="premio-actions">
+                                    <button type="button" class="boton-peligro" @onclick="() => QuitarPremio(premio.IdFormulario)">Quitar premio</button>
+                                </div>
+                            </div>
                         </article>
                     }
                 </section>

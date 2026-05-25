@@ -250,6 +250,19 @@
     min-width: 0;
 }
 
+.premio-main {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+
+.premio-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
 .premio-topline {
     display: flex;
     justify-content: space-between;
@@ -311,6 +324,7 @@
     border-radius: 8px;
     padding: 10px 12px;
     background: #fbfcfe;
+    min-width: 0;
 }
 
 .votaciones-header {
@@ -351,6 +365,8 @@
     align-items: start;
     color: #344054;
     font-size: 0.9rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
 }
 
 .votacion-check input {
@@ -391,9 +407,11 @@
 
 .boton-peligro {
     width: fit-content;
+    min-height: 36px;
     background: #fff1f2;
     color: #be123c;
     border: 1px solid #fecdd3;
+    padding-inline: 14px;
 }
 
 .boton-peligro:hover {
@@ -468,6 +486,14 @@
 
     .form-grid {
         grid-template-columns: 1fr;
+    }
+
+    .premio-actions {
+        justify-content: stretch;
+    }
+
+    .boton-peligro {
+        width: 100%;
     }
 
     .campo-descripcion {
