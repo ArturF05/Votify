@@ -128,6 +128,7 @@
 @code {
     List<Votify.Core.Entities.Evento> eventos = new();
     List<Votify.Core.Entities.CategoriaEvento> categoriasEvento = new();
+    List<Votify.Core.Entities.Proyecto> proyectos = new();
     private CrearProyectoDto modelo = new();
     private string mensaje = "";
     private bool creado = false;
@@ -170,7 +171,8 @@
                          && eur.UsuarioId == idUsuario
                          && eur.Rol.Nombre != "Organizador"))
             .ToListAsync();
-   
+        proyectos = await contexto.Proyecto.AsNoTracking().ToListAsync();
+
     }
 
     private async Task CrearProyecto()
@@ -183,6 +185,12 @@
             if (modelo.IdCategoriaEvento == null || modelo.IdCategoriaEvento == Guid.Empty)
             {
                 mensaje = "Debes seleccionar una categoría para el proyecto";
+                creado = false;
+                return;
+            }
+            if (proyectos.Where(p => p.Id_evento == modelo.IdEvento && p.Id_creador == idUsuario && p.Id_categoria_evento == modelo.IdCategoriaEvento).Any())
+            {
+                mensaje = "Ya has creado un proyecto para este evento en la categoría seleccionada";
                 creado = false;
                 return;
             }
@@ -202,6 +210,7 @@
                 creado = true;
                 modelo = new CrearProyectoDto();
                 categoriasEvento.Clear();
+                nav.NavigateTo("/MisProyectos");
             }
             else
             {
