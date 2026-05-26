@@ -40,6 +40,11 @@
             </div>
 
             <div class="form-group">
+                <label for="email" class="usu-contra-titulo">Correo electrónico (opcional)</label>
+                <input id="email" type="email" @bind="modelo.Email" placeholder="Para recibir notificaciones" class="form-input" />
+            </div>
+
+            <div class="form-group">
                 <label for="password" class="usu-contra-titulo">Contraseña</label>
                 <input id="password" type="password"
                        maxlength="50"
@@ -48,11 +53,6 @@
                        placeholder="Crea una contraseña"
                        class="form-input" />
                 <span class="contador">@(modelo.Password?.Length ?? 0) / 50</span>
-            </div>
-
-            <div class="form-group">
-                <label for="email" class="usu-contra-titulo">Correo electrónico (opcional)</label>
-                <input id="email" type="email" @bind="modelo.Email" placeholder="Para recibir notificaciones" class="form-input" />
             </div>
 
             <div class="form-group">
