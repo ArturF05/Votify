@@ -84,7 +84,14 @@
           <div class="estadistica-content">
             <div>
               <p class="estadistica-label">Votos Emitidos</p>
-                <p class="estadistica-value">@numVotos</p>
+                    @if (numVotos != null)
+                    {
+                        <p class="estadistica-value">@numVotos</p>
+                    }
+                    else
+                    {
+                        <p class="estadistica-value">—</p>
+                    }
             </div>
             <div class="estadistica-icono violet">
               <img src="/Votos.png" />
@@ -403,7 +410,7 @@
     private int? numEventos;
     private int? numProyectos;
     private int? numParticipantes;
-    private int numVotos = 0;
+    private int? numVotos;
     private List<Votify.Core.Entities.Evento> eventos = new();
     private List<Votify.Core.Entities.Votacion> votaciones = new()!;
     private Dictionary<Guid, int> numVotosEvento = new(); 
