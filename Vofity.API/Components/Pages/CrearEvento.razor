@@ -336,7 +336,7 @@
                 </div>
                 <div class="campo campo-columna">
                     <label>Permitir comentarios*</label>
-                    <select @onchange="(e)=> cambioPermiteComentarios(e,i)">
+                    <select value="@votaciones[i].PermiteComentarios" @onchange="(e) => cambioPermiteComentarios(e, i)">
                         <option value="1">Sí</option>
                         <option value="0">No</option>
                     </select>
@@ -646,7 +646,13 @@
         votaciones[i].Tipo = plantilla.Tipo;
         votaciones[i].PermiteAutoVoto = plantilla.PermiteAutoVoto;
         votaciones[i].VerRes = plantilla.VerRes;
-        votaciones[i].PermiteComentarios = plantilla.PermiteComentarios;
+        cambioPermiteComentarios(
+            new ChangeEventArgs
+            {
+                Value = plantilla.PermiteComentarios.ToString()
+            },
+            i
+        );
         votaciones[i].ComentariosObligatorios = plantilla.ComentariosObligatorios;
         votaciones[i].NumProy = plantilla.NumProy;
         plantillasAbierto = null;

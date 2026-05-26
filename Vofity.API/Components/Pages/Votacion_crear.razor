@@ -121,7 +121,7 @@
         </div>
         <div class="campo campo-columna">
             <label>Permitir comentarios*</label>
-            <select @onchange="(e) => cambioPermiteComentarios(e)">
+            <select value="@permiteComentarios" @onchange="(e) => cambioPermiteComentarios(e)">
                 <option value="1">Sí</option>
                 <option value="0">No</option>
             </select>
@@ -885,7 +885,12 @@
         tipoVotacion = p.Tipo;
         permiteAutoVoto = p.PermiteAutoVoto;
         verRes = p.VerRes;
-        permiteComentarios = p.PermiteComentarios;
+        cambioPermiteComentarios(
+            new ChangeEventArgs
+            {
+                Value = p.PermiteComentarios.ToString()
+            }
+        );
         comentariosObligatorios = p.ComentariosObligatorios;
         numProy = p.NumProy;
         plantillasVotacionAbierto = false;
