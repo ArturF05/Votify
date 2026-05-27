@@ -8,6 +8,7 @@ using Votify.Core.Entities;
 using Votify.Core.Interfaces;
 using Votify.Core.Factories;
 using Votify.Core.Observer;
+using Votify.Core.State;
 
 namespace Votify.Core.Services
 {
@@ -20,6 +21,7 @@ namespace Votify.Core.Services
         private readonly IEventoUsuarioRolRepository eventoUsuarioRolRepository;
         private readonly IDimensionRepository dimensionRepository;
         private readonly VotacionFactory votacionFactory;
+        private readonly EstadoVotacionFactory estadoVotacionFactory;
         private readonly IEmailSender emailSender;
 
         private const decimal PUNTUACION_DEFECTO = 1m;
@@ -35,6 +37,7 @@ namespace Votify.Core.Services
             this.eventoUsuarioRolRepository = eventoUsuarioRolRepository;
             this.emailSender = emailSender;
             this.votacionFactory = new ConcreteVotacionFactory();
+            this.estadoVotacionFactory = new EstadoVotacionFactory();
         }
 
         public async Task<bool> YaVotoAsync(Guid idVotacion, Guid idVotante)
@@ -58,8 +61,8 @@ namespace Votify.Core.Services
             if (votacion == null)
                 throw new Exception("La votación no existe.");
             var ahoraUtc = DateTime.UtcNow;
-            if (ahoraUtc < votacion.FechaInicio || ahoraUtc > votacion.FechaFin)
-                throw new Exception("La votación no está activa.");
+            var estado = estadoVotacionFactory.Crear(votacion.EstadoVotacion);
+            estado.ValidarPuedeVotar(votacion, ahoraUtc);
             int numProy = votacion.NumProy;
 
             if (dto.Votos == null || dto.Votos.Count == 0)
