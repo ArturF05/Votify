@@ -29,5 +29,5 @@ namespace Votify.Core.Factories
             votacion.Id = id;
             return votacion;
         }
-    }
+    } 
 }
