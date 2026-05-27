@@ -7,7 +7,7 @@ namespace Votify.Core.State
         public void ValidarPuedeVotar(Votacion votacion, DateTime ahoraUtc)
         {
             if (ahoraUtc < votacion.FechaInicio || ahoraUtc > votacion.FechaFin)
-                throw new Exception("La votación no está activa por fecha.");
+                throw new Exception("La votacion no esta activa por fecha.");
         }
     }
 }

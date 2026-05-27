@@ -12,7 +12,7 @@ namespace Votify.Core.State
                 EstadoVotacion.Cerrada => new EstadoCerrada(),
                 EstadoVotacion.Pausada => new EstadoPausada(),
                 EstadoVotacion.Finalizada => new EstadoFinalizada(),
-                _ => throw new Exception("Estado de votación no reconocido")
+                _ => throw new Exception("Estado de votacion no reconocido")
             };
         }
     }

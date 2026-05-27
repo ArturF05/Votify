@@ -6,7 +6,7 @@ namespace Votify.Core.State
     {
         public void ValidarPuedeVotar(Votacion votacion, DateTime ahoraUtc)
         {
-            throw new Exception("La votación está pausada temporalmente.");
+            throw new Exception("La votacion esta pausada temporalmente.");
         }
     }
 }
