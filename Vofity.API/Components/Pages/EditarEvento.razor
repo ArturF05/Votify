@@ -4,6 +4,7 @@
 @using System.Net.Http.Json
 @using Votify.Core.Entities
 @using Votify.Core.Services
+@using Votify.Core.Interfaces
 @using Votify.Infrastructure.Data
 @using Votify.API.DTOs
 @using EventoEntidad = Votify.Core.Entities.Evento
@@ -11,7 +12,7 @@
 @inject AppDbContext contexto
 @inject IJSRuntime JS
 @inject HttpClient Http
-@inject AzureStorageService azureStorageService
+@inject IAzureStorage azureStorage
 <PageTitle>Editar evento - Votify </PageTitle>
 <div class="editar-evento-page">
     <div class="page-header">
@@ -323,7 +324,7 @@
 
             if (response.IsSuccessStatusCode)
             {
-                await azureStorageService.EliminarArchivoAsync(evento.ImagenUrl);
+                await azureStorage.EliminarArchivoAsync(evento.ImagenUrl);
                 await JS.InvokeVoidAsync("history.back");
             }
             else
@@ -448,7 +449,7 @@
 
                 if (imagenBytes != null && teniaImagen && !string.IsNullOrWhiteSpace(imagenAnterior))
                 {
-                    await azureStorageService.EliminarArchivoAsync(imagenAnterior);
+                    await azureStorage.EliminarArchivoAsync(imagenAnterior);
                 }
                 await JS.InvokeVoidAsync("history.back");
             }

@@ -17,14 +17,17 @@ namespace Votify.Core.Services
             if (contenidoArchivo == null || contenidoArchivo.Length == 0)
                 throw new Exception("Archivo vacío");
 
+            if (string.IsNullOrWhiteSpace(nombreArchivo))
+                throw new Exception("Nombre de archivo no válido");
+
             var extensionesPermitidas = new[]
             {
                 ".jpg", ".jpeg", ".png", ".txt", ".pdf", ".doc", ".docx", ".zip", ".pptx", ".ppt"
             };
 
-            var ext = Path.GetExtension(nombreArchivo).ToLower();
+            var ext = Path.GetExtension(nombreArchivo).ToLowerInvariant();
 
-            if (!extensionesPermitidas.Contains(ext))
+            if (string.IsNullOrWhiteSpace(ext) || !extensionesPermitidas.Contains(ext))
                 throw new Exception("Tipo de archivo no permitido");
 
             //delega al real
