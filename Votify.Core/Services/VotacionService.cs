@@ -98,8 +98,8 @@ namespace Votify.Core.Services
             bool esPropio = proyectos.Any(p =>
                 p.ProyectoParticipantes.Any(pp => pp.Id_usuario == dto.IdVotante));
 
-            bool autoVotoBloqueado = !votacion.PermiteAutoVoto && esPropio;
-            if (autoVotoBloqueado)
+            
+            if (!votacion.PermiteAutoVoto && esPropio)
                 throw new Exception("No se permite el autovoto en esta votación.");
 
             return proyectos;

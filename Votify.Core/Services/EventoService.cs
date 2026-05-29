@@ -18,6 +18,8 @@ namespace Votify.Core.Services
         private Votify.Core.Entities.Votacion aux3 = new Votify.Core.Entities.Votacion();*/
         private readonly IEventoRepository eventoRepository;
         private readonly EventoFactory eventoFactory = new ConcreteEventFactory();
+
+        private const decimal PORCENTAJE_TOTAL = 100m;
         public EventoService(IEventoRepository eventoRepository)
         {
             this.eventoRepository = eventoRepository;
@@ -399,7 +401,7 @@ namespace Votify.Core.Services
                 if (notas != null && notas.Any())
                 {
                     var media = notas.Average();
-                    total += (decimal)media * (criterio.Peso / 100m);
+                    total += (decimal)media * (criterio.Peso / PORCENTAJE_TOTAL);
                 }
             }
 

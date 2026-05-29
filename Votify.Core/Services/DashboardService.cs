@@ -15,6 +15,7 @@ namespace Votify.Core.Services
         private readonly IProyectoRepository _proyectoRepo;
         private readonly IDimensionRepository _dimensionRepo;
 
+        private const decimal PORCENTAJE_TOTAL = 100m;
         public DashboardService(
             IEventoRepository eventoRepo,
             IVotacionRepository votacionRepo,
@@ -116,7 +117,7 @@ namespace Votify.Core.Services
                             .SelectMany(v => v.VotosCriterio)
                             .Where(vc => vc.Id_criterio == dim.CriterioId)
                             .Average(vc => vc.Nota));
-                        total += avg * (dim.Peso / 100m);
+                        total += avg * (dim.Peso / PORCENTAJE_TOTAL);
                     }
                 }
 

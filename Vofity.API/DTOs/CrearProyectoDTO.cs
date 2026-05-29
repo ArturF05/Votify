@@ -11,8 +11,10 @@ namespace Votify.Core.DTOs
 {
     public class CrearProyectoDto
     {
-        [Required(ErrorMessage = "El título es obligatorio")] 
-        [MaxLength(50, ErrorMessage = "El título no puede superar 50 caracteres")]
+        [Required(ErrorMessage = "El título es obligatorio")]
+
+        private const int LONGITUD_MAXIMA_TITULO = 50;
+        [MaxLength(LONGITUD_MAXIMA_TITULO, ErrorMessage = "El título no puede superar 50 caracteres")]
 
         [JsonPropertyName("titulo")] 
         public string Titulo { get; set; } = "";
