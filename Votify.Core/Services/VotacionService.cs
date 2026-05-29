@@ -224,11 +224,6 @@ namespace Votify.Core.Services
                 throw new Exception("La categoría de la votación no pertenece al evento");
             (comentariosObligatorios, comentariosAnonimos) = NormalizarOpcionesComentarios(
                 permiteComentarios, comentariosObligatorios, comentariosAnonimos);
-            if (permiteComentarios == false)
-            {
-                comentariosObligatorios = false;
-                comentariosAnonimos = false;
-            }
             var nuevaVotacion = votacionFactory.CrearVotacion(inicioVotacion, finVotacion, permiteAutoVoto,Id_evento,tipoVotacion,NumProy, permiteComentarios, comentariosObligatorios, comentariosAnonimos, verRes,estadoVotacion);
             nuevaVotacion.Id_categoria_evento = idCategoriaEvento == Guid.Empty ? null : idCategoriaEvento;
 
