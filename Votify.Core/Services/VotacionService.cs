@@ -48,8 +48,14 @@ namespace Votify.Core.Services
         {
             return await votacionRepository.ObtenerPorVotacionYUsuarioAsync(votacionId, usuarioId);
         }
-
         public async Task<bool> RegistrarVotoAsync(Guid idVotacion, EmitirVotoDTO dto)
+        {
+            Votacion votacion = await ValidarVotacionYDtoAsync(idVotacion, dto);
+            List<Proyecto> proyectos = await ValidarProyectosAsync(votacion, dto);
+            await ValidarPermisosVotante(votacion, dto);
+            return await ConstruirVotosAsync(idVotacion, votacion, dto, proyectos);
+        }
+        private async Task<Votacion> ValidarVotacionYDtoAsync(Guid idVotacion, EmitirVotoDTO dto)
         {
             if (dto == null)
                 throw new Exception("El DTO del voto es nulo.");
@@ -60,42 +66,47 @@ namespace Votify.Core.Services
             var votacion = await votacionRepository.ObtenerPorIdAsync(idVotacion);
             if (votacion == null)
                 throw new Exception("La votación no existe.");
+
             var ahoraUtc = DateTime.UtcNow;
-            var estado = estadoVotacionFactory.Crear(votacion.EstadoVotacion);
-            estado.ValidarPuedeVotar(votacion, ahoraUtc);
-            int numProy = votacion.NumProy;
+            if (ahoraUtc < votacion.FechaInicio || ahoraUtc > votacion.FechaFin)
+                throw new Exception("La votación no está activa.");
 
+            return votacion;
+        }
+        private async Task<List<Proyecto>> ValidarProyectosAsync(Votacion votacion, EmitirVotoDTO dto)
+        {
             if (dto.Votos == null || dto.Votos.Count == 0)
-                throw new Exception($"Debes votar hasta {numProy} proyectos.");
+                throw new Exception($"Debes votar hasta {votacion.NumProy} proyectos.");
+
             var idsProyectos = dto.Votos.Select(v => v.IdProyecto).ToList();
-
-            var proyectos = await proyectoRepository.ObtenerPorIdAsync(idsProyectos);
-
-            bool esPropio = proyectos.Any(p =>
-    p.ProyectoParticipantes.Any(pp => pp.Id_usuario == dto.IdVotante)
-);
-            if (!votacion.PermiteAutoVoto && esPropio)
-                throw new Exception("No se permite el autovoto en esta votación.");
-            if (dto.Votos.Count > numProy)
-                throw new Exception("No puedes votar más proyectos que el máximo permitido.");
-
 
             if (idsProyectos.Distinct().Count() != idsProyectos.Count)
                 throw new Exception("No puedes votar dos veces al mismo proyecto.");
 
+            if (dto.Votos.Count > votacion.NumProy)
+                throw new Exception("No puedes votar más proyectos que el máximo permitido.");
 
-
+            var proyectos = await proyectoRepository.ObtenerPorIdAsync(idsProyectos);
 
             if (proyectos.Count != idsProyectos.Count)
-                throw new Exception($"No se han encontrado los {numProy} proyectos que debías votar.");
+                throw new Exception($"No se han encontrado los {votacion.NumProy} proyectos que debías votar.");
 
             if (proyectos.Any(p => p.Id_evento != votacion.Id_evento))
                 throw new Exception("Algún proyecto no pertenece al evento.");
 
+            bool esPropio = proyectos.Any(p =>
+                p.ProyectoParticipantes.Any(pp => pp.Id_usuario == dto.IdVotante));
 
-            Usuario usuario = await usuarioRepository.ObtenerPorIdAsync(dto.IdVotante);
-            string? rolUsuario = usuario.Rol.Nombre;
-            List<EventoUsuarioRol> eur = await eventoUsuarioRolRepository.ObtenerPorEventoYUsuario(dto.IdEvento, dto.IdVotante);
+            bool autoVotoBloqueado = !votacion.PermiteAutoVoto && esPropio;
+            if (autoVotoBloqueado)
+                throw new Exception("No se permite el autovoto en esta votación.");
+
+            return proyectos;
+        }
+        private async Task ValidarPermisosVotante(Votacion votacion, EmitirVotoDTO dto)
+        {
+            var usuario = await usuarioRepository.ObtenerPorIdAsync(dto.IdVotante);
+            var eur = await eventoUsuarioRolRepository.ObtenerPorEventoYUsuario(dto.IdEvento, dto.IdVotante);
 
             bool esPublico = usuario.Rol.Nombre == "Publico" ||
                 eur.Any(e => e.Rol.Nombre == "Publico" || e.Rol.Nombre == "Participante");
@@ -110,7 +121,13 @@ namespace Votify.Core.Services
 
             if (votacion is VotacionMixta && !esPublico && !esJuradoAsignado)
                 throw new Exception("Solo usuarios públicos, participantes o jurado asignado pueden votar en este evento.");
-
+        }
+        public async Task<bool> ConstruirVotosAsync(Guid idVotacion,Votacion votacion,EmitirVotoDTO dto,List<Proyecto> proyectos)
+        {
+            var ahoraUtc = DateTime.UtcNow;
+            var estado = estadoVotacionFactory.Crear(votacion.EstadoVotacion);
+            estado.ValidarPuedeVotar(votacion, ahoraUtc);
+            int numProy = votacion.NumProy;
             var votos = new List<Voto>();
             foreach (var v in dto.Votos)
             {
@@ -160,7 +177,9 @@ namespace Votify.Core.Services
 
                         if (puntuacion == null)
                             throw new Exception("Falta la puntuación de algún criterio.");
-                        if (votacion.PermiteComentarios && votacion.ComentariosObligatorios && (string.IsNullOrEmpty(puntuacion.Comentario) || string.IsNullOrWhiteSpace(puntuacion.Comentario)))
+                        bool comentarioEsObligatorio = votacion.PermiteComentarios && votacion.ComentariosObligatorios;
+                        bool comentarioFaltante = string.IsNullOrWhiteSpace(puntuacion.Comentario);
+                        if (comentarioEsObligatorio && comentarioFaltante)
                             throw new Exception("En esta votación, es obligatorio incluir un comentario por cada criterio en cada voto");
                         puntuacionTotal += puntuacion.Nota * (criterio.Peso / PORCENTAJE_TOTAL);
                         voto.VotosCriterio.Add(new VotoCriterio
@@ -203,6 +222,8 @@ namespace Votify.Core.Services
             if (idCategoriaEvento.HasValue && idCategoriaEvento.Value != Guid.Empty &&
                 !await dimensionRepository.CategoriaEventoPerteneceAlEventoAsync(idCategoriaEvento.Value, Id_evento))
                 throw new Exception("La categoría de la votación no pertenece al evento");
+            (comentariosObligatorios, comentariosAnonimos) = NormalizarOpcionesComentarios(
+                permiteComentarios, comentariosObligatorios, comentariosAnonimos);
             if (permiteComentarios == false)
             {
                 comentariosObligatorios = false;
@@ -290,11 +311,8 @@ namespace Votify.Core.Services
 
             if (finVotacion < inicioVotacion)
                 throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio");
-            if (!permiteComentarios)
-            {
-                comentariosObligatorios = false;
-                comentariosAnonimos = false;
-            }
+            (comentariosObligatorios, comentariosAnonimos) = NormalizarOpcionesComentarios(
+                permiteComentarios, comentariosObligatorios, comentariosAnonimos);
             if (votacionActual.Tipo == tipoVotacion)
             {
                 votacionActual.Id_evento = Id_evento;
@@ -420,7 +438,13 @@ namespace Votify.Core.Services
                 catch { /* notificación no crítica */ }
             }
         }
+        private static (bool obligatorios, bool anonimos) NormalizarOpcionesComentarios(bool permiteComentarios, bool comentariosObligatorios, bool comentariosAnonimos)
+        {
+            if (!permiteComentarios)
+                return (false, false);
 
+            return (comentariosObligatorios, comentariosAnonimos);
+        }
         public async Task EliminarVotacion(Guid Id)
         {
             var votacion = await votacionRepository.ObtenerPorIdAsync(Id);
