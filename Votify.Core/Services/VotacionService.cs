@@ -109,8 +109,6 @@ namespace Votify.Core.Services
             var usuario = await usuarioRepository.ObtenerPorIdAsync(dto.IdVotante);
             var eur = await eventoUsuarioRolRepository.ObtenerPorEventoYUsuario(dto.IdEvento, dto.IdVotante);
 
-            bool esPublico = usuario.Rol.Nombre == "Publico" ||
-                eur.Any(e => e.Rol.Nombre == "Publico" || e.Rol.Nombre == "Participante");
             IVotacionStrategy estrategia;
 
             if (votacion is VotacionPublico)
@@ -122,8 +120,7 @@ namespace Votify.Core.Services
             else
                 throw new Exception("Tipo de votación no soportado.");
 
-            if (votacion is VotacionMixta && !esPublico && !esJuradoAsignado)
-                throw new Exception("Solo usuarios públicos, participantes o jurado asignado pueden votar en este evento.");
+            estrategia.ValidarPermisoVoto(usuario, eur);
         }
         public async Task<bool> ConstruirVotosAsync(Guid idVotacion,Votacion votacion,EmitirVotoDTO dto,List<Proyecto> proyectos)
         {
@@ -131,7 +128,6 @@ namespace Votify.Core.Services
             var estado = estadoVotacionFactory.Crear(votacion.EstadoVotacion);
             estado.ValidarPuedeVotar(votacion, ahoraUtc);
             int numProy = votacion.NumProy;
-            estrategia.ValidarPermisoVoto(usuario, eur);
 
             var votos = new List<Voto>();
             foreach (var v in dto.Votos)
@@ -287,7 +283,6 @@ namespace Votify.Core.Services
             var notificador = new EventoNotificador();
             foreach (var usuario in usuarios)
                 notificador.suscribir(new EmailObserver(usuario.Email!, emailSender));
-
             await notificador.notificarAsync(
                 "¡Nueva votación abierta!",
                 "Se ha abierto una nueva votación en un evento en el que participas. Entra en Votify para votar.");
