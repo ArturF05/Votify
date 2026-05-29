@@ -9,6 +9,7 @@ using Votify.Core.Interfaces;
 using Votify.Core.Factories;
 using Votify.Core.Observer;
 using Votify.Core.State;
+using Votify.Core.Strategies;
 
 namespace Votify.Core.Services
 {
@@ -110,14 +111,16 @@ namespace Votify.Core.Services
 
             bool esPublico = usuario.Rol.Nombre == "Publico" ||
                 eur.Any(e => e.Rol.Nombre == "Publico" || e.Rol.Nombre == "Participante");
+            IVotacionStrategy estrategia;
 
-            bool esJuradoAsignado = eur.Any(e => e.Rol.Nombre == "Jurado");
-
-            if (votacion is VotacionPublico && !esPublico)
-                throw new Exception("Solo usuarios públicos pueden votar en este evento.");
-
-            if (votacion is VotacionJurado && !esJuradoAsignado)
-                throw new Exception("Solo el jurado asignado puede votar.");
+            if (votacion is VotacionPublico)
+                estrategia = new VotacionPublicoStrategy();
+            else if (votacion is VotacionJurado)
+                estrategia = new VotacionJuradoStrategy();
+            else if (votacion is VotacionMixta)
+                estrategia = new VotacionMixtaStrategy();
+            else
+                throw new Exception("Tipo de votación no soportado.");
 
             if (votacion is VotacionMixta && !esPublico && !esJuradoAsignado)
                 throw new Exception("Solo usuarios públicos, participantes o jurado asignado pueden votar en este evento.");
@@ -128,6 +131,8 @@ namespace Votify.Core.Services
             var estado = estadoVotacionFactory.Crear(votacion.EstadoVotacion);
             estado.ValidarPuedeVotar(votacion, ahoraUtc);
             int numProy = votacion.NumProy;
+            estrategia.ValidarPermisoVoto(usuario, eur);
+
             var votos = new List<Voto>();
             foreach (var v in dto.Votos)
             {
